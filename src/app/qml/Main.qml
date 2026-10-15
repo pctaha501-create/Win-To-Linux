@@ -5,7 +5,7 @@ ApplicationWindow {
  id: win; visible: true; width: 1120; height: 720; minimumWidth: 820; minimumHeight: 560
  title: "Win-To-Linux"; color: light ? "#f1f4f8" : "#10141b"
  property int page: 0
- property bool light: false
+ property bool light: systemInfo.lightAppearance
  property string search: ""
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
@@ -117,7 +117,7 @@ ApplicationWindow {
     }
     ColumnLayout { Layout.alignment: Qt.AlignTop; spacing: 12
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 90; radius: 12; color: win.panel; border.color: win.borderColor
-      RowLayout { anchors.fill: parent; anchors.margins: 17; ColumnLayout { Layout.fillWidth: true; Label { text: "Light appearance"; color: win.fg; font.bold: true } Label { text: "Switch the shell's colors."; color: win.muted; font.pixelSize: 11 } } Switch { checked: win.light; onToggled: win.light=checked } }
+      RowLayout { anchors.fill: parent; anchors.margins: 17; ColumnLayout { Layout.fillWidth: true; Label { text: "Light appearance"; color: win.fg; font.bold: true } Label { text: "Switch and save the shell appearance."; color: win.muted; font.pixelSize: 11 } } Switch { checked: systemInfo.lightAppearance; onToggled: systemInfo.lightAppearance=checked } }
      }
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 105; radius: 12; color: win.panel; border.color: win.borderColor
       ColumnLayout { anchors.fill: parent; anchors.margins: 17; spacing: 5; Label { text: "About Win-To-Linux"; color: win.fg; font.bold: true } Label { text: "Version 0.2.0 · C++20 · Qt 6"; color: win.muted } Label { text: "Runs inside the current desktop; it is not a replacement login session."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true } }
