@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Win-To-Linux
+GenericName=Linux Desktop Workspace
+Comment=A Windows-inspired workspace for your existing Linux desktop
+Exec=win-to-linux
+Icon=computer
+Terminal=false
+Categories=System;Utility;
+StartupNotify=true

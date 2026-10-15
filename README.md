@@ -13,16 +13,18 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Persistent light/dark preference.
 - procfs process list; confirmed SIGTERM requests limited to same-user processes with PID start-time revalidation.
 - Wine/Bottles detection; confirmed launch of selected .exe/.msi files through Wine if Wine exists.
-- C++ unit tests, a headless QML smoke-test target, and GitHub Actions CI.
+- Per-user install/uninstall scripts and a desktop launcher.
+- C++ unit tests, a headless QML smoke-test target, install-staging checks, and GitHub Actions CI.
 
-## Ubuntu 24.04 build
-    sudo apt update
-    sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-    cmake --build build --parallel 2
-    ctest --test-dir build --output-on-failure
-    ./build/src/app/win-to-linux --system
-    ./build/src/app/win-to-linux
+## Build and test on Ubuntu 24.04
+Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run ./scripts/build.sh.
+
+## Install for the current user
+    ./scripts/install-user.sh
+    ~/.local/bin/win-to-linux
+
+## Uninstall
+    ./scripts/uninstall-user.sh
 
 ## Safety
 - Unknown distributions stay unknown; no default-to-apt behavior.
@@ -32,5 +34,6 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Windows installers/programs are never auto-installed; Wine must already be present and each launch requires confirmation.
 - A desktop entry on disk does not guarantee its app is runnable.
 - Do not replace or disable the host display manager during preview testing.
+- Install and uninstall scripts are per-user; never run them with sudo.
 
-See docs/architecture.md and docs/roadmap.md.
+See docs/architecture.md, docs/installation.md, and docs/roadmap.md.

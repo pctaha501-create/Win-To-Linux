@@ -2,7 +2,7 @@
 
 "100%" applies to a defined milestone, not universal compatibility with every Linux distribution and Windows application.
 
-## Preview shell
+## Preview shell structure
 - [x] C++20/CMake/Ninja foundation
 - [x] Distribution and package-manager detection
 - [x] Safe distro-specific package command plans
@@ -12,8 +12,10 @@
 - [x] Persistent appearance setting
 - [x] procfs process list and confirmation-gated same-user SIGTERM
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
+- [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests and headless QML smoke test defined
-- [ ] CI build, unit tests and QML smoke test all pass on latest commit
+- [x] CI install-staging verification defined
+- [ ] CI build, unit tests, QML smoke test, and install staging all pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone

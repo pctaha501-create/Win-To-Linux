@@ -21,5 +21,10 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Test
         run: ctest --test-dir build --output-on-failure
+      - name: Verify install staging
+        run: |
+          cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
+          test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
+          test -f "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: System diagnostic
         run: ./build/src/app/win-to-linux --system
