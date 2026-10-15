@@ -195,7 +195,7 @@ ApplicationWindow {
       Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4; model: processMonitor.processes
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
-        ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
+        ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · PPID "+modelData.parentPid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
         Button { visible: modelData.canTerminate; text: "Stop"; onClicked: { win.selectedProcess=modelData; stopDialog.open() } }
        }
       }
