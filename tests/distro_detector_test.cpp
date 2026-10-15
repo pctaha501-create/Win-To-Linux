@@ -62,6 +62,57 @@ ID_LIKE="opensuse suse"
     ok &= expect(opensuse.family == wtl::DistroFamily::OpenSUSE, "openSUSE variant is recognized");
     ok &= expect(opensuse.packageManager == "zypper", "openSUSE selects zypper");
 
+    const auto debian = wtl::DistroDetector::parse(
+        R"(NAME="Debian GNU/Linux"
+ID=debian
+VERSION_ID="13"
+)", noExecutables);
+    ok &= expect(debian.family == wtl::DistroFamily::Debian, "Debian is recognized without ID_LIKE");
+    ok &= expect(debian.packageManager == "apt-get", "Debian selects apt-get");
+
+    const auto fedora = wtl::DistroDetector::parse(
+        R"(NAME="Fedora Linux"
+ID=fedora
+VERSION_ID="42"
+)", noExecutables);
+    ok &= expect(fedora.family == wtl::DistroFamily::RedHat, "Fedora is recognized without ID_LIKE");
+    ok &= expect(fedora.packageManager == "dnf", "Fedora selects dnf");
+
+    const auto mint = wtl::DistroDetector::parse(
+        R"(NAME="Linux Mint"
+ID=linuxmint
+ID_LIKE="ubuntu debian"
+VERSION_ID="22"
+)", noExecutables);
+    ok &= expect(mint.family == wtl::DistroFamily::Debian, "Linux Mint follows the Debian family");
+    ok &= expect(mint.packageManager == "apt-get", "Linux Mint selects apt-get");
+
+    const auto manjaro = wtl::DistroDetector::parse(
+        R"(NAME="Manjaro Linux"
+ID=manjaro
+ID_LIKE=arch
+VERSION_ID="25.0"
+)", noExecutables);
+    ok &= expect(manjaro.family == wtl::DistroFamily::Arch, "Manjaro follows the Arch family");
+    ok &= expect(manjaro.packageManager == "pacman", "Manjaro selects pacman");
+
+    const auto alma = wtl::DistroDetector::parse(
+        R"(NAME="AlmaLinux"
+ID=almalinux
+ID_LIKE="rhel centos fedora"
+VERSION_ID="9.5"
+)", noExecutables);
+    ok &= expect(alma.family == wtl::DistroFamily::RedHat, "AlmaLinux follows the Red Hat family");
+    ok &= expect(alma.packageManager == "dnf", "AlmaLinux selects dnf");
+
+    const auto endeavouros = wtl::DistroDetector::parse(
+        R"(NAME="EndeavourOS"
+ID=endeavouros
+ID_LIKE=arch
+)", noExecutables);
+    ok &= expect(endeavouros.family == wtl::DistroFamily::Arch, "EndeavourOS follows the Arch family");
+    ok &= expect(endeavouros.packageManager == "pacman", "EndeavourOS selects pacman");
+
     const auto unknown = wtl::DistroDetector::parse(
         R"(NAME="Example OS"
 ID=example-os
