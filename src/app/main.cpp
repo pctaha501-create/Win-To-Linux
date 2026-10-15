@@ -1,4 +1,13 @@
-#include "distro_detector.h"
-#include <QCoreApplication>
+#include "system_info.h"
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 #include <QDebug>
-int main(int argc,char**argv){QCoreApplication app(argc,argv);QCoreApplication::setApplicationName("win-to-linux");QCoreApplication::setApplicationVersion("0.1.0");if(app.arguments().contains("--system")){auto d=wtl::DistroDetector::detect();qInfo().noquote()<<"Win-To-Linux system diagnostic";qInfo().noquote()<<"Distribution:"<<(d.name.isEmpty()?"Unknown":d.name);qInfo().noquote()<<"ID:"<<(d.id.isEmpty()?"unknown":d.id);qInfo().noquote()<<"Version:"<<(d.versionId.isEmpty()?"unknown":d.versionId);qInfo().noquote()<<"Family:"<<d.familyName;qInfo().noquote()<<"Package manager:"<<(d.packageManager.isEmpty()?"unsupported":d.packageManager);qInfo().noquote()<<"Manager available:"<<(d.packageManagerAvailable?"yes":"no");if(!d.packageManagerPath.isEmpty())qInfo().noquote()<<"Manager path:"<<d.packageManagerPath;if(!d.error.isEmpty())qInfo().noquote()<<"Diagnostic:"<<d.error;return 0;}qInfo().noquote()<<"Usage: win-to-linux --system";return 0;}
+int main(int argc,char**argv){
+ QGuiApplication app(argc,argv);QCoreApplication::setApplicationName("Win-To-Linux");QCoreApplication::setApplicationVersion("0.2.0");QCoreApplication::setOrganizationName("Win-To-Linux");
+ SystemInfo system;
+ if(app.arguments().contains("--system")){qInfo().noquote()<<"Distribution:"<<system.distribution();qInfo().noquote()<<"ID:"<<system.distroId();qInfo().noquote()<<"Family:"<<system.family();qInfo().noquote()<<"Version:"<<system.version();qInfo().noquote()<<"Package manager:"<<system.packageManager();qInfo().noquote()<<"Manager available:"<<(system.managerAvailable()?"yes":"no");qInfo().noquote()<<"Kernel:"<<system.kernel();qInfo().noquote()<<"Architecture:"<<system.architecture();return 0;}
+ QQmlApplicationEngine engine;engine.rootContext()->setContextProperty("systemInfo",&system);
+ QObject::connect(&engine,&QQmlApplicationEngine::objectCreationFailed,&app,[](){QCoreApplication::exit(1);},Qt::QueuedConnection);
+ engine.load(QUrl("qrc:/qml/Main.qml"));if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}return app.exec();
+}

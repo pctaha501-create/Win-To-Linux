@@ -1,15 +1,21 @@
 # Architecture
 
-1. Linux host: distribution, kernel, session, devices, native apps.
-2. Core: host discovery, capability detection, safe command plans and session contracts.
-3. Desktop shell (next milestone): Qt Quick shell, taskbar, launcher, navigation, notifications and settings.
-4. Services: process/app discovery and explicitly user-triggered package operations.
-5. Compatibility (later): Wine/Bottles integration and per-app compatibility reporting.
+1. Linux host: distribution, kernel, session, devices, native applications.
+2. Core library: host discovery, capability detection, and safe package command plans.
+3. Preview shell: Qt Quick navigation, overview, application discovery/launch, host information, appearance.
+4. Future services: process monitoring, settings persistence, package transactions, session management.
+5. Compatibility layer: Wine/Bottles integration with per-app compatibility reporting.
 
-Win-To-Linux is not a new kernel. It must not hide the host distribution's native tools.
+Win-To-Linux is not a new kernel and must not hide the host distribution's native tools.
 
-The detector reads key/value lines from /etc/os-release; it never sources the file or runs its contents. Package-manager discovery checks executable files on PATH and stores the absolute path. Unknown systems remain generic.
+## Distribution discovery
+The detector parses key/value lines from /etc/os-release without sourcing or executing the file. It recognizes Debian-family, Red Hat-family, Arch-family, and openSUSE systems. Unknown systems remain generic. Package-manager discovery checks executable files on PATH.
 
-The command planner creates a program and argument list but does not execute it. Package names are validated and never interpolated into shell strings. Install/remove plans use pkexec for authentication. The future GUI must require explicit confirmation and report cancellation, timeout, and process errors.
+## Package command planning
+The planner returns a program and argument list but does not run commands. Package names are validated and not interpolated into shell strings. Privileged operations are intentionally not wired into the current GUI.
 
-Current tests validate parsing and command plans only; they do not claim that real package transactions or graphical sessions work on every distribution. Do not replace or disable the host display manager until a new graphical session has been validated in a recoverable test environment.
+## Application discovery and launch
+The catalog reads desktop entries from standard user/system application folders and ignores Hidden/NoDisplay entries. Launching validates the path, parses Exec, resolves the executable, and invokes it through QProcess with an argument list. Some desktop-entry wrappers and field-code features are intentionally unsupported.
+
+## Session safety
+The preview shell runs inside the current desktop. It must not replace or disable the display manager. A future session launcher must use a unique runtime socket and verify compositor process health and a real Wayland connection before launching the shell.

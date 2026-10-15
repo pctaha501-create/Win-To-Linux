@@ -1,34 +1,32 @@
 # Win-To-Linux
 
-A clean, cross-distribution Linux desktop project inspired by the Windows 11 workflow. This is a new repository; the historical WINUX11-claude-version repository remains untouched.
+A cross-distribution Linux desktop workspace inspired by Windows 11, built with C++20, Qt 6/QML, CMake, and Ninja.
 
-## Principles
-- Detect the actual host distribution and package manager.
-- Unknown tools are never shown as available without evidence.
-- Use program-plus-argument commands, never shell interpolation.
-- System changes require explicit user action and authentication.
-- CI results do not prove every graphical session or Windows app works.
+Current milestone: a Qt Quick preview shell running inside the existing Linux desktop. It does not replace the display manager or claim to be a complete compositor/session.
 
-## Initial baseline
-C++20/Qt 6 core, distro detection for Debian/Ubuntu/Kali, Fedora/RHEL, Arch and openSUSE, package command planning, a read-only CLI diagnostic, tests, and GitHub Actions CI. This is a buildable foundation, not yet a complete desktop environment.
+## Implemented
+- Distribution detection from /etc/os-release as data (never sourced or executed).
+- Real executable discovery for apt, dnf/yum, pacman, and zypper.
+- Safe distro-specific package command planning; the planner does not execute commands.
+- Qt Quick shell with Overview, Applications, Linux System, Package Manager, and Settings pages.
+- Desktop app discovery from standard XDG folders, search, and launch via QProcess argument lists rather than a shell.
+- Dark/light appearance toggle for the current run.
+- C++ unit tests and GitHub Actions build/test workflow.
 
-## Ubuntu/Debian build
+## Ubuntu 24.04 build
     sudo apt update
-    sudo apt install build-essential cmake ninja-build qt6-base-dev
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+    sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window
+    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
     cmake --build build --parallel 2
     ctest --test-dir build --output-on-failure
     ./build/src/app/win-to-linux --system
+    ./build/src/app/win-to-linux
 
-## Roadmap
-- [x] Independent repository and C++20/Qt 6 core
-- [x] Distribution and package-manager detection
-- [x] Distro-specific package command plans and tests
-- [ ] Qt Quick desktop shell, navigation, and taskbar
-- [ ] Real System Settings and app/process discovery
-- [ ] Safe Wayland session launcher and graphical smoke tests
-- [ ] User-confirmed package operations with authentication and errors
-- [ ] CI/packaging matrix for Ubuntu, Fedora, Arch, and openSUSE
-- [ ] Wine/Bottles compatibility integration
+## Safety
+- Unknown distributions stay unknown; no default-to-apt behavior.
+- Package command planning never runs package operations.
+- Launching apps resolves an executable and uses an argument list, not a shell.
+- A desktop entry on disk does not guarantee its app is runnable.
+- Do not replace or disable the host display manager during preview testing.
 
-Unchecked items are not represented as complete.
+See docs/architecture.md and docs/roadmap.md for architecture and completion gates.
