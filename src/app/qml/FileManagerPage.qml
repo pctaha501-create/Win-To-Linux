@@ -4,6 +4,9 @@ import QtQuick.Layouts
 Item {
  id: root
  property var controller: fileManager
+ property string selectedEntryPath: ""
+ property string selectedEntryName: ""
+ property bool selectedEntryIsDir: false
  property bool lightAppearance: systemInfo.lightAppearance
  readonly property color fg: lightAppearance ? "#1a2432" : "#f4f6fb"
  readonly property color muted: lightAppearance ? "#647084" : "#aab4c4"
@@ -17,6 +20,7 @@ Item {
    TextField { id: pathField; Layout.fillWidth: true; text: root.controller.currentPath; onAccepted: root.controller.navigate(text); selectByMouse: true }
    Button { text: "Go"; onClicked: root.controller.navigate(pathField.text) }
    Button { text: "Refresh"; onClicked: root.controller.refresh() }
+   Button { text: "New folder"; onClicked: { folderNameField.text = ""; createDialog.open() } }
   }
   Connections {
    target: root.controller
@@ -45,10 +49,42 @@ Item {
      Label { text: modelData.modified; color: root.muted; font.pixelSize: 10; width: 140 }
      Label { text: modelData.sizeText; color: root.muted; font.pixelSize: 10; width: 90; horizontalAlignment: Text.AlignRight }
      Button { text: "Open"; onClicked: root.controller.openEntry(modelData.path) }
+     Button { text: "Rename"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; renameField.text = modelData.name; renameDialog.open() } }
+     Button { text: "Delete"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; root.selectedEntryIsDir = modelData.isDir; deleteDialog.open() } }
     }
     HoverHandler { onHoveredChanged: parent.hovered = hovered }
    }
   }
-  Label { text: "Read-only browser: file changes and deletion are intentionally not exposed in this preview."; color: root.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+  Dialog {
+   id: createDialog
+   modal: true
+   title: "Create folder"
+   standardButtons: Dialog.Ok | Dialog.Cancel
+   contentItem: TextField { id: folderNameField; placeholderText: "Folder name"; selectByMouse: true }
+   onAccepted: root.controller.createFolder(folderNameField.text)
+  }
+  Dialog {
+   id: renameDialog
+   modal: true
+   title: "Rename entry"
+   standardButtons: Dialog.Ok | Dialog.Cancel
+   contentItem: TextField { id: renameField; placeholderText: "New name"; selectByMouse: true }
+   onAccepted: root.controller.renameEntry(root.selectedEntryPath, renameField.text)
+  }
+  Dialog {
+   id: deleteDialog
+   modal: true
+   title: "Confirm deletion"
+   standardButtons: Dialog.Yes | Dialog.No
+   contentItem: Label {
+    text: root.selectedEntryIsDir
+      ? "Delete folder and all its contents? This cannot be undone.\\n\\n" + root.selectedEntryName
+      : "Delete this file? This cannot be undone.\\n\\n" + root.selectedEntryName
+    color: root.fg
+    padding: 16
+    wrapMode: Text.WordWrap
+   }
+   onAccepted: root.controller.deleteEntry(root.selectedEntryPath, root.selectedEntryIsDir)
+  }
  }
 }
