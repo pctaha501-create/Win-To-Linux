@@ -26,6 +26,7 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
     sh scripts/install-user.sh
     ~/.local/bin/win-to-linux
     ~/.local/bin/win-to-linux --fullscreen
+    ~/.local/bin/win-to-linux-isolated-preview
 
 ## Uninstall
     sh scripts/uninstall-user.sh

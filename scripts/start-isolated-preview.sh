@@ -31,9 +31,13 @@ if [ -z "$app_bin" ]; then
 fi
 if [ -z "$app_bin" ]; then
     script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-    repo_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
-    candidate=$repo_root/build/src/app/win-to-linux
-    [ -x "$candidate" ] && app_bin=$candidate
+    sibling=$script_dir/win-to-linux
+    [ -x "$sibling" ] && app_bin=$sibling
+    if [ -z "$app_bin" ]; then
+        repo_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
+        candidate=$repo_root/build/src/app/win-to-linux
+        [ -x "$candidate" ] && app_bin=$candidate
+    fi
 fi
 [ -n "$app_bin" ] && [ -x "$app_bin" ] || fail "win-to-linux was not found. Install it for your user or build the project first."
 
