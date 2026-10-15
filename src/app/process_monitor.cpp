@@ -24,6 +24,17 @@ bool readStartTicks(qint64 pid, qint64 *ticks) {
  *ticks = value;
  return true;
 }
+qint64 parentProcessId(qint64 pid) {
+ QFile file(QStringLiteral("/proc/%1/stat").arg(pid));
+ if(!file.open(QIODevice::ReadOnly|QIODevice::Text))return -1;
+ const QByteArray line=file.readAll().trimmed();
+ const qsizetype closeParen=line.lastIndexOf(')');
+ if(closeParen<0||closeParen+2>=line.size())return -1;
+ const QList<QByteArray> fields=line.mid(closeParen+2).simplified().split(' ');
+ if(fields.size()<2)return -1;
+ bool ok=false;const qint64 value=fields.at(1).toLongLong(&ok);
+ return ok&&value>=0?value:-1;
+}
 bool readRealUid(qint64 pid, uid_t *uid) {
  QFile file(QStringLiteral("/proc/%1/status").arg(pid));
  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
@@ -79,8 +90,10 @@ void ProcessMonitor::refreshProcesses() {
   uid_t uid = static_cast<uid_t>(-1);
   const bool hasUid = readRealUid(pid, &uid);
   const qint64 rss = residentKiB(pid);
+  const qint64 ppid = parentProcessId(pid);
   result.append(QVariantMap{
    {QStringLiteral("pid"), pid},
+   {QStringLiteral("parentPid"), ppid},
    {QStringLiteral("name"), name},
    {QStringLiteral("memoryKiB"), rss},
    {QStringLiteral("memoryText"), rss < 0 ? QStringLiteral("—") : QStringLiteral("%1 MiB").arg(static_cast<double>(rss) / 1024.0, 0, 'f', 1)},

@@ -9,6 +9,7 @@ int main(int argc,char **argv){
  for(const QVariant &entry:monitor.processes()){
   const QVariantMap process=entry.toMap();
   if(!expect(process.value(QStringLiteral("pid")).toLongLong()>0,"positive PID"))return 1;
+  if(!expect(process.value(QStringLiteral("parentPid")).toLongLong()>=0,"nonnegative parent PID metadata"))return 1;
   if(!expect(!process.value(QStringLiteral("name")).toString().isEmpty(),"nonempty process name"))return 1;
   if(!expect(process.contains(QStringLiteral("startTicks")),"process identity includes start time"))return 1;
  }
