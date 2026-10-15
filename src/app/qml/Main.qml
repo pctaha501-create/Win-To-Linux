@@ -63,7 +63,7 @@ ApplicationWindow {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
      Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information detected from the host system.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
@@ -126,6 +126,20 @@ ApplicationWindow {
         RowLayout { anchors.fill: parent; anchors.margins: 14; Label { text: modelData.k; color: win.muted; Layout.fillWidth: true } Label { text: modelData.v; color: win.fg; font.bold: true; horizontalAlignment: Text.AlignRight; Layout.maximumWidth: 340; wrapMode: Text.Wrap } }
        }
       }
+      Label { text: "Native tools found on PATH ("+systemInfo.nativeTools.length+")"; color: win.fg; font.pixelSize: 18; font.bold: true; topPadding: 14 }
+      Label { text: "Only tools actually found on this host are shown. Nothing is installed automatically."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+      Repeater { model: systemInfo.nativeTools
+       delegate: Rectangle { required property var modelData; Layout.fillWidth: true; Layout.preferredHeight: 54; radius: 9; color: win.panel; border.color: win.borderColor
+        RowLayout { anchors.fill: parent; anchors.margins: 12; spacing: 12
+         ColumnLayout { Layout.fillWidth: true; spacing: 2
+          Label { text: modelData.name+" ("+modelData.command+")"; color: win.fg; font.bold: true; font.pixelSize: 12 }
+          Label { text: modelData.category+" · "+modelData.path; color: win.muted; font.pixelSize: 10; elide: Text.ElideMiddle; Layout.fillWidth: true }
+         }
+         Label { text: "Detected"; color: "#64c99b"; font.pixelSize: 10 }
+        }
+       }
+      }
+      Label { visible: systemInfo.nativeTools.length===0; text: "No known native tools were found on PATH."; color: win.muted }
      }
     }
     Rectangle { Layout.fillWidth: true; Layout.fillHeight: true; radius: 12; color: win.panel; border.color: win.borderColor

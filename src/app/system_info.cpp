@@ -11,13 +11,67 @@
 #include <algorithm>
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
- QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));refreshApplications();
+ QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));discoverNativeTools();refreshApplications();
 }
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
-QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
+QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
 void SystemInfo::setLightAppearance(bool enabled){if(m_lightAppearance==enabled)return;m_lightAppearance=enabled;QSettings settings;settings.setValue(QStringLiteral("appearance/light"),enabled);emit appearanceChanged();}
 bool SystemInfo::wineAvailable()const{return !m_winePath.isEmpty();} QString SystemInfo::winePath()const{return m_winePath;} bool SystemInfo::bottlesAvailable()const{return !m_bottlesPath.isEmpty();} QString SystemInfo::bottlesPath()const{return m_bottlesPath;}
 void SystemInfo::setStatus(const QString&s){if(m_status==s)return;m_status=s;emit statusChanged();}
+void SystemInfo::discoverNativeTools(){
+ struct Candidate{QString name,command,category;};
+ QList<Candidate> candidates={
+  {QStringLiteral("Git"),QStringLiteral("git"),QStringLiteral("Development")},
+  {QStringLiteral("Curl"),QStringLiteral("curl"),QStringLiteral("Network")},
+  {QStringLiteral("Wget"),QStringLiteral("wget"),QStringLiteral("Network")},
+  {QStringLiteral("Systemd manager"),QStringLiteral("systemctl"),QStringLiteral("System")},
+  {QStringLiteral("Flatpak"),QStringLiteral("flatpak"),QStringLiteral("Applications")},
+  {QStringLiteral("Snap"),QStringLiteral("snap"),QStringLiteral("Applications")},
+  {QStringLiteral("Podman"),QStringLiteral("podman"),QStringLiteral("Containers")},
+  {QStringLiteral("Docker"),QStringLiteral("docker"),QStringLiteral("Containers")},
+  {QStringLiteral("Firewall control"),QStringLiteral("nft"),QStringLiteral("Security")}
+ };
+ if(m_family==QStringLiteral("debian")){
+  candidates.append({QStringLiteral("APT"),QStringLiteral("apt-get"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("DPKG"),QStringLiteral("dpkg"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("UFW firewall"),QStringLiteral("ufw"),QStringLiteral("Security")});
+ }else if(m_family==QStringLiteral("redhat")){
+  candidates.append({QStringLiteral("DNF"),QStringLiteral("dnf"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("RPM"),QStringLiteral("rpm"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("FirewallD"),QStringLiteral("firewall-cmd"),QStringLiteral("Security")});
+  candidates.append({QStringLiteral("SELinux tools"),QStringLiteral("semanage"),QStringLiteral("Security")});
+ }else if(m_family==QStringLiteral("arch")){
+  candidates.append({QStringLiteral("Pacman"),QStringLiteral("pacman"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("Yay helper"),QStringLiteral("yay"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("Paru helper"),QStringLiteral("paru"),QStringLiteral("Packages")});
+ }else if(m_family==QStringLiteral("opensuse")){
+  candidates.append({QStringLiteral("Zypper"),QStringLiteral("zypper"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("RPM"),QStringLiteral("rpm"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("FirewallD"),QStringLiteral("firewall-cmd"),QStringLiteral("Security")});
+ }
+ if(m_id==QStringLiteral("kali")){
+  const QList<Candidate> security={
+   {QStringLiteral("Nmap"),QStringLiteral("nmap"),QStringLiteral("Security testing")},
+   {QStringLiteral("Metasploit console"),QStringLiteral("msfconsole"),QStringLiteral("Security testing")},
+   {QStringLiteral("SQLmap"),QStringLiteral("sqlmap"),QStringLiteral("Security testing")},
+   {QStringLiteral("Hydra"),QStringLiteral("hydra"),QStringLiteral("Security testing")},
+   {QStringLiteral("Aircrack-ng"),QStringLiteral("aircrack-ng"),QStringLiteral("Wireless security")},
+   {QStringLiteral("John the Ripper"),QStringLiteral("john"),QStringLiteral("Password auditing")},
+   {QStringLiteral("Nikto"),QStringLiteral("nikto"),QStringLiteral("Web security")},
+   {QStringLiteral("Gobuster"),QStringLiteral("gobuster"),QStringLiteral("Web security")},
+   {QStringLiteral("Tcpdump"),QStringLiteral("tcpdump"),QStringLiteral("Network analysis")},
+   {QStringLiteral("Hashcat"),QStringLiteral("hashcat"),QStringLiteral("Password auditing")}
+  };
+  candidates.append(security);
+ }
+ QSet<QString> seen;
+ for(const Candidate &candidate:candidates){
+  if(seen.contains(candidate.command))continue;seen.insert(candidate.command);
+  const QString path=QStandardPaths::findExecutable(candidate.command);
+  if(path.isEmpty())continue;
+  m_nativeTools.append(QVariantMap{{QStringLiteral("name"),candidate.name},{QStringLiteral("command"),candidate.command},{QStringLiteral("category"),candidate.category},{QStringLiteral("path"),path}});
+ }
+}
 void SystemInfo::refreshApplications(){
  const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};QSet<QString> seen;QVariantList list;
  for(const auto&root:roots){QDir dir(root);for(const QFileInfo&fi:dir.entryInfoList({QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDir::Name)){
