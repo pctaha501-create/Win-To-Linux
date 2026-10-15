@@ -35,6 +35,18 @@ int main(int argc,char **argv){
  if(!expect(QFileInfo::exists(temporary.filePath(QStringLiteral("renamed.txt"))),"renamed file exists"))return 1;
  if(!expect(!manager.renameEntry(temporary.filePath(QStringLiteral("renamed.txt")),QStringLiteral("New Folder")),"reject rename collision"))return 1;
  if(!expect(!manager.renameEntry(QDir::tempPath(),QStringLiteral("outside-renamed")),"reject renaming a path outside current directory"))return 1;
+
+ if(!expect(root.mkdir(QStringLiteral("Destination")),"create destination folder"))return 1;
+ QFile nested(temporary.filePath(QStringLiteral("Folder/nested.txt")));
+ if(!expect(nested.open(QIODevice::WriteOnly),"create nested file"))return 1;
+ nested.write("nested");nested.close();
+ if(!expect(manager.copyEntry(temporary.filePath(QStringLiteral("Folder")),temporary.filePath(QStringLiteral("Destination"))),"copy directory tree"))return 1;
+ if(!expect(QFileInfo::exists(temporary.filePath(QStringLiteral("Destination/Folder/nested.txt"))),"copied nested file exists"))return 1;
+ if(!expect(!manager.copyEntry(temporary.filePath(QStringLiteral("Folder")),temporary.filePath(QStringLiteral("Destination"))),"reject overwriting copy destination"))return 1;
+ if(!expect(manager.moveEntry(temporary.filePath(QStringLiteral("renamed.txt")),temporary.filePath(QStringLiteral("Destination"))),"move file"))return 1;
+ if(!expect(!QFileInfo::exists(temporary.filePath(QStringLiteral("renamed.txt")))&&QFileInfo::exists(temporary.filePath(QStringLiteral("Destination/renamed.txt"))),"moved file path updated"))return 1;
+ if(!expect(!manager.moveEntry(temporary.filePath(QStringLiteral("Folder")),temporary.filePath(QStringLiteral("Folder"))),"reject moving folder into itself"))return 1;
+
  if(!expect(!manager.deleteEntry(temporary.filePath(QStringLiteral("Folder"))),"directory deletion requires confirmation"))return 1;
  if(!expect(manager.deleteEntry(temporary.filePath(QStringLiteral("Folder")),true),"confirmed directory deletion"))return 1;
  if(!expect(!QDir(temporary.path()).exists(QStringLiteral("Folder")),"confirmed folder was removed"))return 1;

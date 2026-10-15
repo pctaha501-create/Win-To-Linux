@@ -7,6 +7,7 @@ Item {
  property string selectedEntryPath: ""
  property string selectedEntryName: ""
  property bool selectedEntryIsDir: false
+ property bool selectedEntryForMove: false
  property bool lightAppearance: systemInfo.lightAppearance
  readonly property color fg: lightAppearance ? "#1a2432" : "#f4f6fb"
  readonly property color muted: lightAppearance ? "#647084" : "#aab4c4"
@@ -51,8 +52,28 @@ Item {
      Button { text: "Open"; onClicked: root.controller.openEntry(modelData.path) }
      Button { text: "Rename"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; renameField.text = modelData.name; renameDialog.open() } }
      Button { text: "Delete"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; root.selectedEntryIsDir = modelData.isDir; deleteDialog.open() } }
+     Button { text: "Copy"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; root.selectedEntryForMove = false; destinationField.text = root.controller.currentPath; transferDialog.open() } }
+     Button { text: "Move"; onClicked: { root.selectedEntryPath = modelData.path; root.selectedEntryName = modelData.name; root.selectedEntryForMove = true; destinationField.text = root.controller.currentPath; transferDialog.open() } }
     }
     HoverHandler { onHoveredChanged: parent.hovered = hovered }
+   }
+  }
+  Dialog {
+   id: transferDialog
+   modal: true
+   title: root.selectedEntryForMove ? "Move entry" : "Copy entry"
+   standardButtons: Dialog.Ok | Dialog.Cancel
+   contentItem: ColumnLayout {
+    width: 420
+    Label { text: "Destination directory"; color: root.fg }
+    TextField { id: destinationField; Layout.fillWidth: true; placeholderText: "/path/to/folder"; selectByMouse: true }
+    Label { text: "Existing destinations are never overwritten."; color: root.muted; wrapMode: Text.WordWrap }
+   }
+   onAccepted: {
+    if (root.selectedEntryForMove)
+     root.controller.moveEntry(root.selectedEntryPath, destinationField.text)
+    else
+     root.controller.copyEntry(root.selectedEntryPath, destinationField.text)
    }
   }
   Dialog {

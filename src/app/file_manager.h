@@ -22,6 +22,8 @@ public:
  Q_INVOKABLE bool createFolder(const QString &name);
  Q_INVOKABLE bool renameEntry(const QString &path, const QString &newName);
  Q_INVOKABLE bool deleteEntry(const QString &path, bool confirmDirectoryRemoval=false);
+ Q_INVOKABLE bool copyEntry(const QString &path, const QString &destinationDirectory);
+ Q_INVOKABLE bool moveEntry(const QString &path, const QString &destinationDirectory);
 signals:
  void currentPathChanged();
  void entriesChanged();

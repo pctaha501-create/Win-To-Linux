@@ -4,6 +4,33 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QUrl>
+
+namespace {
+bool copyDirectoryTree(const QString &sourcePath,const QString &destinationPath){
+ QDir source(sourcePath);
+ if(!source.exists()||!QDir().mkdir(destinationPath))return false;
+ const QFileInfoList entries=source.entryInfoList(QDir::AllEntries|QDir::NoDotAndDotDot|QDir::Hidden|QDir::System,QDir::NoSort);
+ for(const QFileInfo &entry:entries){
+  if(entry.isSymLink())return false;
+  const QString target=QDir(destinationPath).filePath(entry.fileName());
+  if(entry.isDir()){
+   if(!copyDirectoryTree(entry.absoluteFilePath(),target))return false;
+  }else if(entry.isFile()){
+   if(!QFile::copy(entry.absoluteFilePath(),target))return false;
+  }else return false;
+ }
+ return true;
+}
+bool validDestinationDirectory(const QString &path,QString *canonical){
+ QFileInfo info(path);
+ if(!info.exists()||!info.isDir()||!info.isWritable())return false;
+ const QString resolved=info.canonicalFilePath();
+ if(resolved.isEmpty())return false;
+ if(canonical)*canonical=resolved;
+ return true;
+}
+}
+
 FileManager::FileManager(QObject *parent):QObject(parent){
  QString home=QDir::homePath();QFileInfo info(home);m_currentPath=info.canonicalFilePath().isEmpty()?info.absoluteFilePath():info.canonicalFilePath();refresh();
 }
@@ -75,6 +102,49 @@ bool FileManager::deleteEntry(const QString &path,bool confirmDirectoryRemoval){
  }
  if(!removed){setStatus(QStringLiteral("Could not delete entry. Check permissions or whether it is in use."));return false;}
  refresh();setStatus(QStringLiteral("Entry deleted."));return true;
+}
+
+
+bool FileManager::copyEntry(const QString &path,const QString &destinationDirectory){
+ QFileInfo source;
+ QString destination;
+ if(!isDirectChild(path,&source)||source.isSymLink()||!validDestinationDirectory(destinationDirectory,&destination)){
+  setStatus(QStringLiteral("Copy rejected: source or destination is invalid."));return false;
+ }
+ const QString target=QDir(destination).filePath(source.fileName());
+ if(QFileInfo::exists(target)){setStatus(QStringLiteral("Copy rejected: destination already exists."));return false;}
+ if(source.isDir()){
+  const QString sourceCanonical=source.canonicalFilePath();
+  if(destination==sourceCanonical||destination.startsWith(sourceCanonical+QDir::separator())){
+   setStatus(QStringLiteral("Copy rejected: a directory cannot be copied into itself."));return false;
+  }
+  if(!copyDirectoryTree(source.absoluteFilePath(),target)){
+   QDir(target).removeRecursively();
+   setStatus(QStringLiteral("Copy failed. Symbolic links, special files, or inaccessible entries are not copied."));return false;
+  }
+ }else if(source.isFile()){
+  if(!QFile::copy(source.absoluteFilePath(),target)){setStatus(QStringLiteral("Copy failed. Check permissions and available storage."));return false;}
+ }else{setStatus(QStringLiteral("This entry type cannot be copied."));return false;}
+ refresh();setStatus(QStringLiteral("Copied: %1").arg(source.fileName()));return true;
+}
+bool FileManager::moveEntry(const QString &path,const QString &destinationDirectory){
+ QFileInfo source;
+ QString destination;
+ if(!isDirectChild(path,&source)||source.isSymLink()||!validDestinationDirectory(destinationDirectory,&destination)){
+  setStatus(QStringLiteral("Move rejected: source or destination is invalid."));return false;
+ }
+ const QString target=QDir(destination).filePath(source.fileName());
+ if(QFileInfo::exists(target)){setStatus(QStringLiteral("Move rejected: destination already exists."));return false;}
+ if(source.isDir()){
+  const QString sourceCanonical=source.canonicalFilePath();
+  if(destination==sourceCanonical||destination.startsWith(sourceCanonical+QDir::separator())){
+   setStatus(QStringLiteral("Move rejected: a directory cannot be moved into itself."));return false;
+  }
+ }
+ if(!QDir().rename(source.absoluteFilePath(),target)){
+  setStatus(QStringLiteral("Move failed. The destination may be on another filesystem or permissions may be insufficient."));return false;
+ }
+ refresh();setStatus(QStringLiteral("Moved: %1").arg(source.fileName()));return true;
 }
 
 bool FileManager::openEntry(const QString&path){
