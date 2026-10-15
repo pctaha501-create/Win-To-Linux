@@ -11,11 +11,12 @@
 #include <algorithm>
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
- QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();refreshApplications();
+ QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));refreshApplications();
 }
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
 QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
 void SystemInfo::setLightAppearance(bool enabled){if(m_lightAppearance==enabled)return;m_lightAppearance=enabled;QSettings settings;settings.setValue(QStringLiteral("appearance/light"),enabled);emit appearanceChanged();}
+bool SystemInfo::wineAvailable()const{return !m_winePath.isEmpty();} QString SystemInfo::winePath()const{return m_winePath;} bool SystemInfo::bottlesAvailable()const{return !m_bottlesPath.isEmpty();} QString SystemInfo::bottlesPath()const{return m_bottlesPath;}
 void SystemInfo::setStatus(const QString&s){if(m_status==s)return;m_status=s;emit statusChanged();}
 void SystemInfo::refreshApplications(){
  const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};QSet<QString> seen;QVariantList list;
@@ -44,4 +45,13 @@ bool SystemInfo::launchDesktopFile(const QString&desktopFile){
  if(QFileInfo(program).isAbsolute()){if(!QFileInfo(program).isExecutable()){setStatus(QStringLiteral("Executable is not available."));return false;}}
  else{QString resolved=QStandardPaths::findExecutable(program);if(resolved.isEmpty()){setStatus(QStringLiteral("Executable not found: %1").arg(program));return false;}program=resolved;}
  if(QProcess::startDetached(program,args,QDir::homePath())){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}setStatus(QStringLiteral("Failed to start application."));return false;
+}
+bool SystemInfo::launchWindowsFile(const QString&selectedPath){
+ if(m_winePath.isEmpty()){setStatus(QStringLiteral("Wine was not found. Win-To-Linux will not install it automatically."));return false;}
+ const QFileInfo info(selectedPath);const QString suffix=info.suffix().toLower();const QString path=info.canonicalFilePath();
+ if(path.isEmpty()||!info.isFile()||(suffix!=QStringLiteral("exe")&&suffix!=QStringLiteral("msi"))){setStatus(QStringLiteral("Choose an existing .exe or .msi file."));return false;}
+ QStringList args;
+ if(suffix==QStringLiteral("msi"))args={QStringLiteral("msiexec"),QStringLiteral("/i"),path};else args={path};
+ if(QProcess::startDetached(m_winePath,args,QDir::homePath())){setStatus(QStringLiteral("Started Windows file through Wine. Compatibility is not guaranteed."));return true;}
+ setStatus(QStringLiteral("Wine could not start the selected file."));return false;
 }

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtQuick.Dialogs
 ApplicationWindow {
  id: win; visible: true; width: 1120; height: 720; minimumWidth: 820; minimumHeight: 560
  title: "Win-To-Linux"; color: light ? "#f1f4f8" : "#10141b"
@@ -8,6 +9,7 @@ ApplicationWindow {
  property bool light: systemInfo.lightAppearance
  property string search: ""
  property var selectedProcess: ({})
+ property string pendingWindowsFile: ""
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
  readonly property color panel: light ? "#ffffff" : "#191f29"
@@ -22,10 +24,19 @@ ApplicationWindow {
   }
  }
  Dialog {
-  id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel
-  anchors.centerIn: parent
+  id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   Label { text: "Send SIGTERM to " + (win.selectedProcess.name || "process") + " (PID " + (win.selectedProcess.pid || "—") + ")? Unsaved work in that process may be lost."; wrapMode: Text.WordWrap; width: 330 }
   onAccepted: processMonitor.terminateProcess(win.selectedProcess.pid, win.selectedProcess.startTicks)
+ }
+ Dialog {
+  id: windowsDialog; modal: true; title: "Launch Windows program?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
+  Label { text: "Run this file through Wine?\n" + win.pendingWindowsFile + "\nOnly proceed if you trust the file. Wine compatibility is not guaranteed."; wrapMode: Text.Wrap; width: 380 }
+  onAccepted: systemInfo.launchWindowsFile(win.pendingWindowsFile)
+ }
+ FileDialog {
+  id: windowsFileDialog; title: "Select a Windows installer or program"; fileMode: FileDialog.OpenFile
+  nameFilters: ["Windows programs (*.exe *.msi)", "All files (*)"]
+  onAccepted: { win.pendingWindowsFile = selectedFile.toLocalFile(); windowsDialog.open() }
  }
  RowLayout {
   anchors.fill: parent; spacing: 0
@@ -33,7 +44,7 @@ ApplicationWindow {
    Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
    ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
     Label { text: "WORKSPACE"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
-    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes"]
+    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"]
      delegate: Button {
       required property int index; required property string modelData
       Layout.fillWidth: true; implicitHeight: 43; flat: true
@@ -51,12 +62,13 @@ ApplicationWindow {
    RowLayout {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
-     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information detected from the host system.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information detected from the host system.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
     Button { visible: win.page===5; text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
+    Button { visible: win.page===6; text: "Choose .exe / .msi"; enabled: systemInfo.wineAvailable; onClicked: windowsFileDialog.open() }
    }
    StackLayout {
     Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: win.page
@@ -135,15 +147,29 @@ ApplicationWindow {
      spacing: 8
      Label { text: processMonitor.status; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
      ListView {
-      Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
-      model: processMonitor.processes
-      delegate: Rectangle {
-       required property var modelData
-       width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
+      Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4; model: processMonitor.processes
+      delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
         ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
         Button { visible: modelData.canTerminate; text: "Stop"; onClicked: { win.selectedProcess=modelData; stopDialog.open() } }
        }
+      }
+     }
+    }
+    ColumnLayout {
+     spacing: 12
+     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 130; radius: 12; color: win.panel; border.color: win.borderColor
+      ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
+       Label { text: "Windows compatibility"; color: win.fg; font.pixelSize: 17; font.bold: true }
+       Label { text: systemInfo.wineAvailable ? ("Wine detected: "+systemInfo.winePath) : "Wine was not found on PATH. Win-To-Linux will not install it automatically."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+       Label { text: systemInfo.bottlesAvailable ? ("Bottles detected: "+systemInfo.bottlesPath) : "Bottles: not detected"; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+      }
+     }
+     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 120; radius: 12; color: win.panel; border.color: win.borderColor
+      ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
+       Label { text: "Run an existing Windows file"; color: win.fg; font.bold: true }
+       Label { text: "Select an .exe or .msi file, then confirm before it is passed to Wine. Compatibility, dependencies, and installer behavior vary by application."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+       Button { text: "Choose .exe / .msi"; enabled: systemInfo.wineAvailable; onClicked: windowsFileDialog.open() }
       }
      }
     }

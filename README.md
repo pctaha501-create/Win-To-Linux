@@ -5,17 +5,19 @@ A cross-distribution Linux desktop workspace inspired by Windows 11, built with 
 Current milestone: a Qt Quick preview shell running inside the existing Linux desktop. It does not replace the display manager or claim to be a complete compositor/session.
 
 ## Implemented
-- Distribution detection from /etc/os-release as data (never sourced or executed).
-- Real executable discovery for apt, dnf/yum, pacman, and zypper.
+- Distribution detection from /etc/os-release without sourcing or executing the file.
+- Executable discovery for apt, dnf/yum, pacman, and zypper.
 - Safe distro-specific package command planning; the planner does not execute commands.
-- Qt Quick shell with Overview, Applications, Linux System, Package Manager, and Settings pages.
-- Desktop app discovery from standard XDG folders, search, and launch via QProcess argument lists rather than a shell.
-- Dark/light appearance toggle for the current run.
-- C++ unit tests and GitHub Actions build/test workflow.
+- Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, and Windows Apps pages.
+- XDG desktop-entry discovery/search and launch via QProcess argument lists.
+- Persistent light/dark preference.
+- procfs process list; confirmed SIGTERM requests limited to same-user processes with PID start-time revalidation.
+- Wine/Bottles detection; confirmed launch of selected .exe/.msi files through Wine if Wine exists.
+- C++ unit tests, a headless QML smoke-test target, and GitHub Actions CI.
 
 ## Ubuntu 24.04 build
     sudo apt update
-    sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window
+    sudo apt install build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs
     cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
     cmake --build build --parallel 2
     ctest --test-dir build --output-on-failure
@@ -25,8 +27,10 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 ## Safety
 - Unknown distributions stay unknown; no default-to-apt behavior.
 - Package command planning never runs package operations.
-- Launching apps resolves an executable and uses an argument list, not a shell.
+- App launches use argument lists rather than shell interpolation.
+- Process stop requests require confirmation, are restricted to the current user's processes, and send SIGTERM rather than SIGKILL.
+- Windows installers/programs are never auto-installed; Wine must already be present and each launch requires confirmation.
 - A desktop entry on disk does not guarantee its app is runnable.
 - Do not replace or disable the host display manager during preview testing.
 
-See docs/architecture.md and docs/roadmap.md for architecture and completion gates.
+See docs/architecture.md and docs/roadmap.md.

@@ -2,39 +2,27 @@
 
 "100%" applies to a defined milestone, not universal compatibility with every Linux distribution and Windows application.
 
-## Foundation
-- [x] C++20/CMake/Ninja project
-- [x] Distribution metadata and package-manager discovery
-- [x] Safe distro-specific package command planning
-- [x] Unit tests and CI workflow
-
 ## Preview shell
+- [x] C++20/CMake/Ninja foundation
+- [x] Distribution and package-manager detection
+- [x] Safe distro-specific package command plans
 - [x] Qt Quick navigation and dashboard
-- [x] Host distribution, kernel, architecture and hostname display
-- [x] XDG desktop-entry discovery and search
-- [x] Launch desktop entries without directly invoking a shell
-- [x] Persisted dark/light appearance preference
-- [x] Process listing from procfs with PID and RSS information
-- [x] Confirmed SIGTERM request limited to same-user processes with PID/start-time revalidation
-- [x] Headless QML smoke-test target in CTest
-- [ ] CI result confirms build, unit test, and QML smoke test
+- [x] Host system details
+- [x] XDG app discovery, search and launch
+- [x] Persistent appearance setting
+- [x] procfs process list and confirmation-gated same-user SIGTERM
+- [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
+- [x] Unit tests and headless QML smoke test defined
+- [ ] CI build, unit tests and QML smoke test all pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
-## Operational desktop
-- [ ] Compositor/session launcher and recovery path
-- [ ] Notifications and richer settings
-- [ ] Process-tree inspection and robust process identity tracking
-
-## Package operations
-- [ ] Async process controller with timeout, cancellation, stdout/stderr
-- [ ] Explicit confirmation and PolicyKit integration
-- [ ] Integration tests for package manager exit codes
+## Next milestone
+- [ ] Async package operation controller with timeout, cancellation, stdout/stderr
+- [ ] Explicit package-operation confirmation and PolicyKit integration
 - [ ] CI matrix across Ubuntu, Fedora, Arch, and openSUSE
-
-## Windows app compatibility
-- [ ] Detect Wine/Bottles/Proton without pretending they exist
-- [ ] Safe EXE/MSI launch flow and per-app caveats
-- [ ] Never silently install runtimes or alter the host
+- [ ] Compositor/session launcher with recovery and isolated Wayland readiness checks
+- [ ] Process tree, notifications, richer settings
+- [ ] Wine/Bottles compatibility notes and app-specific testing
 
 ## Release gate
 A milestone is ready for user testing only after CI passes, automated tests pass, the UI starts on a supported desktop, and limitations are documented. Do not switch the login manager as part of preview-shell testing.
