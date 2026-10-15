@@ -4,6 +4,9 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QVariantMap>
+#include <QHash>
+#include <QSet>
+#include <functional>
 #include <algorithm>
 #include <csignal>
 #include <unistd.h>
@@ -106,7 +109,41 @@ void ProcessMonitor::refreshProcesses() {
    < b.toMap().value(QStringLiteral("name")).toString().toCaseFolded();
  });
  if (result.size() > 400) result = result.mid(0, 400);
- m_processes = result;
+
+ QHash<qint64,QVariantMap> byPid;
+ for(const QVariant &entry:result){const QVariantMap item=entry.toMap();byPid.insert(item.value(QStringLiteral("pid")).toLongLong(),item);}
+ QHash<qint64,QList<qint64>> children;
+ QList<qint64> roots;
+ for(const QVariant &entry:result){
+  const QVariantMap item=entry.toMap();
+  const qint64 pid=item.value(QStringLiteral("pid")).toLongLong();
+  const qint64 ppid=item.value(QStringLiteral("parentPid")).toLongLong();
+  if(ppid>0&&ppid!=pid&&byPid.contains(ppid))children[ppid].append(pid);else roots.append(pid);
+ }
+ auto sortPids=[&byPid](QList<qint64> &pids){
+  std::sort(pids.begin(),pids.end(),[&byPid](qint64 a,qint64 b){
+   return byPid.value(a).value(QStringLiteral("name")).toString().toCaseFolded()
+    < byPid.value(b).value(QStringLiteral("name")).toString().toCaseFolded();
+  });
+ };
+ sortPids(roots);
+ for(auto it=children.begin();it!=children.end();++it)sortPids(it.value());
+ QVariantList tree;
+ QSet<qint64> visited;
+ std::function<void(qint64,int)> appendTree=[&](qint64 pid,int depth){
+  if(visited.contains(pid)||depth>32||tree.size()>=400)return;
+  visited.insert(pid);
+  QVariantMap item=byPid.value(pid);
+  item.insert(QStringLiteral("depth"),depth);
+  tree.append(item);
+  for(qint64 child:children.value(pid))appendTree(child,depth+1);
+ };
+ for(qint64 pid:roots)appendTree(pid,0);
+ for(const QVariant &entry:result){
+  const qint64 pid=entry.toMap().value(QStringLiteral("pid")).toLongLong();
+  if(!visited.contains(pid))appendTree(pid,0);
+ }
+ m_processes = tree;
  emit processesChanged();
  setStatus(QStringLiteral("Showing %1 processes. Only processes owned by this user can be requested to stop.").arg(result.size()));
 }

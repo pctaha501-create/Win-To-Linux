@@ -12,6 +12,7 @@ int main(int argc,char **argv){
   if(!expect(process.value(QStringLiteral("pid")).toLongLong()>0,"positive PID"))return 1;
   if(process.value(QStringLiteral("pid")).toLongLong()==QCoreApplication::applicationPid()) foundSelf=process.value(QStringLiteral("parentPid")).toLongLong()>=0;
   if(!expect(process.value(QStringLiteral("parentPid")).toLongLong()>=-1,"parent PID metadata is valid or unavailable during process exit"))return 1;
+  if(!expect(process.value(QStringLiteral("depth")).toInt()>=0&&process.value(QStringLiteral("depth")).toInt()<=32,"bounded process tree depth"))return 1;
   if(!expect(!process.value(QStringLiteral("name")).toString().isEmpty(),"nonempty process name"))return 1;
   if(!expect(process.contains(QStringLiteral("startTicks")),"process identity includes start time"))return 1;
  }
