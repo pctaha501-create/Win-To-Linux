@@ -28,6 +28,15 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
     ~/.local/bin/win-to-linux --fullscreen
     ~/.local/bin/win-to-linux-isolated-preview
 
+### Optional isolated preview
+
+1. Install **Cage** using your distribution's package manager; Win-To-Linux does not install it automatically.
+2. Log in to an existing Wayland desktop session.
+3. Run `~/.local/bin/win-to-linux-isolated-preview`.
+4. Exit the preview to return to your existing desktop.
+
+The launcher checks the current user's runtime directory and active Wayland socket. It deliberately refuses to run from a TTY or start a compositor on a physical display. This is a nested preview only, not yet a standalone desktop session.
+
 ## Uninstall
     sh scripts/uninstall-user.sh
 
