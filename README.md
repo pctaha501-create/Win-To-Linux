@@ -12,7 +12,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Experimental nested Wayland preview launcher (`sh scripts/start-isolated-preview.sh`) that requires an existing user-owned Wayland socket and refuses to change the display manager or start on a physical display.
 - File and directory browsing with create-folder, rename, delete, copy, and move actions. Recursive directory deletion requires explicit confirmation; copy/move reject existing destinations and symbolic links, and source operations are restricted to direct children of the current directory.
 - File opening is delegated to the host desktop. Copy/move supports regular files and directory trees, but skips symbolic links and special files.
-- XDG desktop-entry discovery/search and launch via QProcess argument lists.
+- XDG desktop-entry parsing with dedicated unit tests, hidden/NoDisplay filtering, canonical-path allowlisting, and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference and same-user process inspection/confirmed SIGTERM.
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, and explicit install/remove confirmation.
