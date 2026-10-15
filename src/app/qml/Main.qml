@@ -44,7 +44,7 @@ ApplicationWindow {
    Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
    ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
     Label { text: "WORKSPACE"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
-    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"]
+    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"]
      delegate: Button {
       required property int index; required property string modelData
       Layout.fillWidth: true; implicitHeight: 43; flat: true
@@ -62,8 +62,8 @@ ApplicationWindow {
    RowLayout {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
-     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers.","Browse files and folders using the host desktop."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
@@ -181,6 +181,7 @@ ApplicationWindow {
       }
      }
     }
+    FileManagerPage { controller: fileManager; Layout.fillWidth: true; Layout.fillHeight: true }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
     RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }

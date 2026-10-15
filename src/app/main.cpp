@@ -1,6 +1,7 @@
 #include "system_info.h"
 #include "process_monitor.h"
 #include "package_operation_controller.h"
+#include "file_manager.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -28,11 +29,12 @@ int main(int argc,char**argv){
   QCoreApplication app(argc,argv);configureApplication();SystemInfo system;printSystemInfo(system);return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
- SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;
+ SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;
  QQmlApplicationEngine engine;
  engine.rootContext()->setContextProperty("systemInfo",&system);
  engine.rootContext()->setContextProperty("processMonitor",&processMonitor);
  engine.rootContext()->setContextProperty("packageOperations",&packageOperations);
+ engine.rootContext()->setContextProperty("fileManager",&fileManager);
  QObject::connect(&engine,&QQmlApplicationEngine::objectCreationFailed,&app,[](){QCoreApplication::exit(1);},Qt::QueuedConnection);
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}

@@ -10,6 +10,7 @@
 - [x] Host system details and headless system diagnostics
 - [x] XDG app discovery, search and launch
 - [x] Native-tool discovery based on executables actually present on PATH
+- [x] Read-only file and directory browser
 - [x] Persistent appearance setting
 - [x] procfs process list and confirmation-gated same-user SIGTERM
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine

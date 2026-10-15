@@ -6,7 +6,8 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 
 ## Implemented
 - Distribution detection and safe distro-specific package command planning.
-- Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, and Windows Apps pages.
+- Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
+- Read-only file and directory browsing, with file opening delegated to the host desktop.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference and same-user process inspection/confirmed SIGTERM.
@@ -32,6 +33,7 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
 - Process stop requests require confirmation, are restricted to the current user's processes, and send SIGTERM rather than SIGKILL.
 - Windows installers/programs are never auto-installed; Wine must already be present and each launch requires confirmation.
 - Native tools are shown only when their executables are detected; no tool is assumed installed.
+- The file browser does not expose delete/write operations.
 - Do not replace or disable the host display manager during preview testing.
 
 See docs/architecture.md, docs/installation.md, and docs/roadmap.md.
