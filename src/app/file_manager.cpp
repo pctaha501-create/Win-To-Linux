@@ -2,6 +2,8 @@
 #include <QDir>
 #include <QDesktopServices>
 #include <QFileInfo>
+#include <QFile>
+#include <QRegularExpression>
 #include <QUrl>
 FileManager::FileManager(QObject *parent):QObject(parent){
  QString home=QDir::homePath();QFileInfo info(home);m_currentPath=info.canonicalFilePath().isEmpty()?info.absoluteFilePath():info.canonicalFilePath();refresh();
@@ -32,6 +34,50 @@ void FileManager::refresh(){
  }
  m_entries=next;emit entriesChanged();setStatus(QStringLiteral("%1 entries in %2").arg(m_entries.size()).arg(m_currentPath));
 }
+
+bool FileManager::isSafeName(const QString &name) const {
+ if(name.isEmpty()||name==QStringLiteral(".")||name==QStringLiteral(".."))return false;
+ return !name.contains(QLatin1Char('/'))&&!name.contains(QLatin1Char('\\\\'))&&!name.contains(QChar::Null);
+}
+bool FileManager::isDirectChild(const QString &path,QFileInfo *result) const {
+ QFileInfo info(path);
+ if(!info.exists()||info.fileName().isEmpty())return false;
+ const QString parent=QFileInfo(info.absolutePath()).canonicalFilePath();
+ const QString current=QFileInfo(m_currentPath).canonicalFilePath();
+ if(parent.isEmpty()||current.isEmpty()||parent!=current)return false;
+ if(result)*result=info;
+ return true;
+}
+bool FileManager::createFolder(const QString &name){
+ if(!isSafeName(name)){setStatus(QStringLiteral("Folder name is invalid."));return false;}
+ QDir dir(m_currentPath);
+ if(dir.exists(name)){setStatus(QStringLiteral("An entry with that name already exists."));return false;}
+ if(!dir.mkdir(name)){setStatus(QStringLiteral("Could not create folder. Check permissions and available storage."));return false;}
+ refresh();setStatus(QStringLiteral("Created folder: %1").arg(name));return true;
+}
+bool FileManager::renameEntry(const QString &path,const QString &newName){
+ QFileInfo info;
+ if(!isDirectChild(path,&info)||!isSafeName(newName)){setStatus(QStringLiteral("Rename rejected: invalid entry or name."));return false;}
+ if(info.fileName()==newName){setStatus(QStringLiteral("The name is unchanged."));return true;}
+ QDir dir(m_currentPath);
+ if(dir.exists(newName)){setStatus(QStringLiteral("An entry with that name already exists."));return false;}
+ if(!dir.rename(info.fileName(),newName)){setStatus(QStringLiteral("Could not rename entry. Check permissions."));return false;}
+ refresh();setStatus(QStringLiteral("Renamed to: %1").arg(newName));return true;
+}
+bool FileManager::deleteEntry(const QString &path,bool confirmDirectoryRemoval){
+ QFileInfo info;
+ if(!isDirectChild(path,&info)){setStatus(QStringLiteral("Delete rejected: entry is not a direct child of the current directory."));return false;}
+ bool removed=false;
+ if(info.isSymLink()||!info.isDir())removed=QFile::remove(info.absoluteFilePath());
+ else{
+  if(!confirmDirectoryRemoval){setStatus(QStringLiteral("Directory removal requires explicit confirmation."));return false;}
+  QDir dir(info.absoluteFilePath());
+  removed=dir.removeRecursively();
+ }
+ if(!removed){setStatus(QStringLiteral("Could not delete entry. Check permissions or whether it is in use."));return false;}
+ refresh();setStatus(QStringLiteral("Entry deleted."));return true;
+}
+
 bool FileManager::openEntry(const QString&path){
  QFileInfo info(path);
  if(!info.exists()){setStatus(QStringLiteral("Entry no longer exists."));refresh();return false;}
