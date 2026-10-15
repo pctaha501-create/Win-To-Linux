@@ -2,6 +2,7 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QTemporaryDir>
 #include <QDebug>
 namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
@@ -28,9 +29,12 @@ int main(int argc,char **argv){
  if(!expect(manager.createFolder(QStringLiteral("New Folder")),"create folder"))return 1;
  if(!expect(QDir(temporary.path()).exists(QStringLiteral("New Folder")),"created folder exists"))return 1;
  if(!expect(!manager.createFolder(QStringLiteral("../escape")),"reject path traversal folder name"))return 1;
+ if(!expect(!manager.createFolder(QStringLiteral("bad\\\\name")),"reject backslash in folder name"))return 1;
  const QString samplePath=temporary.filePath(QStringLiteral("sample.txt"));
  if(!expect(manager.renameEntry(samplePath,QStringLiteral("renamed.txt")),"rename file"))return 1;
  if(!expect(QFileInfo::exists(temporary.filePath(QStringLiteral("renamed.txt"))),"renamed file exists"))return 1;
+ if(!expect(!manager.renameEntry(temporary.filePath(QStringLiteral("renamed.txt")),QStringLiteral("New Folder")),"reject rename collision"))return 1;
+ if(!expect(!manager.renameEntry(QDir::tempPath(),QStringLiteral("outside-renamed")),"reject renaming a path outside current directory"))return 1;
  if(!expect(!manager.deleteEntry(temporary.filePath(QStringLiteral("Folder"))),"directory deletion requires confirmation"))return 1;
  if(!expect(manager.deleteEntry(temporary.filePath(QStringLiteral("Folder")),true),"confirmed directory deletion"))return 1;
  if(!expect(!QDir(temporary.path()).exists(QStringLiteral("Folder")),"confirmed folder was removed"))return 1;
