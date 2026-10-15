@@ -16,7 +16,7 @@
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
 - [x] Per-user install/uninstall scripts and desktop entry
-- [x] Unit tests for distro/package planning, file listing/navigation, and process metadata
+- [x] Unit tests for distro/package planning, file listing/navigation, process metadata, and package-name validation
 - [x] Headless QML smoke test, shell-script syntax and install-staging checks defined
 - [ ] CI build, all unit tests, QML smoke test, install staging, and headless diagnostics pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
