@@ -3,10 +3,8 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 BUILD_DIR="${BUILD_DIR:-"$ROOT/build"}"
 PREFIX="${PREFIX:-"$HOME/.local"}"
-if [ ! -x "$BUILD_DIR/src/app/win-to-linux" ]; then
-  echo "Build not found; building and testing first."
-  sh "$ROOT/scripts/build.sh"
-fi
+echo "Building and testing the current source before installation."
+sh "$ROOT/scripts/build.sh"
 cmake --install "$BUILD_DIR" --prefix "$PREFIX"
 echo "Installed Win-To-Linux for the current user in $PREFIX."
 echo "Run it with: $PREFIX/bin/win-to-linux"

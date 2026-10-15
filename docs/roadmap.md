@@ -9,12 +9,13 @@
 - [x] Qt Quick navigation and dashboard
 - [x] Host system details
 - [x] XDG app discovery, search and launch
+- [x] Native-tool discovery based on executables actually present on PATH
 - [x] Persistent appearance setting
 - [x] procfs process list and confirmation-gated same-user SIGTERM
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests and headless QML smoke test defined
-- [x] CI install-staging verification defined
+- [x] Shell-script syntax and CI install-staging checks defined
 - [ ] CI build, unit tests, QML smoke test, and install staging all pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 

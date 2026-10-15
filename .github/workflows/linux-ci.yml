@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - name: Validate shell scripts
+        run: |
+          for script in scripts/*.sh; do sh -n "$script"; done
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -26,5 +29,6 @@ jobs:
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -f "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
+          grep -q '^Exec=win-to-linux$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: System diagnostic
         run: ./build/src/app/win-to-linux --system
