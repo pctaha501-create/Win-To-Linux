@@ -12,19 +12,19 @@
 - [x] Native-tool discovery based on executables actually present on PATH
 - [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links
 - [x] Persistent appearance setting
-- [x] procfs process list and confirmation-gated same-user SIGTERM
+- [x] procfs process list with PID/PPID, search/refresh controls, and confirmation-gated same-user SIGTERM
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
-- [x] Headless QML smoke test, shell-script syntax and install-staging checks defined
+- [x] Headless QML smoke test instantiates the file-manager and package-manager pages, with shell-script syntax and install-staging checks
 - [ ] CI build, all unit tests, QML smoke test, install staging, and headless diagnostics pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
-- [ ] CI matrix across Ubuntu, Fedora, Arch, and openSUSE
+- [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE (full application build remains Ubuntu CI only)
 - [ ] Compositor/session launcher with recovery and isolated Wayland readiness checks
-- [ ] Process tree, notifications, richer settings
+- [ ] Full process tree, notifications, richer settings
 - [ ] Wine/Bottles compatibility notes and app-specific testing
 - [ ] Robust XDG Desktop Entry parsing and launch integration tests
 
