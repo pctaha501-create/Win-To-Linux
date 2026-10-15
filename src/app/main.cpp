@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQmlComponent>
 #include <QQmlContext>
 #include <QDebug>
 #include <QWindow>
@@ -46,7 +47,25 @@ int main(int argc,char**argv){
  QObject::connect(&engine,&QQmlApplicationEngine::objectCreationFailed,&app,[](){QCoreApplication::exit(1);},Qt::QueuedConnection);
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
- if(hasArgument(argc,argv,"--smoke-test")){qInfo()<<"QML shell loaded successfully.";return 0;}
+ if(hasArgument(argc,argv,"--smoke-test")){
+  const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
+  for(const QString &url:pageUrls){
+   QQmlComponent component(&engine,QUrl(url));
+   if(component.isError()){
+    qCritical().noquote()<<"QML component failed:"<<url;
+    for(const QQmlError &error:component.errors())qCritical().noquote()<<error.toString();
+    return 1;
+   }
+   QObject *page=component.create(engine.rootContext());
+   if(!page){
+    qCritical().noquote()<<"QML component could not be instantiated:"<<url;
+    for(const QQmlError &error:component.errors())qCritical().noquote()<<error.toString();
+    return 1;
+   }
+   delete page;
+  }
+  qInfo()<<"QML shell and dynamic pages loaded successfully.";return 0;
+ }
  if(hasArgument(argc,argv,"--fullscreen")){
   if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showFullScreen();
   else qWarning()<<"Could not switch the shell window to full-screen mode.";
