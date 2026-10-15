@@ -4,6 +4,11 @@ import QtQuick.Layouts
 Item {
  id: root
  property var controller
+ property bool lightAppearance: systemInfo.lightAppearance
+ readonly property color fg: lightAppearance ? "#1a2432" : "#f4f6fb"
+ readonly property color muted: lightAppearance ? "#647084" : "#aab4c4"
+ readonly property color panel: lightAppearance ? "#ffffff" : "#10141b"
+ readonly property color borderColor: lightAppearance ? "#dce2eb" : "#2b3340"
  property string pendingAction: ""
  property string pendingPackage: ""
  Dialog {
@@ -12,7 +17,7 @@ Item {
   contentItem: Label {
    width: 360; wrapMode: Text.WordWrap
    text: "You are about to " + root.pendingAction + " package \"" + root.pendingPackage + "\" on this Linux system. This can modify installed software. Continue only if you intend this change."
-   color: "#f4f6fb"
+   color: root.fg
   }
   onAccepted: {
    if (root.pendingAction === "install") root.controller.installPackage(root.pendingPackage)
@@ -21,8 +26,8 @@ Item {
  }
  ColumnLayout {
   anchors.fill: parent; spacing: 12
-  Label { text: "Package operations"; color: "#f4f6fb"; font.pixelSize: 19; font.bold: true }
-  Label { text: "Manager: " + systemInfo.packageManager + (systemInfo.managerAvailable ? " · detected" : " · unavailable"); color: "#aab4c4"; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+  Label { text: "Package operations"; color: root.fg; font.pixelSize: 19; font.bold: true }
+  Label { text: "Manager: " + systemInfo.packageManager + (systemInfo.managerAvailable ? " · detected" : " · unavailable"); color: root.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
   RowLayout {
    Layout.fillWidth: true; spacing: 8
    TextField { id: packageName; Layout.fillWidth: true; placeholderText: "Package name (e.g. curl)"; enabled: !root.controller.running }
@@ -35,12 +40,12 @@ Item {
    Item { Layout.fillWidth: true }
    Button { text: "Cancel operation"; visible: root.controller.running; onClicked: root.controller.cancel() }
   }
-  Label { text: root.controller.status; color: root.controller.running ? "#f0c674" : "#aab4c4"; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-  Label { text: "Command output"; color: "#f4f6fb"; font.bold: true }
+  Label { text: root.controller.status; color: root.controller.running ? "#b47a00" : root.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+  Label { text: "Command output"; color: root.fg; font.bold: true }
   ScrollView {
    Layout.fillWidth: true; Layout.fillHeight: true; clip: true
-   TextArea { text: root.controller.output; readOnly: true; selectByMouse: true; wrapMode: TextEdit.Wrap; color: "#f4f6fb"; placeholderText: "Output from the last package operation appears here."; background: Rectangle { color: "#10141b"; border.color: "#2b3340"; radius: 8 } }
+   TextArea { text: root.controller.output; readOnly: true; selectByMouse: true; wrapMode: TextEdit.Wrap; color: root.fg; placeholderText: "Output from the last package operation appears here."; background: Rectangle { color: root.panel; border.color: root.borderColor; radius: 8 } }
   }
-  Label { text: "Install/remove requires explicit confirmation and PolicyKit authentication. Nothing runs automatically."; color: "#aab4c4"; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.pixelSize: 11 }
+  Label { text: "Install/remove requires explicit confirmation and PolicyKit authentication. Nothing runs automatically."; color: root.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.pixelSize: 11 }
  }
 }
