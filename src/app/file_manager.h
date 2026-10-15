@@ -1,6 +1,8 @@
 #pragma once
 #include <QObject>
 #include <QVariantList>
+class QFileInfo;
+
 class FileManager final : public QObject {
  Q_OBJECT
  Q_PROPERTY(QString currentPath READ currentPath NOTIFY currentPathChanged)
