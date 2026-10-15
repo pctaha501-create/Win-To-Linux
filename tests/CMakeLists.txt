@@ -7,6 +7,10 @@ target_include_directories(wtl-distro-detector-test PRIVATE ${CMAKE_CURRENT_SOUR
 target_link_libraries(wtl-distro-detector-test PRIVATE Qt6::Core)
 add_test(NAME wtl-distro-detector-test COMMAND wtl-distro-detector-test)
 
+add_executable(wtl-package-planner-test package_command_planner_test.cpp)
+target_link_libraries(wtl-package-planner-test PRIVATE wtl-core Qt6::Core)
+add_test(NAME wtl-package-planner-test COMMAND wtl-package-planner-test)
+
 add_executable(wtl-file-manager-test file_manager_test.cpp ../src/app/file_manager.cpp ../src/app/file_manager.h)
 target_include_directories(wtl-file-manager-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
 target_link_libraries(wtl-file-manager-test PRIVATE Qt6::Core Qt6::Gui)
