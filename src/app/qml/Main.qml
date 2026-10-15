@@ -191,8 +191,19 @@ ApplicationWindow {
     ColumnLayout {
      spacing: 8
      Label { text: processMonitor.status; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+     RowLayout {
+      Layout.fillWidth: true; spacing: 8
+      TextField { id: processSearch; Layout.fillWidth: true; placeholderText: "Search process name, PID, or PPID"; selectByMouse: true }
+      Button { text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
+     }
      ListView {
-      Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4; model: processMonitor.processes
+      Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
+      model: processMonitor.processes.filter(function(process) {
+       var query = processSearch.text.toLowerCase()
+       return query.length === 0 || process.name.toLowerCase().indexOf(query) !== -1
+         || String(process.pid).indexOf(query) !== -1
+         || String(process.parentPid).indexOf(query) !== -1
+      })
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
         ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · PPID "+modelData.parentPid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
