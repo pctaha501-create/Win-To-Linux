@@ -87,8 +87,8 @@ int main(int argc, char **argv) {
     ok &= expect(zypperUpdates.arguments == QStringList{QStringLiteral("--non-interactive"), QStringLiteral("list-updates")},
                  "zypper update check uses list-updates");
 
-    const auto apt = distro(QStringLiteral("apt"), QStringLiteral("/usr/bin/apt"));
-    const auto aptUpdates = wtl::PackageCommandPlanner::checkUpdates(apt);
+    const auto aptBinary = distro(QStringLiteral("apt"), QStringLiteral("/usr/bin/apt"));
+    const auto aptUpdates = wtl::PackageCommandPlanner::checkUpdates(aptBinary);
     ok &= expect(aptUpdates.arguments == QStringList{QStringLiteral("list"), QStringLiteral("--upgradable")},
                  "apt update check only lists upgradable packages");
 
