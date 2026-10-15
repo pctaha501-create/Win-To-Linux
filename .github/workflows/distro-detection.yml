@@ -42,4 +42,4 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src:ro" \
             -w /src \
-            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && g++ -std=c++20 -fPIC \$(pkg-config --cflags Qt6Core) tests/distro_detector_test.cpp src/core/distro_detector.cpp \$(pkg-config --libs Qt6Core) -o /tmp/wtl-distro-detector-test && /tmp/wtl-distro-detector-test"
+            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && g++ -std=c++20 -fPIC -Isrc/core \$(pkg-config --cflags Qt6Core) tests/distro_detector_test.cpp src/core/distro_detector.cpp \$(pkg-config --libs Qt6Core) -o /tmp/wtl-distro-detector-test && /tmp/wtl-distro-detector-test"
