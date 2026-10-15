@@ -10,6 +10,7 @@ ApplicationWindow {
  property string search: ""
  property var selectedProcess: ({})
  property string pendingWindowsFile: ""
+ property string startSearch: ""
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
  readonly property color panel: light ? "#ffffff" : "#191f29"
@@ -38,6 +39,34 @@ ApplicationWindow {
   nameFilters: ["Windows programs (*.exe *.msi)", "All files (*)"]
   onAccepted: { win.pendingWindowsFile = selectedFile.toLocalFile(); windowsDialog.open() }
  }
+ Popup {
+  id: startMenu
+  width: 380; height: 390; modal: true; focus: true
+  x: Math.max(8, (win.width-width)/2)
+  y: Math.max(8, win.height-height-55)
+  closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+  background: Rectangle { radius: 16; color: win.panel; border.color: win.borderColor }
+  contentItem: ColumnLayout {
+   anchors.fill: parent; anchors.margins: 16; spacing: 12
+   Label { text: "Start"; color: win.fg; font.pixelSize: 21; font.bold: true }
+   TextField { placeholderText: "Search workspace"; text: win.startSearch; onTextChanged: win.startSearch=text; Layout.fillWidth: true }
+   Label { text: "Quick launch"; color: win.muted; font.pixelSize: 11 }
+   GridLayout {
+    Layout.fillWidth: true; columns: 2; columnSpacing: 8; rowSpacing: 8
+    Repeater {
+     model: [{label:"Overview",page:0},{label:"Applications",page:1},{label:"Linux System",page:2},{label:"Packages",page:3},{label:"Settings",page:4},{label:"Processes",page:5},{label:"Windows Apps",page:6},{label:"Files",page:7}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
+     delegate: Button {
+      required property var modelData
+      text: modelData.label; Layout.fillWidth: true
+      onClicked: { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+   }
+   Item { Layout.fillHeight: true }
+   Label { text: "Win-To-Linux preview · does not replace your login session"; color: win.muted; font.pixelSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+  }
+ }
+ Shortcut { sequence: "Ctrl+Space"; onActivated: startMenu.open() }
  RowLayout {
   anchors.fill: parent; spacing: 0
   Rectangle {
@@ -190,6 +219,18 @@ ApplicationWindow {
      }
     }
     FileManagerPage { controller: fileManager; Layout.fillWidth: true; Layout.fillHeight: true }
+   }
+   Rectangle {
+    Layout.fillWidth: true; Layout.preferredHeight: 42; radius: 10; color: win.panel; border.color: win.borderColor
+    RowLayout { anchors.fill: parent; anchors.leftMargin: 8; anchors.rightMargin: 8; spacing: 6
+     Button { text: "⊞ Start"; onClicked: startMenu.open() }
+     Button { text: "Apps"; onClicked: { win.page=1; systemInfo.refreshApplications() } }
+     Button { text: "Linux"; onClicked: win.page=2 }
+     Button { text: "Packages"; onClicked: win.page=3 }
+     Button { text: "Files"; onClicked: win.page=7 }
+     Item { Layout.fillWidth: true }
+     Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight }
+    }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
     RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:win.page===3?packageOperations.status:win.page===7?fileManager.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
