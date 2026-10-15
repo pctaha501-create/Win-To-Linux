@@ -9,6 +9,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
 - Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
 - Windowed and optional full-screen launch modes (win-to-linux and win-to-linux --fullscreen).
+- Experimental nested Wayland preview launcher (`sh scripts/start-isolated-preview.sh`) that requires an existing user-owned Wayland socket and refuses to change the display manager or start on a physical display.
 - File and directory browsing with create-folder, rename, delete, copy, and move actions. Recursive directory deletion requires explicit confirmation; copy/move reject existing destinations and symbolic links, and source operations are restricted to direct children of the current directory.
 - File opening is delegated to the host desktop. Copy/move supports regular files and directory trees, but skips symbolic links and special files.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.

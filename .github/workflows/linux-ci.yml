@@ -14,6 +14,13 @@ jobs:
       - name: Validate shell scripts
         run: |
           for script in scripts/*.sh; do sh -n "$script"; done
+      - name: Verify isolated launcher refuses unsafe direct-session start
+        run: |
+          if env -u WAYLAND_DISPLAY XDG_RUNTIME_DIR="$RUNNER_TEMP" sh scripts/start-isolated-preview.sh >"$RUNNER_TEMP/isolated-preview.log" 2>&1; then
+            echo "The isolated launcher unexpectedly accepted a missing Wayland session."
+            exit 1
+          fi
+          grep -q "WAYLAND_DISPLAY is not set" "$RUNNER_TEMP/isolated-preview.log"
       - name: Install dependencies
         run: |
           sudo apt-get update
