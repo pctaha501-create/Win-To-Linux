@@ -9,7 +9,8 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
 - Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
 - Windowed and optional full-screen launch modes (win-to-linux and win-to-linux --fullscreen).
-- Read-only file and directory browsing, with file opening delegated to the host desktop.
+- File and directory browsing with create-folder, rename, and delete actions; recursive directory deletion requires an explicit confirmation, and operations are restricted to direct children of the current directory.
+- File opening is delegated to the host desktop; copy/move and broader filesystem management remain future work.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference and same-user process inspection/confirmed SIGTERM.
@@ -36,7 +37,7 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
 - Process stop requests require confirmation, are restricted to the current user's processes, and send SIGTERM rather than SIGKILL.
 - Windows installers/programs are never auto-installed; Wine must already be present and each launch requires confirmation.
 - Native tools are shown only when their executables are detected; no tool is assumed installed.
-- The file browser does not expose delete/write operations.
+- File-manager create/rename/delete operations validate names and current-directory boundaries; recursive directory deletion requires explicit confirmation.
 - Session diagnostics are read-only and never replace or disable the host display manager.
 
 See docs/architecture.md, docs/installation.md, and docs/roadmap.md.
