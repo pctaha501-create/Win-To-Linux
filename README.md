@@ -17,14 +17,14 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - C++ unit tests, a headless QML smoke-test target, install-staging checks, and GitHub Actions CI.
 
 ## Build and test on Ubuntu 24.04
-Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run ./scripts/build.sh.
+Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
 
 ## Install for the current user
-    ./scripts/install-user.sh
+    sh scripts/install-user.sh
     ~/.local/bin/win-to-linux
 
 ## Uninstall
-    ./scripts/uninstall-user.sh
+    sh scripts/uninstall-user.sh
 
 ## Safety
 - Unknown distributions stay unknown; no default-to-apt behavior.

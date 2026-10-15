@@ -5,7 +5,7 @@ BUILD_DIR="${BUILD_DIR:-"$ROOT/build"}"
 PREFIX="${PREFIX:-"$HOME/.local"}"
 if [ ! -x "$BUILD_DIR/src/app/win-to-linux" ]; then
   echo "Build not found; building and testing first."
-  "$ROOT/scripts/build.sh"
+  sh "$ROOT/scripts/build.sh"
 fi
 cmake --install "$BUILD_DIR" --prefix "$PREFIX"
 echo "Installed Win-To-Linux for the current user in $PREFIX."
