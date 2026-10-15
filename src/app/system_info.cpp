@@ -1,5 +1,6 @@
 #include "system_info.h"
 #include "distro_detector.h"
+#include "desktop_entry_parser.h"
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -119,32 +120,44 @@ void SystemInfo::discoverNativeTools(){
  }
 }
 void SystemInfo::refreshApplications(){
- const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};QSet<QString> seen;QVariantList list;
- for(const auto&root:roots){QDir dir(root);for(const QFileInfo&fi:dir.entryInfoList({QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDir::Name)){
-  QString path=fi.canonicalFilePath();if(path.isEmpty())path=fi.absoluteFilePath();if(seen.contains(path))continue;seen.insert(path);
-  QFile f(fi.absoluteFilePath());if(!f.open(QIODevice::ReadOnly|QIODevice::Text))continue;QString name,comment,exec;bool hidden=false,noDisplay=false,entry=false;
-  while(!f.atEnd()){QString line=QString::fromUtf8(f.readLine()).trimmed();if(line.startsWith(QLatin1Char('['))){entry=line==QStringLiteral("[Desktop Entry]");continue;}if(!entry||line.isEmpty()||line.startsWith(QLatin1Char('#')))continue;int eq=line.indexOf(QLatin1Char('='));if(eq<1)continue;QString k=line.left(eq),v=line.mid(eq+1);if(k==QStringLiteral("Name"))name=v;else if(k==QStringLiteral("Comment"))comment=v;else if(k==QStringLiteral("Exec"))exec=v;else if(k==QStringLiteral("Hidden")&&v.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0)hidden=true;else if(k==QStringLiteral("NoDisplay")&&v.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0)noDisplay=true;}
-  if(hidden||noDisplay||name.isEmpty()||exec.isEmpty())continue;
-  list.append(QVariantMap{{QStringLiteral("name"),name},{QStringLiteral("comment"),comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()}});
- }}
- std::sort(list.begin(),list.end(),[](const QVariant&a,const QVariant&b){return a.toMap().value(QStringLiteral("name")).toString().toCaseFolded()<b.toMap().value(QStringLiteral("name")).toString().toCaseFolded();});
- if(list.size()>250)list=list.mid(0,250);m_apps=list;emit applicationsChanged();setStatus(QStringLiteral("Found %1 desktop entries.").arg(m_apps.size()));
-}
-bool SystemInfo::launchDesktopFile(const QString&desktopFile){
- QFileInfo fi(desktopFile);QString path=fi.absoluteFilePath();bool allowed=false;
  const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
- for(const QString&root:roots)if(path.startsWith(QDir(root).absolutePath()+QLatin1Char('/'))){allowed=true;break;}
+ QSet<QString> seen;QVariantList list;
+ for(const QString &root:roots){
+  QDir dir(root);
+  for(const QFileInfo &fi:dir.entryInfoList({QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDir::Name)){
+   QString path=fi.canonicalFilePath();if(path.isEmpty())path=fi.absoluteFilePath();
+   if(seen.contains(path))continue;seen.insert(path);
+   QFile file(fi.absoluteFilePath());if(!file.open(QIODevice::ReadOnly|QIODevice::Text))continue;
+   const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
+   if(entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
+   list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()}});
+  }
+ }
+ std::sort(list.begin(),list.end(),[](const QVariant &a,const QVariant &b){
+  return a.toMap().value(QStringLiteral("name")).toString().toCaseFolded()<b.toMap().value(QStringLiteral("name")).toString().toCaseFolded();
+ });
+ if(list.size()>250)list=list.mid(0,250);
+ m_apps=list;emit applicationsChanged();setStatus(QStringLiteral("Found %1 desktop entries.").arg(m_apps.size()));
+}
+bool SystemInfo::launchDesktopFile(const QString &desktopFile){
+ QFileInfo fi(desktopFile);const QString path=fi.absoluteFilePath();bool allowed=false;
+ const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
+ for(const QString &root:roots)if(path.startsWith(QDir(root).absolutePath()+QLatin1Char('/'))){allowed=true;break;}
  if(!allowed||!fi.isFile()||fi.suffix()!=QStringLiteral("desktop")){setStatus(QStringLiteral("Launch blocked: invalid desktop entry path."));return false;}
- QFile f(path);if(!f.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}
- QString exec;bool entry=false,hidden=false,terminal=false;
- while(!f.atEnd()){QString line=QString::fromUtf8(f.readLine()).trimmed();if(line.startsWith(QLatin1Char('['))){entry=line==QStringLiteral("[Desktop Entry]");continue;}if(!entry)continue;if(line.startsWith(QStringLiteral("Exec=")))exec=line.mid(5).trimmed();if(line.compare(QStringLiteral("Hidden=true"),Qt::CaseInsensitive)==0)hidden=true;if(line.compare(QStringLiteral("Terminal=true"),Qt::CaseInsensitive)==0)terminal=true;}
- if(hidden||terminal||exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
- QStringList args=QProcess::splitCommand(exec);if(args.isEmpty()){setStatus(QStringLiteral("Empty launch command."));return false;}QString program=args.takeFirst();
- args.erase(std::remove_if(args.begin(),args.end(),[](const QString&a){return a.startsWith(QLatin1Char('%'))||a.contains(QLatin1Char('%'));}),args.end());
- if(program.contains(QLatin1Char('%'))||program.startsWith(QLatin1Char('-'))){setStatus(QStringLiteral("Unsupported launch command."));return false;}
- if(QFileInfo(program).isAbsolute()){if(!QFileInfo(program).isExecutable()){setStatus(QStringLiteral("Executable is not available."));return false;}}
- else{QString resolved=QStandardPaths::findExecutable(program);if(resolved.isEmpty()){setStatus(QStringLiteral("Executable not found: %1").arg(program));return false;}program=resolved;}
- if(QProcess::startDetached(program,args,QDir::homePath())){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}setStatus(QStringLiteral("Failed to start application."));return false;
+ QFile file(path);if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}
+ const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
+ if(entry.hidden||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
+ QString program;QStringList args;QString parseError;
+ if(!DesktopEntryParser::splitExec(entry.exec,&program,&args,&parseError)){setStatus(parseError);return false;}
+ if(QFileInfo(program).isAbsolute()){
+  if(!QFileInfo(program).isExecutable()){setStatus(QStringLiteral("Executable is not available."));return false;}
+ }else{
+  const QString resolved=QStandardPaths::findExecutable(program);
+  if(resolved.isEmpty()){setStatus(QStringLiteral("Executable not found: %1").arg(program));return false;}
+  program=resolved;
+ }
+ if(QProcess::startDetached(program,args,QDir::homePath())){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}
+ setStatus(QStringLiteral("Failed to start application."));return false;
 }
 bool SystemInfo::launchWindowsFile(const QString&selectedPath){
  if(m_winePath.isEmpty()){setStatus(QStringLiteral("Wine was not found. Win-To-Linux will not install it automatically."));return false;}

@@ -1,0 +1,27 @@
+#include "desktop_entry_parser.h"
+#include <QCoreApplication>
+#include <QDebug>
+namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
+int main(int argc,char **argv){
+ QCoreApplication app(argc,argv);
+ bool ok=true;
+ const auto entry=DesktopEntryParser::parse(QStringLiteral(
+  "# ignored comment\n[Desktop Entry]\nName=Demo App\nComment=A test app\nExec=/usr/bin/demo --title \"Hello World\" %U\nTerminal=false\nHidden=false\nNoDisplay=false\n[Desktop Action NewWindow]\nName=Ignored Action\nExec=ignored-command\n"));
+ ok &= expect(entry.name==QStringLiteral("Demo App"),"parse desktop entry name");
+ ok &= expect(entry.comment==QStringLiteral("A test app"),"parse desktop entry comment");
+ ok &= expect(entry.exec.contains(QStringLiteral("/usr/bin/demo")),"parse desktop entry Exec");
+ ok &= expect(!entry.hidden&&!entry.noDisplay&&!entry.terminal,"parse false visibility and terminal flags");
+ QString program,error;QStringList args;
+ ok &= expect(DesktopEntryParser::splitExec(entry.exec,&program,&args,&error),"split valid Exec command");
+ ok &= expect(program==QStringLiteral("/usr/bin/demo"),"separate executable path");
+ ok &= expect(args==QStringList{QStringLiteral("--title"),QStringLiteral("Hello World")},"preserve quoted argument and remove field code");
+ const auto hidden=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Hidden\nExec=/usr/bin/demo\nHidden=true\nNoDisplay=true\n"));
+ ok &= expect(hidden.hidden&&hidden.noDisplay,"parse hidden and NoDisplay flags");
+ const auto actionOnly=DesktopEntryParser::parse(QStringLiteral("[Desktop Action Test]\nName=Not an app\nExec=ignored\n"));
+ ok &= expect(actionOnly.name.isEmpty()&&actionOnly.exec.isEmpty(),"ignore desktop action groups");
+ ok &= expect(!DesktopEntryParser::splitExec(QString(),&program,&args,&error),"reject empty Exec");
+ ok &= expect(!DesktopEntryParser::splitExec(QStringLiteral("-dangerous arg"),&program,&args,&error),"reject option-like executable");
+ ok &= expect(!DesktopEntryParser::splitExec(QStringLiteral("demo%unsafe"),&program,&args,&error),"reject field code in executable");
+ if(!ok)return 1;
+ qInfo()<<"Desktop entry parser tests passed";return 0;
+}

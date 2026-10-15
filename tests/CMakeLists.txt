@@ -28,3 +28,8 @@ add_test(NAME wtl-package-controller-test COMMAND wtl-package-controller-test)
 
 add_test(NAME wtl-qml-smoke COMMAND win-to-linux --smoke-test)
 set_tests_properties(wtl-qml-smoke PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(wtl-desktop-entry-test desktop_entry_parser_test.cpp ../src/app/desktop_entry_parser.cpp ../src/app/desktop_entry_parser.h)
+target_include_directories(wtl-desktop-entry-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
+target_link_libraries(wtl-desktop-entry-test PRIVATE Qt6::Core)
+add_test(NAME wtl-desktop-entry-test COMMAND wtl-desktop-entry-test)
