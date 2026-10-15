@@ -2,6 +2,11 @@ add_executable(wtl-core-test core_test.cpp)
 target_link_libraries(wtl-core-test PRIVATE wtl-core Qt6::Core)
 add_test(NAME wtl-core-test COMMAND wtl-core-test)
 
+add_executable(wtl-distro-detector-test distro_detector_test.cpp ../src/core/distro_detector.cpp)
+target_include_directories(wtl-distro-detector-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/core)
+target_link_libraries(wtl-distro-detector-test PRIVATE Qt6::Core)
+add_test(NAME wtl-distro-detector-test COMMAND wtl-distro-detector-test)
+
 add_executable(wtl-file-manager-test file_manager_test.cpp ../src/app/file_manager.cpp ../src/app/file_manager.h)
 target_include_directories(wtl-file-manager-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
 target_link_libraries(wtl-file-manager-test PRIVATE Qt6::Core Qt6::Gui)
