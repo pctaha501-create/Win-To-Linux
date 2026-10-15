@@ -11,13 +11,13 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, and Windows Apps pages.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.
 - Persistent light/dark preference.
-- procfs process list; confirmed SIGTERM requests limited to same-user processes with PID start-time revalidation.
+- procfs process list; confirmed SIGTERM requests limited to same-user processes with PID/start-time revalidation.
 - Wine/Bottles detection; confirmed launch of selected .exe/.msi files through Wine if Wine exists.
 - Per-user install/uninstall scripts and a desktop launcher.
 - C++ unit tests, a headless QML smoke-test target, install-staging checks, and GitHub Actions CI.
 
 ## Build and test on Ubuntu 24.04
-Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
+Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
 
 ## Install for the current user
     sh scripts/install-user.sh
