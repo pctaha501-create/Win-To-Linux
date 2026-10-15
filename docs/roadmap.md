@@ -23,7 +23,8 @@
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE (full application build remains Ubuntu CI only)
-- [ ] Compositor/session launcher with recovery and isolated Wayland readiness checks
+- [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
+- [ ] Full compositor/session launcher with recovery and a supported independent desktop session
 - [ ] Full process tree, notifications, richer settings
 - [ ] Wine/Bottles compatibility notes and app-specific testing
 - [ ] Robust XDG Desktop Entry parsing and launch integration tests
