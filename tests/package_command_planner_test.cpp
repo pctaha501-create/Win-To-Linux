@@ -59,6 +59,39 @@ int main(int argc, char **argv) {
     ok &= expect(!wtl::PackageCommandPlanner::remove(distro(QStringLiteral("mystery")),
                  QStringLiteral("vim")).supported, "unknown manager is never guessed");
 
+
+    const auto dnf = distro(QStringLiteral("dnf"), QStringLiteral("/usr/bin/dnf"));
+    const auto dnfInstall = wtl::PackageCommandPlanner::install(dnf, QStringLiteral("vim"));
+    ok &= expect(dnfInstall.supported, "dnf install plan is supported");
+    ok &= expect(dnfInstall.program == QStringLiteral("pkexec"), "dnf install uses PolicyKit");
+    ok &= expect(dnfInstall.arguments == QStringList{QStringLiteral("/usr/bin/dnf"), QStringLiteral("install"), QStringLiteral("-y"), QStringLiteral("vim")},
+                 "dnf install arguments are discrete and exact");
+    const auto dnfRemove = wtl::PackageCommandPlanner::remove(dnf, QStringLiteral("vim"));
+    ok &= expect(dnfRemove.arguments == QStringList{QStringLiteral("/usr/bin/dnf"), QStringLiteral("remove"), QStringLiteral("-y"), QStringLiteral("vim")},
+                 "dnf remove arguments are discrete and exact");
+    const auto dnfUpdates = wtl::PackageCommandPlanner::checkUpdates(dnf);
+    ok &= expect(dnfUpdates.program == QStringLiteral("/usr/bin/dnf") &&
+                 dnfUpdates.arguments == QStringList{QStringLiteral("check-update")},
+                 "dnf update check uses the native non-installing command");
+
+    const auto zypper = distro(QStringLiteral("zypper"), QStringLiteral("/usr/bin/zypper"));
+    const auto zypperInstall = wtl::PackageCommandPlanner::install(zypper, QStringLiteral("firefox"));
+    ok &= expect(zypperInstall.arguments == QStringList{QStringLiteral("/usr/bin/zypper"), QStringLiteral("--non-interactive"),
+                                                         QStringLiteral("install"), QStringLiteral("firefox")},
+                 "zypper install arguments are discrete and non-interactive");
+    const auto zypperRemove = wtl::PackageCommandPlanner::remove(zypper, QStringLiteral("firefox"));
+    ok &= expect(zypperRemove.arguments == QStringList{QStringLiteral("/usr/bin/zypper"), QStringLiteral("--non-interactive"),
+                                                        QStringLiteral("remove"), QStringLiteral("firefox")},
+                 "zypper remove arguments are discrete and non-interactive");
+    const auto zypperUpdates = wtl::PackageCommandPlanner::checkUpdates(zypper);
+    ok &= expect(zypperUpdates.arguments == QStringList{QStringLiteral("--non-interactive"), QStringLiteral("list-updates")},
+                 "zypper update check uses list-updates");
+
+    const auto apt = distro(QStringLiteral("apt"), QStringLiteral("/usr/bin/apt"));
+    const auto aptUpdates = wtl::PackageCommandPlanner::checkUpdates(apt);
+    ok &= expect(aptUpdates.arguments == QStringList{QStringLiteral("list"), QStringLiteral("--upgradable")},
+                 "apt update check only lists upgradable packages");
+
     if (!ok) return 1;
     qInfo() << "Win-To-Linux package planner safety tests passed";
     return 0;
