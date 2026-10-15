@@ -1,6 +1,6 @@
 # Roadmap and completion criteria
 
-"100%" applies to a defined milestone, not universal compatibility with every Linux distro and Windows application.
+"100%" applies to a defined milestone, not universal compatibility with every Linux distribution and Windows application.
 
 ## Foundation
 - [x] C++20/CMake/Ninja project
@@ -12,10 +12,11 @@
 - [x] Qt Quick navigation and dashboard
 - [x] Host distribution, kernel, architecture and hostname display
 - [x] XDG desktop-entry discovery and search
-- [x] Launch desktop entries without invoking a shell
+- [x] Launch desktop entries without directly invoking a shell
 - [x] Session-only dark/light switch
-- [ ] Build and QML runtime validation on Ubuntu
-- [ ] Keyboard/focus/accessibility and responsive layout pass
+- [x] Headless QML smoke-test target in CTest
+- [ ] CI result confirms build, unit test, and QML smoke test
+- [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Operational desktop
 - [ ] Persist preferences
