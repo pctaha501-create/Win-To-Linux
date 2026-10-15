@@ -10,13 +10,13 @@
 - [x] Host system details and headless system diagnostics
 - [x] XDG app discovery, search and launch
 - [x] Native-tool discovery based on executables actually present on PATH
-- [x] Read-only file and directory browser
+- [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links
 - [x] Persistent appearance setting
 - [x] procfs process list and confirmation-gated same-user SIGTERM
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
 - [x] Per-user install/uninstall scripts and desktop entry
-- [x] Unit tests for distro/package planning, file listing/navigation, process metadata, and package-name validation
+- [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
 - [x] Headless QML smoke test, shell-script syntax and install-staging checks defined
 - [ ] CI build, all unit tests, QML smoke test, install staging, and headless diagnostics pass on latest commit
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
