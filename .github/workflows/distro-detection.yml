@@ -1,0 +1,45 @@
+name: Distro detection matrix
+on:
+  push:
+    branches: ["main", "feature/**"]
+    paths:
+      - "src/core/distro_detector.*"
+      - "tests/distro_detector_test.cpp"
+      - ".github/workflows/distro-detection.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  distro-detector:
+    name: Distro detector (${{matrix.name}})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu
+            image: ubuntu:24.04
+            install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y g++ pkg-config qt6-base-dev"
+          - name: Fedora
+            image: fedora:latest
+            install: "dnf install -y gcc-c++ pkgconf-pkg-config qt6-qtbase-devel"
+          - name: Arch
+            image: archlinux:latest
+            install: "pacman -Sy --noconfirm gcc pkgconf qt6-base"
+          - name: openSUSE
+            image: opensuse/tumbleweed
+            install: "zypper --non-interactive refresh && zypper --non-interactive install gcc-c++ pkg-config libqt6-qtbase-devel"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile and run distro regression tests inside ${{matrix.image}}
+        env:
+          DISTRO_IMAGE: ${{matrix.image}}
+          DISTRO_INSTALL: ${{matrix.install}}
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -w /src \
+            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && g++ -std=c++20 -fPIC \$(pkg-config --cflags Qt6Core) tests/distro_detector_test.cpp src/core/distro_detector.cpp \$(pkg-config --libs Qt6Core) -o /tmp/wtl-distro-detector-test && /tmp/wtl-distro-detector-test"
