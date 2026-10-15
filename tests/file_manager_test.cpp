@@ -47,6 +47,12 @@ int main(int argc,char **argv){
  if(!expect(!QFileInfo::exists(temporary.filePath(QStringLiteral("renamed.txt")))&&QFileInfo::exists(temporary.filePath(QStringLiteral("Destination/renamed.txt"))),"moved file path updated"))return 1;
  if(!expect(!manager.moveEntry(temporary.filePath(QStringLiteral("Folder")),temporary.filePath(QStringLiteral("Folder"))),"reject moving folder into itself"))return 1;
 
+ if(!expect(root.mkdir(QStringLiteral("SymlinkFolder")),"create symlink fixture folder"))return 1;
+ if(!expect(QFile::link(temporary.filePath(QStringLiteral("Destination/renamed.txt")),temporary.filePath(QStringLiteral("SymlinkFolder/link.txt"))),"create symlink fixture"))return 1;
+ if(!expect(!manager.copyEntry(temporary.filePath(QStringLiteral("SymlinkFolder")),temporary.filePath(QStringLiteral("Destination"))),"reject copying directory containing symlink"))return 1;
+ if(!expect(!QFileInfo::exists(temporary.filePath(QStringLiteral("Destination/SymlinkFolder"))),"failed symlink copy leaves no partial destination"))return 1;
+
+
  if(!expect(!manager.deleteEntry(temporary.filePath(QStringLiteral("Folder"))),"directory deletion requires confirmation"))return 1;
  if(!expect(manager.deleteEntry(temporary.filePath(QStringLiteral("Folder")),true),"confirmed directory deletion"))return 1;
  if(!expect(!QDir(temporary.path()).exists(QStringLiteral("Folder")),"confirmed folder was removed"))return 1;
