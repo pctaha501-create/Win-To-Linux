@@ -140,13 +140,13 @@ void SystemInfo::refreshApplications(){
  m_apps=list;emit applicationsChanged();setStatus(QStringLiteral("Found %1 desktop entries.").arg(m_apps.size()));
 }
 bool SystemInfo::launchDesktopFile(const QString &desktopFile){
- QFileInfo fi(desktopFile);const QString path=fi.absoluteFilePath();bool allowed=false;
+ QFileInfo fi(desktopFile);const QString path=fi.canonicalFilePath();bool allowed=false;
  const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
- for(const QString &root:roots)if(path.startsWith(QDir(root).absolutePath()+QLatin1Char('/'))){allowed=true;break;}
- if(!allowed||!fi.isFile()||fi.suffix()!=QStringLiteral("desktop")){setStatus(QStringLiteral("Launch blocked: invalid desktop entry path."));return false;}
+ for(const QString &root:roots){const QString canonicalRoot=QFileInfo(root).canonicalFilePath();if(!canonicalRoot.isEmpty()&&path.startsWith(canonicalRoot+QLatin1Char('/'))){allowed=true;break;}}
+ if(path.isEmpty()||!allowed||!QFileInfo(path).isFile()||QFileInfo(path).suffix()!=QStringLiteral("desktop")){setStatus(QStringLiteral("Launch blocked: invalid desktop entry path."));return false;}
  QFile file(path);if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}
  const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
- if(entry.hidden||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
+ if(entry.hidden||entry.noDisplay||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
  QString program;QStringList args;QString parseError;
  if(!DesktopEntryParser::splitExec(entry.exec,&program,&args,&parseError)){setStatus(parseError);return false;}
  if(QFileInfo(program).isAbsolute()){
