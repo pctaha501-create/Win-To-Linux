@@ -7,8 +7,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QDebug>
+#include <QWindow>
 #include <cstring>
-
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
 void configureApplication(){QCoreApplication::setApplicationName("Win-To-Linux");QCoreApplication::setApplicationVersion("0.2.0");QCoreApplication::setOrganizationName("Win-To-Linux");}
@@ -47,5 +47,9 @@ int main(int argc,char**argv){
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
  if(hasArgument(argc,argv,"--smoke-test")){qInfo()<<"QML shell loaded successfully.";return 0;}
+ if(hasArgument(argc,argv,"--fullscreen")){
+  if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showFullScreen();
+  else qWarning()<<"Could not switch the shell window to full-screen mode.";
+ }
  return app.exec();
 }

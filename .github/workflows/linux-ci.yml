@@ -32,3 +32,5 @@ jobs:
           grep -q '^Exec=win-to-linux$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: System diagnostic
         run: ./build/src/app/win-to-linux --system
+      - name: Session diagnostic
+        run: ./build/src/app/win-to-linux --session-check

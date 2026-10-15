@@ -8,6 +8,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Distribution detection and safe distro-specific package command planning.
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
 - Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
+- Windowed and optional full-screen launch modes (win-to-linux and win-to-linux --fullscreen).
 - Read-only file and directory browsing, with file opening delegated to the host desktop.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
@@ -22,6 +23,7 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
 ## Install for the current user
     sh scripts/install-user.sh
     ~/.local/bin/win-to-linux
+    ~/.local/bin/win-to-linux --fullscreen
 
 ## Uninstall
     sh scripts/uninstall-user.sh
