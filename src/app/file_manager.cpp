@@ -3,7 +3,6 @@
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QFile>
-#include <QRegularExpression>
 #include <QUrl>
 FileManager::FileManager(QObject *parent):QObject(parent){
  QString home=QDir::homePath();QFileInfo info(home);m_currentPath=info.canonicalFilePath().isEmpty()?info.absoluteFilePath():info.canonicalFilePath();refresh();
@@ -37,7 +36,7 @@ void FileManager::refresh(){
 
 bool FileManager::isSafeName(const QString &name) const {
  if(name.isEmpty()||name==QStringLiteral(".")||name==QStringLiteral(".."))return false;
- return !name.contains(QLatin1Char('/'))&&!name.contains(QLatin1Char('\\\\'))&&!name.contains(QChar::Null);
+ return !name.contains(QLatin1Char('/'))&&!name.contains(QLatin1Char('\\'))&&!name.contains(QChar::Null);
 }
 bool FileManager::isDirectChild(const QString &path,QFileInfo *result) const {
  QFileInfo info(path);
