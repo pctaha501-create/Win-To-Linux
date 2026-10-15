@@ -7,6 +7,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 ## Implemented
 - Distribution detection and safe distro-specific package command planning.
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
+- Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
 - Read-only file and directory browsing, with file opening delegated to the host desktop.
 - XDG desktop-entry discovery/search and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
@@ -34,6 +35,6 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, 
 - Windows installers/programs are never auto-installed; Wine must already be present and each launch requires confirmation.
 - Native tools are shown only when their executables are detected; no tool is assumed installed.
 - The file browser does not expose delete/write operations.
-- Do not replace or disable the host display manager during preview testing.
+- Session diagnostics are read-only and never replace or disable the host display manager.
 
 See docs/architecture.md, docs/installation.md, and docs/roadmap.md.

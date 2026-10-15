@@ -63,7 +63,7 @@ ApplicationWindow {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
      Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers.","Browse files and folders using the host desktop."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Host system, session and native tool diagnostics.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers.","Browse files and folders using the host desktop."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
@@ -121,7 +121,7 @@ ApplicationWindow {
     Flickable {
      clip: true; contentWidth: width; contentHeight: sys.implicitHeight
      ColumnLayout { id: sys; width: parent.width; spacing: 9
-      Repeater { model: [{k:"Distribution",v:systemInfo.distribution},{k:"Distribution ID",v:systemInfo.distroId},{k:"Family",v:systemInfo.family},{k:"Version",v:systemInfo.version},{k:"Kernel",v:systemInfo.kernel},{k:"Architecture",v:systemInfo.architecture},{k:"Host name",v:systemInfo.hostName},{k:"Package manager",v:systemInfo.packageManager},{k:"Manager available",v:systemInfo.managerAvailable?"Yes":"No"}]
+      Repeater { model: [{k:"Distribution",v:systemInfo.distribution},{k:"Distribution ID",v:systemInfo.distroId},{k:"Family",v:systemInfo.family},{k:"Version",v:systemInfo.version},{k:"Kernel",v:systemInfo.kernel},{k:"Architecture",v:systemInfo.architecture},{k:"Host name",v:systemInfo.hostName},{k:"Package manager",v:systemInfo.packageManager},{k:"Manager available",v:systemInfo.managerAvailable?"Yes":"No"},{k:"Session type",v:systemInfo.sessionType},{k:"Desktop environment",v:systemInfo.desktopEnvironment},{k:"Wayland display",v:systemInfo.waylandDisplay},{k:"X11 display",v:systemInfo.xDisplay},{k:"Runtime directory",v:systemInfo.runtimeDirectory},{k:"Runtime directory check",v:systemInfo.runtimeDirectoryStatus},{k:"Available compositors",v:String(systemInfo.availableCompositors.length)}]
        delegate: Rectangle { required property var modelData; Layout.fillWidth: true; Layout.preferredHeight: 58; radius: 10; color: win.panel; border.color: win.borderColor
         RowLayout { anchors.fill: parent; anchors.margins: 14; Label { text: modelData.k; color: win.muted; Layout.fillWidth: true } Label { text: modelData.v; color: win.fg; font.bold: true; horizontalAlignment: Text.AlignRight; Layout.maximumWidth: 340; wrapMode: Text.Wrap } }
        }
@@ -140,6 +140,14 @@ ApplicationWindow {
        }
       }
       Label { visible: systemInfo.nativeTools.length===0; text: "No known native tools were found on PATH."; color: win.muted }
+      Label { text: "Compositor executables detected ("+systemInfo.availableCompositors.length+")"; color: win.fg; font.pixelSize: 18; font.bold: true; topPadding: 14 }
+      Repeater { model: systemInfo.availableCompositors
+       delegate: Rectangle { required property var modelData; Layout.fillWidth: true; Layout.preferredHeight: 48; radius: 9; color: win.panel; border.color: win.borderColor
+        RowLayout { anchors.fill: parent; anchors.margins: 12; Label { text: modelData.name; color: win.fg; font.bold: true; Layout.fillWidth: true } Label { text: modelData.path; color: win.muted; font.pixelSize: 10; elide: Text.ElideMiddle; Layout.maximumWidth: 320 } }
+       }
+      }
+      Label { visible: systemInfo.availableCompositors.length===0; text: "No known standalone Wayland compositor executable was found on PATH."; color: win.muted }
+      Label { text: "Detection only: this preview never starts a compositor or changes your login manager."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true; font.pixelSize: 11 }
      }
     }
     PackageManagerPage { controller: packageOperations; Layout.fillWidth: true; Layout.fillHeight: true }
@@ -184,7 +192,7 @@ ApplicationWindow {
     FileManagerPage { controller: fileManager; Layout.fillWidth: true; Layout.fillHeight: true }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
+    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:win.page===3?packageOperations.status:win.page===7?fileManager.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
    }
   }
  }

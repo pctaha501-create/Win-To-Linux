@@ -4,20 +4,66 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QSet>
 #include <algorithm>
+#include <unistd.h>
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
- QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));discoverNativeTools();refreshApplications();
+ QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));discoverNativeTools();discoverSession();refreshApplications();
 }
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
-QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
+QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;}
+QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;}
+bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
 void SystemInfo::setLightAppearance(bool enabled){if(m_lightAppearance==enabled)return;m_lightAppearance=enabled;QSettings settings;settings.setValue(QStringLiteral("appearance/light"),enabled);emit appearanceChanged();}
 bool SystemInfo::wineAvailable()const{return !m_winePath.isEmpty();} QString SystemInfo::winePath()const{return m_winePath;} bool SystemInfo::bottlesAvailable()const{return !m_bottlesPath.isEmpty();} QString SystemInfo::bottlesPath()const{return m_bottlesPath;}
 void SystemInfo::setStatus(const QString&s){if(m_status==s)return;m_status=s;emit statusChanged();}
+void SystemInfo::discoverSession(){
+ const QProcessEnvironment env=QProcessEnvironment::systemEnvironment();
+ m_sessionType=env.value(QStringLiteral("XDG_SESSION_TYPE")).trimmed().toLower();
+ m_waylandDisplay=env.value(QStringLiteral("WAYLAND_DISPLAY")).trimmed();
+ m_xDisplay=env.value(QStringLiteral("DISPLAY")).trimmed();
+ m_desktopEnvironment=env.value(QStringLiteral("XDG_CURRENT_DESKTOP")).trimmed();
+ if(m_desktopEnvironment.isEmpty())m_desktopEnvironment=env.value(QStringLiteral("DESKTOP_SESSION")).trimmed();
+ if(m_desktopEnvironment.isEmpty())m_desktopEnvironment=QStringLiteral("Unknown");
+ if(m_sessionType.isEmpty()){
+  if(!m_waylandDisplay.isEmpty())m_sessionType=QStringLiteral("wayland (inferred)");
+  else if(!m_xDisplay.isEmpty())m_sessionType=QStringLiteral("x11 (inferred)");
+  else m_sessionType=QStringLiteral("headless/unknown");
+ }
+ if(m_waylandDisplay.isEmpty())m_waylandDisplay=QStringLiteral("Not set");
+ if(m_xDisplay.isEmpty())m_xDisplay=QStringLiteral("Not set");
+ m_runtimeDirectory=env.value(QStringLiteral("XDG_RUNTIME_DIR")).trimmed();
+ if(m_runtimeDirectory.isEmpty())m_runtimeDirectoryStatus=QStringLiteral("Not set");
+ else{
+  const QFileInfo runtime(m_runtimeDirectory);
+  const QFile::Permissions unsafe=QFile::WriteGroup|QFile::WriteOther;
+  const bool ownerMatches=runtime.ownerId()==static_cast<uint>(getuid());
+  const bool safePermissions=!(QFile::permissions(m_runtimeDirectory)&unsafe);
+  const bool valid=runtime.exists()&&runtime.isDir()&&runtime.isReadable()&&runtime.isWritable()&&ownerMatches&&safePermissions;
+  m_runtimeDirectoryStatus=valid?QStringLiteral("Directory exists and ownership/permissions look safe"):QStringLiteral("Invalid or unsafe directory; isolated session startup must not proceed");
+ }
+ if(m_runtimeDirectory.isEmpty())m_runtimeDirectory=QStringLiteral("Not set");
+ const QList<QPair<QString,QString>> candidates={
+  {QStringLiteral("Weston"),QStringLiteral("weston")},
+  {QStringLiteral("KWin Wayland"),QStringLiteral("kwin_wayland")},
+  {QStringLiteral("Sway"),QStringLiteral("sway")},
+  {QStringLiteral("Labwc"),QStringLiteral("labwc")},
+  {QStringLiteral("Cage"),QStringLiteral("cage")},
+  {QStringLiteral("Wayfire"),QStringLiteral("wayfire")},
+  {QStringLiteral("River"),QStringLiteral("river")},
+  {QStringLiteral("Hyprland"),QStringLiteral("Hyprland")},
+  {QStringLiteral("Niri"),QStringLiteral("niri")}
+ };
+ for(const auto &candidate:candidates){
+  const QString path=QStandardPaths::findExecutable(candidate.second);
+  if(!path.isEmpty())m_availableCompositors.append(QVariantMap{{QStringLiteral("name"),candidate.first},{QStringLiteral("command"),candidate.second},{QStringLiteral("path"),path}});
+ }
+}
 void SystemInfo::discoverNativeTools(){
  struct Candidate{QString name,command,category;};
  QList<Candidate> candidates={

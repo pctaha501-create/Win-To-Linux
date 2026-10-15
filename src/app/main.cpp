@@ -22,10 +22,18 @@ void printSystemInfo(const SystemInfo &system){
  qInfo().noquote()<<"Kernel:"<<system.kernel();
  qInfo().noquote()<<"Architecture:"<<system.architecture();
  qInfo().noquote()<<"Native tools:"<<system.nativeTools().size();
+ qInfo().noquote()<<"Session type:"<<system.sessionType();
+ qInfo().noquote()<<"Desktop environment:"<<system.desktopEnvironment();
+ qInfo().noquote()<<"Wayland display:"<<system.waylandDisplay();
+ qInfo().noquote()<<"X11 display:"<<system.xDisplay();
+ qInfo().noquote()<<"Runtime directory:"<<system.runtimeDirectory();
+ qInfo().noquote()<<"Runtime directory check:"<<system.runtimeDirectoryStatus();
+ qInfo().noquote()<<"Compositors found:"<<system.availableCompositors().size();
+ for(const QVariant &entry:system.availableCompositors())qInfo().noquote()<<"Compositor:"<<entry.toMap().value(QStringLiteral("name")).toString()<<entry.toMap().value(QStringLiteral("path")).toString();
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--system")){
+ if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")){
   QCoreApplication app(argc,argv);configureApplication();SystemInfo system;printSystemInfo(system);return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
