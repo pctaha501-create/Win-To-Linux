@@ -63,7 +63,7 @@ ApplicationWindow {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
      Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information and native tools detected on the host.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
@@ -84,7 +84,7 @@ ApplicationWindow {
        }
       }
       GridLayout { Layout.fillWidth: true; columns: width>720?3:2; columnSpacing: 12; rowSpacing: 12
-       Repeater { model: [{t:"Distribution",v:systemInfo.distribution,d:"Detected host"},{t:"Package manager",v:systemInfo.packageManager,d:systemInfo.managerAvailable?"Executable found":"Not available"},{t:"Desktop apps",v:String(systemInfo.applications.length),d:"Entries discovered"}]
+       Repeater { model: [{t:"Distribution",v:systemInfo.distribution,d:"Detected host"},{t:"Package manager",v:systemInfo.packageManager,d:systemInfo.managerAvailable?"Executable found":"Not available"},{t:"Native tools",v:String(systemInfo.nativeTools.length),d:"Commands found on PATH"},{t:"Desktop apps",v:String(systemInfo.applications.length),d:"Entries discovered"}]
         delegate: Rectangle { required property var modelData; Layout.fillWidth: true; Layout.preferredHeight: 105; radius: 12; color: win.panel; border.color: win.borderColor
          ColumnLayout { anchors.fill: parent; anchors.margins: 15; spacing: 7
           Label { text: modelData.t; color: win.muted; font.pixelSize: 11 }
@@ -97,7 +97,7 @@ ApplicationWindow {
       Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 90; radius: 12; color: win.panel; border.color: win.borderColor
        ColumnLayout { anchors.fill: parent; anchors.margins: 15; spacing: 5
         Label { text: "Safety boundary"; color: win.fg; font.bold: true }
-        Label { text: "This preview does not replace your login session or run privileged package operations."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Label { text: "This preview does not replace your login session. System package changes require explicit confirmation."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
        }
       }
      }
@@ -142,13 +142,7 @@ ApplicationWindow {
       Label { visible: systemInfo.nativeTools.length===0; text: "No known native tools were found on PATH."; color: win.muted }
      }
     }
-    Rectangle { Layout.fillWidth: true; Layout.fillHeight: true; radius: 12; color: win.panel; border.color: win.borderColor
-     ColumnLayout { anchors.fill: parent; anchors.margins: 22; spacing: 12
-      Label { text: "Package operations"; color: win.fg; font.pixelSize: 18; font.bold: true }
-      Label { text: "Distribution-aware command planning is implemented in the core. This page intentionally does not install or remove software until confirmation, cancellation, timeout, and error handling are implemented."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-      Label { text: "Detected manager: "+systemInfo.packageManager+(systemInfo.managerAvailable?" (available)":" (not available)"); color: win.fg; font.bold: true }
-     }
-    }
+    PackageManagerPage { controller: packageOperations; Layout.fillWidth: true; Layout.fillHeight: true }
     ColumnLayout { Layout.alignment: Qt.AlignTop; spacing: 12
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 90; radius: 12; color: win.panel; border.color: win.borderColor
       RowLayout { anchors.fill: parent; anchors.margins: 17; ColumnLayout { Layout.fillWidth: true; Label { text: "Light appearance"; color: win.fg; font.bold: true } Label { text: "Switch and save the shell appearance."; color: win.muted; font.pixelSize: 11 } } Switch { checked: systemInfo.lightAppearance; onToggled: systemInfo.lightAppearance=checked } }

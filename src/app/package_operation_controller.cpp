@@ -1,7 +1,7 @@
 #include "package_operation_controller.h"
 #include "distro_detector.h"
 #include "package_command_planner.h"
-#include <QTextStream>
+#include <QDir>
 PackageOperationController::PackageOperationController(QObject *parent):QObject(parent),m_distro(wtl::DistroDetector::detect()){
  m_timeout.setSingleShot(true);m_killTimer.setSingleShot(true);
  connect(&m_timeout,&QTimer::timeout,this,[this](){if(!m_running)return;m_timedOut=true;setStatus(QStringLiteral("Operation timed out; asking the package manager to stop."));m_process.terminate();m_killTimer.start(1500);});
