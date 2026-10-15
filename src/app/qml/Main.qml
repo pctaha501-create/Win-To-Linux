@@ -7,6 +7,7 @@ ApplicationWindow {
  property int page: 0
  property bool light: systemInfo.lightAppearance
  property string search: ""
+ property var selectedProcess: ({})
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
  readonly property color panel: light ? "#ffffff" : "#191f29"
@@ -20,19 +21,25 @@ ApplicationWindow {
    Label { text: systemInfo.distribution; color: win.muted }
   }
  }
+ Dialog {
+  id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel
+  anchors.centerIn: parent
+  Label { text: "Send SIGTERM to " + (win.selectedProcess.name || "process") + " (PID " + (win.selectedProcess.pid || "—") + ")? Unsaved work in that process may be lost."; wrapMode: Text.WordWrap; width: 330 }
+  onAccepted: processMonitor.terminateProcess(win.selectedProcess.pid, win.selectedProcess.startTicks)
+ }
  RowLayout {
   anchors.fill: parent; spacing: 0
   Rectangle {
    Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
    ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
     Label { text: "WORKSPACE"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
-    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings"]
+    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes"]
      delegate: Button {
       required property int index; required property string modelData
       Layout.fillWidth: true; implicitHeight: 43; flat: true
       background: Rectangle { radius: 8; color: win.page===index ? (win.light?"#dbe6ff":"#2b3e60") : (parent.hovered?(win.light?"#e8edf5":"#252d39"):"transparent") }
       contentItem: Text { text: modelData; color: win.fg; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter; leftPadding: 10 }
-      onClicked: { win.page=index; if(index===1)systemInfo.refreshApplications() }
+      onClicked: { win.page=index; if(index===1)systemInfo.refreshApplications(); if(index===5)processMonitor.refreshProcesses() }
      }
     }
     Item { Layout.fillHeight: true }
@@ -44,11 +51,12 @@ ApplicationWindow {
    RowLayout {
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
-     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information detected from the host system.","Package actions are not executed in this preview.","Adjust the shell appearance."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Information detected from the host system.","Package actions are not executed in this preview.","Adjust the shell appearance.","Inspect processes running on this Linux host."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
+    Button { visible: win.page===5; text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
    }
    StackLayout {
     Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: win.page
@@ -123,9 +131,25 @@ ApplicationWindow {
       ColumnLayout { anchors.fill: parent; anchors.margins: 17; spacing: 5; Label { text: "About Win-To-Linux"; color: win.fg; font.bold: true } Label { text: "Version 0.2.0 · C++20 · Qt 6"; color: win.muted } Label { text: "Runs inside the current desktop; it is not a replacement login session."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true } }
      }
     }
+    ColumnLayout {
+     spacing: 8
+     Label { text: processMonitor.status; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+     ListView {
+      Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
+      model: processMonitor.processes
+      delegate: Rectangle {
+       required property var modelData
+       width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
+       RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
+        ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
+        Button { visible: modelData.canTerminate; text: "Stop"; onClicked: { win.selectedProcess=modelData; stopDialog.open() } }
+       }
+      }
+     }
+    }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
+    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
    }
   }
  }

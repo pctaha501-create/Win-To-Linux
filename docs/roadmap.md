@@ -13,16 +13,17 @@
 - [x] Host distribution, kernel, architecture and hostname display
 - [x] XDG desktop-entry discovery and search
 - [x] Launch desktop entries without directly invoking a shell
-- [x] Session-only dark/light switch
+- [x] Persisted dark/light appearance preference
+- [x] Process listing from procfs with PID and RSS information
+- [x] Confirmed SIGTERM request limited to same-user processes with PID/start-time revalidation
 - [x] Headless QML smoke-test target in CTest
 - [ ] CI result confirms build, unit test, and QML smoke test
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Operational desktop
-- [ ] Persist preferences
-- [ ] Process monitoring and safe termination flow
-- [ ] Session isolation, compositor strategy, and recovery
+- [ ] Compositor/session launcher and recovery path
 - [ ] Notifications and richer settings
+- [ ] Process-tree inspection and robust process identity tracking
 
 ## Package operations
 - [ ] Async process controller with timeout, cancellation, stdout/stderr

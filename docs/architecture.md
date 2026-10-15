@@ -2,8 +2,8 @@
 
 1. Linux host: distribution, kernel, session, devices, native applications.
 2. Core library: host discovery, capability detection, and safe package command plans.
-3. Preview shell: Qt Quick navigation, overview, application discovery/launch, host information, appearance.
-4. Future services: process monitoring, settings persistence, package transactions, session management.
+3. Preview shell: Qt Quick navigation, overview, application discovery/launch, host information, appearance, and process inspection.
+4. Future services: package transactions, session management, notifications, and deeper process tools.
 5. Compatibility layer: Wine/Bottles integration with per-app compatibility reporting.
 
 Win-To-Linux is not a new kernel and must not hide the host distribution's native tools.
@@ -17,5 +17,8 @@ The planner returns a program and argument list but does not run commands. Packa
 ## Application discovery and launch
 The catalog reads desktop entries from standard user/system application folders and ignores Hidden/NoDisplay entries. Launching validates the path, parses Exec, resolves the executable, and invokes it through QProcess with an argument list. Some desktop-entry wrappers and field-code features are intentionally unsupported.
 
+## Process safety
+The process list is read from procfs. Stop requests require explicit confirmation in the UI and are restricted to processes owned by the current user; PID start-time is revalidated to reduce PID-reuse risk. SIGTERM is sent rather than SIGKILL. A process may ignore or delay SIGTERM.
+
 ## Session safety
-The preview shell runs inside the current desktop. It must not replace or disable the display manager. A future session launcher must use a unique runtime socket and verify compositor process health and a real Wayland connection before launching the shell.
+The preview shell runs inside the current desktop. It must not replace or disable the display manager. A future session launcher must use a unique runtime socket and verify compositor health and a real Wayland connection before launching the shell.
