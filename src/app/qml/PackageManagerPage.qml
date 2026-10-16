@@ -12,7 +12,7 @@ Item {
  property string pendingAction: ""
  property string pendingPackage: ""
  Dialog {
-  id: confirmDialog; modal: true; title: "Confirm package operation"
+  id: confirmDialog; width: 420; modal: true; title: "Confirm package operation"
   standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   contentItem: Label {
    width: 360; wrapMode: Text.WordWrap

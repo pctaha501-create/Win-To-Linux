@@ -60,6 +60,7 @@ Item {
   }
   Dialog {
    id: transferDialog
+   width: 480
    modal: true
    title: root.selectedEntryForMove ? "Move entry" : "Copy entry"
    standardButtons: Dialog.Ok | Dialog.Cancel
