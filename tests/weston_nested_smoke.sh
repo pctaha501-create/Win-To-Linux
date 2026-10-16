@@ -19,6 +19,9 @@ shell=desktop
 panel-position=none
 locking=false
 animation=none
+close-animation=none
+startup-animation=none
+focus-animation=none
 EOF
 unset WAYLAND_DISPLAY || true
 weston_bin=$(command -v weston 2>/dev/null || true)
