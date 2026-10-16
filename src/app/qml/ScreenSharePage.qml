@@ -86,7 +86,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: controller.ready ? 224 : 100
+                Layout.preferredHeight: controller.ready ? 300 : 100
                 radius: 13; color: page.cardBackground; border.color: page.cardBorder
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 18; spacing: 8
@@ -115,7 +115,7 @@ Item {
 
             Rectangle {
                 Layout.fillWidth: true
-                Layout.preferredHeight: controller.ready ? 250 : 100
+                Layout.preferredHeight: controller.ready ? 320 : 100
                 radius: 13; color: page.cardBackground; border.color: page.cardBorder
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 18; spacing: 8
@@ -135,8 +135,11 @@ Item {
                         Layout.fillWidth: true; spacing: 8
                         Button { text: "Open MCP endpoint"; onClicked: controller.openMcpEndpoint() }
                         Button { text: "Copy MCP endpoint"; onClicked: controller.copyText(controller.mcpEndpoint) }
-                        Button { visible: controller.ready; text: "Copy viewer link"; onClicked: controller.copyText(controller.viewerUrl) }
-                        Button { visible: controller.ready; text: "Copy AI connection details"; onClicked: controller.copyText(controller.connectionInstructions()) }
+                    }
+                    RowLayout {
+                        visible: controller.ready; Layout.fillWidth: true; spacing: 8
+                        Button { text: "Copy viewer link"; onClicked: controller.copyText(controller.viewerUrl) }
+                        Button { text: "Copy AI connection details"; onClicked: controller.copyText(controller.connectionInstructions()) }
                     }
                     Label {
                         visible: controller.ready; Layout.fillWidth: true
