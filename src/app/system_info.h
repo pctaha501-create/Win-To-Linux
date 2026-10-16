@@ -36,6 +36,8 @@ public:
  QString runtimeDirectory() const; QString runtimeDirectoryStatus() const; QVariantList availableCompositors() const;
  bool lightAppearance() const; void setLightAppearance(bool enabled);
  bool wineAvailable() const; QString winePath() const; bool bottlesAvailable() const; QString bottlesPath() const;
+ Q_INVOKABLE QString diagnosticReport() const;
+ Q_INVOKABLE void copyDiagnosticReport() const;
  Q_INVOKABLE QVariantList recentNotifications() const;
  Q_INVOKABLE void saveRecentNotifications(const QVariantList &notifications);
  Q_INVOKABLE void refreshApplications();

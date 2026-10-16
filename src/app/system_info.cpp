@@ -2,6 +2,7 @@
 #include "distro_detector.h"
 #include "desktop_entry_parser.h"
 #include <QDir>
+#include <QGuiApplication>
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
@@ -19,6 +20,11 @@ SystemInfo::SystemInfo(QObject *p):QObject(p){
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
 QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;}
 QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;}
+QString SystemInfo::diagnosticReport()const{
+ return QStringLiteral("Win-To-Linux diagnostic report\nDistribution: %1 (%2)\nVersion: %3\nFamily: %4\nKernel: %5\nArchitecture: %6\nHost: %7\nDesktop environment: %8\nSession type: %9\nWayland display: %10\nX11 display: %11\nRuntime directory: %12\nRuntime check: %13\nPackage manager: %14\nPackage manager available: %15\nWine available: %16\nBottles available: %17\nDetected compositors: %18")
+  .arg(m_distribution,m_id,m_version,m_family,m_kernel,m_arch,m_host,m_desktopEnvironment,m_sessionType,m_waylandDisplay,m_xDisplay,m_runtimeDirectory,m_runtimeDirectoryStatus,m_manager,m_managerAvailable?QStringLiteral("yes"):QStringLiteral("no"),wineAvailable()?QStringLiteral("yes"):QStringLiteral("no"),bottlesAvailable()?QStringLiteral("yes"):QStringLiteral("no"),QString::number(m_availableCompositors.size()));
+}
+void SystemInfo::copyDiagnosticReport()const{QGuiApplication::clipboard()->setText(diagnosticReport());}
 QVariantList SystemInfo::recentNotifications()const{QSettings settings;return settings.value(QStringLiteral("notifications/recent")).toList();}
 void SystemInfo::saveRecentNotifications(const QVariantList &notifications){QSettings settings;settings.setValue(QStringLiteral("notifications/recent"),notifications.mid(0,8));}
 bool SystemInfo::lightAppearance()const{return m_lightAppearance;}
