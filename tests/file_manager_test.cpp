@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QTemporaryDir>
 #include <QDebug>
+#include <sys/stat.h>
 namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
 int main(int argc,char **argv){
  QCoreApplication app(argc,argv);
@@ -49,6 +50,19 @@ int main(int argc,char **argv){
  if(!expect(manager.moveEntry(temporary.filePath(QStringLiteral("renamed.txt")),temporary.filePath(QStringLiteral("Destination"))),"move file"))return 1;
  if(!expect(!QFileInfo::exists(temporary.filePath(QStringLiteral("renamed.txt")))&&QFileInfo::exists(temporary.filePath(QStringLiteral("Destination/renamed.txt"))),"moved file path updated"))return 1;
  if(!expect(!manager.moveEntry(temporary.filePath(QStringLiteral("Folder")),temporary.filePath(QStringLiteral("Folder"))),"reject moving folder into itself"))return 1;
+ // Exercise the EXDEV fallback when /dev/shm is a distinct writable filesystem.
+ QTemporaryDir crossFilesystem(QStringLiteral("/dev/shm/wtl-move-XXXXXX"));
+ if(crossFilesystem.isValid()){
+  struct stat sourceStat{},destinationStat{};
+  if(::stat(temporary.path().toLocal8Bit().constData(),&sourceStat)==0&&::stat(crossFilesystem.path().toLocal8Bit().constData(),&destinationStat)==0&&sourceStat.st_dev!=destinationStat.st_dev){
+   QFile crossSource(temporary.filePath(QStringLiteral("cross-device.txt")));
+   if(!expect(crossSource.open(QIODevice::WriteOnly),"create cross-filesystem move source"))return 1;crossSource.write("cross-device");crossSource.close();
+   if(!expect(manager.moveEntry(crossSource.fileName(),crossFilesystem.path()),"move file across filesystems"))return 1;
+   if(!expect(!QFileInfo::exists(crossSource.fileName())&&QFileInfo::exists(crossFilesystem.filePath(QStringLiteral("cross-device.txt"))),"cross-filesystem move removes source only after destination exists"))return 1;
+   QFile moved(crossFilesystem.filePath(QStringLiteral("cross-device.txt")));if(!expect(moved.open(QIODevice::ReadOnly),"open cross-filesystem destination"))return 1;
+   if(!expect(moved.readAll()==QByteArray("cross-device"),"cross-filesystem move preserves file contents"))return 1;moved.close();
+  }
+ }
 
  if(!expect(root.mkdir(QStringLiteral("SymlinkFolder")),"create symlink fixture folder"))return 1;
  if(!expect(QFile::link(temporary.filePath(QStringLiteral("Destination/renamed.txt")),temporary.filePath(QStringLiteral("SymlinkFolder/link.txt"))),"create symlink fixture"))return 1;

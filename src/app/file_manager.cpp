@@ -143,7 +143,21 @@ bool FileManager::moveEntry(const QString &path,const QString &destinationDirect
   }
  }
  if(!QDir().rename(source.absoluteFilePath(),target)){
-  setStatus(QStringLiteral("Move failed. The destination may be on another filesystem or permissions may be insufficient."));return false;
+  // Cross-filesystem rename commonly fails with EXDEV. Copy to a new destination,
+  // then remove the source; roll back the destination if either phase fails.
+  bool copied=false;
+  if(source.isDir())copied=copyDirectoryTree(source.absoluteFilePath(),target);
+  else if(source.isFile())copied=QFile::copy(source.absoluteFilePath(),target);
+  if(!copied){
+   if(QFileInfo(target).isDir()&&!QFileInfo(target).isSymLink())QDir(target).removeRecursively();
+   else if(QFileInfo(target).isSymLink()||QFileInfo(target).isFile())QFile::remove(target);
+   setStatus(QStringLiteral("Move failed. The destination may be on another filesystem, or the tree contains unsupported links/special files."));return false;
+  }
+  const bool removed=source.isDir()?QDir(source.absoluteFilePath()).removeRecursively():QFile::remove(source.absoluteFilePath());
+  if(!removed){
+   if(source.isDir())QDir(target).removeRecursively();else QFile::remove(target);
+   setStatus(QStringLiteral("Move rolled back because the source could not be removed."));return false;
+  }
  }
  refresh();setStatus(QStringLiteral("Moved: %1").arg(source.fileName()));return true;
 }
