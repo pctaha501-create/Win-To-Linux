@@ -33,6 +33,42 @@ SessionBackendResult WestonDrmSessionBackend::probe(const SessionEnvironment &en
     return result;
 }
 
+SessionBackendResult WestonNestedSessionBackend::probe(const SessionEnvironment &environment) const
+{
+    SessionBackendResult result;
+    result.backendId = id();
+    result.displayName = displayName();
+    if (!environment.runtimeDirectoryPrivate)
+        result.blockers.append(QStringLiteral("XDG_RUNTIME_DIR is missing or fails ownership/permission checks"));
+    if (!environment.waylandSocketVerified)
+        result.blockers.append(environment.waylandSocketPath.isEmpty()
+            ? QStringLiteral("No active Wayland display socket is configured; this launcher does not start a physical-display compositor")
+            : QStringLiteral("The configured Wayland socket is missing, is not a Unix socket, or is not owned by the current user: %1").arg(environment.waylandSocketPath));
+    if (!environment.qtWaylandPluginAvailable)
+        result.blockers.append(QStringLiteral("Qt Wayland platform plugin is missing; install the distribution's Qt Wayland runtime package (Ubuntu: qt6-wayland)"));
+    if (!environment.westonAvailable && !environment.cageAvailable)
+        result.blockers.append(QStringLiteral("Neither Weston nor Cage is installed"));
+    if (!environment.applicationExecutableVerified)
+        result.blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
+    if (result.ready())
+        result.summary = environment.westonAvailable
+            ? QStringLiteral("Ready for nested preview using Weston (multi-window desktop). This is not an independent login session.")
+            : QStringLiteral("Ready for nested preview using Cage. This is not an independent desktop session.");
+    else
+        result.summary = QStringLiteral("Not ready for nested preview:\n• %1\n\nThis checker is read-only; it will not install packages or alter your login manager.").arg(result.blockers.join(QStringLiteral("\n• ")));
+    return result;
+}
+
+QString WestonNestedSessionBackend::id() const
+{
+    return QStringLiteral("weston-nested");
+}
+
+QString WestonNestedSessionBackend::displayName() const
+{
+    return QStringLiteral("Weston nested preview");
+}
+
 QString WestonDrmSessionBackend::id() const
 {
     return QStringLiteral("weston-drm");

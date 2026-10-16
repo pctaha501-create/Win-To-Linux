@@ -43,27 +43,22 @@ QString SystemInfo::distribution()const{return m_distribution;} QString SystemIn
 QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::previewRunning()const{return m_previewProcess.state()!=QProcess::NotRunning;}
 QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;} bool SystemInfo::qtWaylandPluginAvailable()const{return m_qtWaylandPluginAvailable;}
 QString SystemInfo::previewReadiness()const{
- QStringList blockers;
- if(m_runtimeDirectory==QStringLiteral("Not set")||m_runtimeDirectoryStatus!=QStringLiteral("Directory exists and ownership/permissions look safe"))
-  blockers.append(QStringLiteral("XDG_RUNTIME_DIR is missing or fails ownership/permission checks"));
- if(m_waylandDisplay==QStringLiteral("Not set")||m_waylandDisplay.isEmpty())
-  blockers.append(QStringLiteral("No active Wayland display socket is configured; this launcher does not start a physical-display compositor"));
- else if(m_runtimeDirectory!=QStringLiteral("Not set")){
-  const QString socketPath=m_waylandDisplay.startsWith(QLatin1Char('/'))?m_waylandDisplay:QDir(m_runtimeDirectory).filePath(m_waylandDisplay);
+ SessionEnvironment environment;
+ environment.runtimeDirectory=m_runtimeDirectory==QStringLiteral("Not set")?QString():m_runtimeDirectory;
+ environment.runtimeDirectoryPrivate=m_runtimeDirectory!=QStringLiteral("Not set")&&m_runtimeDirectoryStatus==QStringLiteral("Directory exists and ownership/permissions look safe");
+ if(m_waylandDisplay!=QStringLiteral("Not set")&&!m_waylandDisplay.isEmpty()){
+  environment.waylandSocketPath=m_waylandDisplay.startsWith(QLatin1Char('/'))?m_waylandDisplay:QDir(m_runtimeDirectory).filePath(m_waylandDisplay);
   struct stat socketInfo{};
-  const QByteArray encodedSocket=QFile::encodeName(socketPath);
-  if(::lstat(encodedSocket.constData(),&socketInfo)!=0||!S_ISSOCK(socketInfo.st_mode)||socketInfo.st_uid!=getuid())
-   blockers.append(QStringLiteral("The configured Wayland socket is missing, is not a Unix socket, or is not owned by the current user: %1").arg(socketPath));
+  const QByteArray encodedSocket=QFile::encodeName(environment.waylandSocketPath);
+  environment.waylandSocketVerified=::lstat(encodedSocket.constData(),&socketInfo)==0&&S_ISSOCK(socketInfo.st_mode)&&socketInfo.st_uid==getuid();
  }
- if(!m_qtWaylandPluginAvailable)blockers.append(QStringLiteral("Qt Wayland platform plugin is missing; install the distribution's Qt Wayland runtime package (Ubuntu: qt6-wayland)"));
- const bool westonAvailable=!QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty();
- const bool cageAvailable=!QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty();
- if(!westonAvailable&&!cageAvailable)
-  blockers.append(QStringLiteral("Neither Weston nor Cage is installed"));
+ environment.qtWaylandPluginAvailable=m_qtWaylandPluginAvailable;
+ environment.westonAvailable=!QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty();
+ environment.cageAvailable=!QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty();
  const QString appPath=QCoreApplication::applicationFilePath();
- if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
- if(blockers.isEmpty())return westonAvailable?QStringLiteral("Ready for nested preview using Weston (multi-window desktop). This is not an independent login session."):QStringLiteral("Ready for nested preview using Cage. This is not an independent desktop session.");
- return QStringLiteral("Not ready for nested preview:\n• %1\n\nThis checker is read-only; it will not install packages or alter your login manager.").arg(blockers.join(QStringLiteral("\n• ")));
+ environment.applicationExecutableVerified=!appPath.isEmpty()&&QFileInfo(appPath).isExecutable();
+ const WestonNestedSessionBackend backend;
+ return backend.probe(environment).summary;
 }
 bool SystemInfo::launchNestedPreview(){
  if(previewRunning()){setStatus(QStringLiteral("Nested preview is already running."));return false;}

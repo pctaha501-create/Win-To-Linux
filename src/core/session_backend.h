@@ -13,6 +13,9 @@ struct SessionEnvironment {
     bool qtWaylandPluginAvailable = false;
     bool applicationExecutableVerified = false;
     bool drmDeviceAccessible = false;
+    bool waylandSocketVerified = false;
+    bool cageAvailable = false;
+    QString waylandSocketPath;
     QString ttyPath;
     QString runtimeDirectory;
 };
@@ -32,6 +35,13 @@ public:
     virtual QString id() const = 0;
     virtual QString displayName() const = 0;
     virtual SessionBackendResult probe(const SessionEnvironment &environment) const = 0;
+};
+
+class WestonNestedSessionBackend final : public SessionBackend {
+public:
+    QString id() const override;
+    QString displayName() const override;
+    SessionBackendResult probe(const SessionEnvironment &environment) const override;
 };
 
 class WestonDrmSessionBackend final : public SessionBackend {
