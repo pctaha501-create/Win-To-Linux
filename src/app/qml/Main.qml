@@ -176,7 +176,7 @@ ApplicationWindow {
     visible: win.startSearch.trim().length > 0
     Layout.fillWidth: true; spacing: 2
     Repeater {
-     model: win.startSearch.trim().length > 0 ? [{label:"Settings",comment:"Appearance and diagnostics",page:4},{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}] : []
+     model: [{label:"Settings",comment:"Appearance and diagnostics",page:4},{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}]
      delegate: Button {
       required property var modelData
       objectName: "startSearchSection_" + modelData.page
