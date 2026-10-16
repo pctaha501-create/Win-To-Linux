@@ -2,7 +2,7 @@
 
 ## Current state
 
-Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isolated-preview.sh` uses Cage only as a nested preview and deliberately requires an existing user-owned Wayland socket. This is not an independent compositor or login session.
+Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isolated-preview.sh` prefers Weston with the nested Wayland backend, a unique socket, software rendering, and config loading disabled; it falls back to Cage. Both paths require an existing user-owned Wayland socket and never start a compositor on physical DRM/KMS. This is not an independent compositor or login session.
 
 ## Target architecture
 

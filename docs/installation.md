@@ -33,7 +33,7 @@ systemctl --user status Win-To-Linux.service
 journalctl --user -u Win-To-Linux.service -e
 ```
 
-The service is deliberately user-scoped. A graphical app should not be launched as root, and a system-level `systemctl restart Win-To-Linux` unit cannot safely infer which logged-in user's Wayland session to attach to. The supported command is therefore `systemctl --user restart Win-To-Linux.service`. Start it only from an active Wayland desktop with Cage installed; the launcher refuses unsafe direct-display/TTY starts. The service is not enabled automatically.
+The service is deliberately user-scoped. A graphical app should not be launched as root, and a system-level `systemctl restart Win-To-Linux` unit cannot safely infer which logged-in user's Wayland session to attach to. The supported command is therefore `systemctl --user restart Win-To-Linux.service`. Start it only from an active Wayland desktop with Weston or Cage installed. Weston is preferred for a nested multi-window desktop; Cage is the fallback. The launcher refuses unsafe direct-display/TTY starts. The service is not enabled automatically.
 
 ## Uninstall
 
