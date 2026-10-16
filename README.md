@@ -15,13 +15,15 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - XDG desktop-entry parsing with dedicated unit tests, hidden/NoDisplay filtering, canonical-path allowlisting, and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
+- Responsive Start, notification, and Quick Settings popups; Start menu contents scroll at short window heights, with minimum-size behavior asserted by the QML smoke test.
+- Version and diagnostics CLI (`--version`, `--system`, `--session-check`, `--diagnostic-report`, `--preview-check`, and `--standalone-check`).
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, explicit install/remove confirmation, and a clear preflight message when pkexec is missing.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
 - Wine/XWayland compatibility scope and per-app validation checklist ([guide](docs/wine-compatibility.md)); CI verifies Wine's built-in Notepad remains open under nested XWayland, but third-party Windows apps are not certified.
 - A dedicated desktop-entry launch integration test exercises real `QProcess` launching against a fake executable and verifies that shell metacharacters are passed literally.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
 - CI launches the actual Qt shell in a disposable nested Weston Wayland session (software rendering) and uses a bounded gdb-backed startup smoke to detect crashes; taskbar icon controls include accessible names, and the headless functional test checks taskbar actions plus common keyboard shortcuts.
-- Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all six jobs passed on [the verified run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38887168320).
+- Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all six jobs passed on [the latest verified six-distro run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38890368511).
 
 ## Command-line diagnostics
 

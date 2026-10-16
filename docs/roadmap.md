@@ -30,12 +30,14 @@
 - [x] CI starts the actual Qt shell as a Wayland client inside nested Weston with software rendering; a bounded gdb-backed startup smoke checks for crashes and QML/platform errors
 - [x] Icon-only taskbar controls have explicit accessible names and stable object names; the application smoke test asserts the Start/search/system/packages/files/settings/notifications/quick-settings controls exist
 - [x] Headless functional smoke dispatches Qt key events for Ctrl+Space, Ctrl+Shift+N, Ctrl+comma, Ctrl+E, Ctrl+Shift+Esc, and Ctrl+Alt+Tab; verifies popup visibility and page navigation, plus taskbar-button actions
+- [x] Minimum-window QML smoke verifies Start/Notifications/Quick Settings fit within an 820×560 shell window and Start menu has a scrollable content extent; QML dialog implicit-width binding-loop warnings were removed
+- [x] Version CLI is sourced from the CMake project version and checked in CI; latest Linux CI passed on [run 38890368552](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38890368552)
 - [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Kali, Fedora/Rocky, Arch, and openSUSE
-- [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all six jobs passed on [verified run 38887168320](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38887168320)
+- [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all six jobs passed on [verified run 38890368511](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38890368511)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait, child-only cleanup, and a watchdog that terminates the shell if the owned compositor exits (fake-backend CI only; not yet VM-certified)
