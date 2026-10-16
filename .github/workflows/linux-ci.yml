@@ -18,11 +18,14 @@ jobs:
         run: sh tests/standalone_session_test.sh
       - name: Verify isolated launcher refuses unsafe direct-session start
         run: |
-          if env -u WAYLAND_DISPLAY XDG_RUNTIME_DIR="$RUNNER_TEMP" sh scripts/start-isolated-preview.sh >"$RUNNER_TEMP/isolated-preview.log" 2>&1; then
+          runtime="$RUNNER_TEMP/wtl-private-runtime"
+          mkdir -m 700 "$runtime"
+          if env -u WAYLAND_DISPLAY XDG_RUNTIME_DIR="$runtime" sh scripts/start-isolated-preview.sh >"$RUNNER_TEMP/isolated-preview.log" 2>&1; then
             echo "The isolated launcher unexpectedly accepted a missing Wayland session."
             exit 1
           fi
           grep -q "WAYLAND_DISPLAY is not set" "$RUNNER_TEMP/isolated-preview.log"
+          rmdir "$runtime"
       - name: Test isolated preview launch and preflight refusal paths
         run: sh tests/isolated_preview_test.sh
       - name: Install dependencies
