@@ -109,6 +109,11 @@ int main(int argc,char**argv){
   QObject *settingsSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_4"));
   if(!settingsSearchResult||!settingsSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show the Settings section shortcut.";return 1;}
   if(!clickButton(QStringLiteral("startSearchSection_4"))||root->property("page").toInt()!=4||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting Settings from Start search failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for terminal search test.";return 1;}
+  root->setProperty("startSearch",QStringLiteral("terminal"));QCoreApplication::processEvents();
+  QObject *terminalSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_-1"));
+  if(!terminalSearchResult||!terminalSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show the Terminal action.";return 1;}
+  if(!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Could not close Start after terminal search test.";return 1;}
   if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!popupFitsWindow(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction or responsive sizing failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarQuickSettingsButton"))||!popupVisible(QStringLiteral("quickSettingsPopup"))||!popupFitsWindow(QStringLiteral("quickSettingsPopup"))||!closePopup(QStringLiteral("quickSettingsPopup"))){qCritical()<<"Quick settings button interaction or responsive sizing failed.";return 1;}
   const QList<QPair<QString,int>> navigationButtons{{QStringLiteral("taskbarLinuxButton"),2},{QStringLiteral("taskbarPackagesButton"),3},{QStringLiteral("taskbarFilesButton"),7},{QStringLiteral("taskbarSettingsButton"),4}};
