@@ -27,6 +27,7 @@ private:
  QHash<qint64,qint64> m_previousCpuTicks;
  QHash<qint64,qint64> m_previousStartTicks;
  qint64 m_previousTotalCpuTicks = 0;
+ qint64 m_previousIdleCpuTicks = 0;
  double m_totalCpuPercent = 0.0;
  double m_memoryPercent = 0.0;
  QString m_memoryText = QStringLiteral("Unavailable");

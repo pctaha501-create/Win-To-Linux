@@ -44,19 +44,23 @@ bool readMemoryStats(qint64 *totalKiB, qint64 *availableKiB) {
  }
  return foundTotal && foundAvailable && *totalKiB > 0 && *availableKiB >= 0;
 }
-qint64 readTotalCpuTicks() {
+bool readCpuStats(qint64 *totalTicks, qint64 *idleTicks) {
  QFile file(QStringLiteral("/proc/stat"));
- if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return -1;
+ if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
  const QList<QByteArray> fields = file.readLine().simplified().split(' ');
- if (fields.size() < 9 || fields.first() != "cpu") return -1;
+ if (fields.size() < 9 || fields.first() != "cpu") return false;
  qint64 total = 0;
+ qint64 idle = 0;
  for (qsizetype i = 1; i < 9; ++i) {
   bool ok = false;
   const qint64 value = fields.at(i).toLongLong(&ok);
-  if (!ok || value < 0) return -1;
+  if (!ok || value < 0) return false;
   total += value;
+  if (i == 4 || i == 5) idle += value; // idle + iowait
  }
- return total;
+ *totalTicks = total;
+ *idleTicks = idle;
+ return true;
 }
 bool readProcessCpuTicks(qint64 pid, qint64 *ticks) {
  QFile file(QStringLiteral("/proc/%1/stat").arg(pid));
@@ -132,7 +136,8 @@ void ProcessMonitor::refreshProcesses() {
  QDir proc(QStringLiteral("/proc"));
  const QFileInfoList entries = proc.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
  const uid_t ownUid = getuid();
- const qint64 totalCpuTicks = readTotalCpuTicks();
+ qint64 totalCpuTicks = -1, idleCpuTicks = -1;
+ const bool hasCpuStats = readCpuStats(&totalCpuTicks, &idleCpuTicks);
  qint64 totalMemoryKiB = 0, availableMemoryKiB = 0;
  if (readMemoryStats(&totalMemoryKiB, &availableMemoryKiB)) {
   const qint64 usedMemoryKiB = qMax<qint64>(0, totalMemoryKiB - availableMemoryKiB);
@@ -216,13 +221,22 @@ void ProcessMonitor::refreshProcesses() {
   const qint64 pid=entry.toMap().value(QStringLiteral("pid")).toLongLong();
   if(!visited.contains(pid))appendTree(pid,0);
  }
- double totalCpuPercent = 0.0;
- for (const QVariant &entry : result) totalCpuPercent += entry.toMap().value(QStringLiteral("cpuPercent")).toDouble();
- m_totalCpuPercent = qBound(0.0, totalCpuPercent, 100.0);
+ if (hasCpuStats && m_previousTotalCpuTicks > 0 && totalCpuTicks > m_previousTotalCpuTicks
+     && idleCpuTicks >= m_previousIdleCpuTicks) {
+  const qint64 elapsed = totalCpuTicks - m_previousTotalCpuTicks;
+  const qint64 idleElapsed = idleCpuTicks - m_previousIdleCpuTicks;
+  m_totalCpuPercent = qBound(0.0, 100.0 * static_cast<double>(elapsed - qMin(elapsed, idleElapsed))
+    / static_cast<double>(elapsed), 100.0);
+ } else if (!hasCpuStats) {
+  m_totalCpuPercent = 0.0;
+ }
  m_processes = tree;
  m_previousCpuTicks = currentCpuTicks;
  m_previousStartTicks = currentStartTicks;
- if (totalCpuTicks > 0) m_previousTotalCpuTicks = totalCpuTicks;
+ if (hasCpuStats) {
+  m_previousTotalCpuTicks = totalCpuTicks;
+  m_previousIdleCpuTicks = idleCpuTicks;
+ }
  emit processesChanged();
  setStatus(QStringLiteral("Showing %1 processes. Only processes owned by this user can be requested to stop.").arg(result.size()));
 }
