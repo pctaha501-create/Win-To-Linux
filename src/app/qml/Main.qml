@@ -323,6 +323,12 @@ ApplicationWindow {
         Label { text: processMonitor.totalCpuPercent.toFixed(1) + "%"; color: win.fg; font.pixelSize: 18; font.bold: true }
        }
       ProgressBar { from: 0; to: 100; value: processMonitor.totalCpuPercent; Layout.fillWidth: true }
+      ColumnLayout {
+       spacing: 1
+       Label { text: "Memory"; color: win.muted; font.pixelSize: 10 }
+       Label { text: processMonitor.memoryText; color: win.fg; font.pixelSize: 12; font.bold: true }
+      }
+      ProgressBar { from: 0; to: 100; value: processMonitor.memoryPercent; Layout.fillWidth: true }
       Label { text: processMonitor.processes.length + " processes"; color: win.muted; font.pixelSize: 11 }
      }
      RowLayout {

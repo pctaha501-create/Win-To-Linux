@@ -27,6 +27,23 @@ bool readStartTicks(qint64 pid, qint64 *ticks) {
  *ticks = value;
  return true;
 }
+bool readMemoryStats(qint64 *totalKiB, qint64 *availableKiB) {
+ QFile file(QStringLiteral("/proc/meminfo"));
+ if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+ bool foundTotal = false, foundAvailable = false;
+ while (!file.atEnd()) {
+  const QByteArray line = file.readLine();
+  if (!line.startsWith("MemTotal:") && !line.startsWith("MemAvailable:")) continue;
+  const QList<QByteArray> fields = line.simplified().split(' ');
+  if (fields.size() < 2) continue;
+  bool ok = false;
+  const qint64 value = fields.at(1).toLongLong(&ok);
+  if (!ok || value <= 0) continue;
+  if (fields.first() == "MemTotal:") { *totalKiB = value; foundTotal = true; }
+  else { *availableKiB = value; foundAvailable = true; }
+ }
+ return foundTotal && foundAvailable && *totalKiB > 0 && *availableKiB >= 0;
+}
 qint64 readTotalCpuTicks() {
  QFile file(QStringLiteral("/proc/stat"));
  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return -1;
@@ -107,6 +124,8 @@ ProcessMonitor::ProcessMonitor(QObject *parent) : QObject(parent) { refreshProce
 QVariantList ProcessMonitor::processes() const { return m_processes; }
 QString ProcessMonitor::status() const { return m_status; }
 double ProcessMonitor::totalCpuPercent() const { return m_totalCpuPercent; }
+double ProcessMonitor::memoryPercent() const { return m_memoryPercent; }
+QString ProcessMonitor::memoryText() const { return m_memoryText; }
 void ProcessMonitor::setStatus(const QString &s) { if (m_status == s) return; m_status = s; emit statusChanged(); }
 void ProcessMonitor::refreshProcesses() {
  QVariantList result;
@@ -114,6 +133,13 @@ void ProcessMonitor::refreshProcesses() {
  const QFileInfoList entries = proc.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
  const uid_t ownUid = getuid();
  const qint64 totalCpuTicks = readTotalCpuTicks();
+ qint64 totalMemoryKiB = 0, availableMemoryKiB = 0;
+ if (readMemoryStats(&totalMemoryKiB, &availableMemoryKiB)) {
+  const qint64 usedMemoryKiB = qMax<qint64>(0, totalMemoryKiB - availableMemoryKiB);
+  m_memoryPercent = qBound(0.0, 100.0 * static_cast<double>(usedMemoryKiB) / static_cast<double>(totalMemoryKiB), 100.0);
+  m_memoryText = QStringLiteral("%1 / %2 MiB").arg(static_cast<double>(usedMemoryKiB) / 1024.0, 0, 'f', 0).arg(static_cast<double>(totalMemoryKiB) / 1024.0, 0, 'f', 0);
+ } else { m_memoryPercent = 0.0; m_memoryText = QStringLiteral("Unavailable"); }
+
  QHash<qint64,qint64> currentCpuTicks;
  QHash<qint64,qint64> currentStartTicks;
  for (const QFileInfo &entry : entries) {
