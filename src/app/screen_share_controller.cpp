@@ -94,7 +94,7 @@ void ScreenShareController::createMcp()
         const QUrl viewer(viewerUrl);
         const QUrlQuery hostQuery(host);
         const QUrlQuery viewerQuery(viewer);
-        const QUuid parsedSession = QUuid::fromString(sessionId);
+        const QUuid parsedSession = QUuid::fromString(QStringLiteral("{") + sessionId + QStringLiteral("}"));
         const bool urlsMatchSession = !parsedSession.isNull()
             && host.path() == QStringLiteral("/host/") + sessionId
             && viewer.path() == QStringLiteral("/view/") + sessionId
@@ -129,7 +129,7 @@ void ScreenShareController::endSession()
     const QUrl host(m_hostUrl);
     const QUrlQuery hostQuery(host);
     const QString hostToken = hostQuery.queryItemValue(QStringLiteral("token"));
-    if (hostToken.isEmpty() || QUuid::fromString(m_sessionId).isNull()) {
+    if (hostToken.isEmpty() || QUuid::fromString(QStringLiteral("{") + m_sessionId + QStringLiteral("}")).isNull()) {
         setStatus(QStringLiteral("Could not validate the active session credentials."));
         return;
     }
