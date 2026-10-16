@@ -114,6 +114,7 @@ if [ -n "${WTL_APP_BIN:-}" ]; then
     set +e
     env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH \
         XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY=wayland-nested XDG_RUNTIME_DIR="$runtime" \
+        QT_DEBUG_PLUGINS=1 QSG_INFO=1 'QT_LOGGING_RULES=qt.qpa.*=true;qt.wayland.*=true' \
         QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software timeout 8s "$WTL_APP_BIN" --maximized >"$TMP/wtl-shell.log" 2>&1
     shell_status=$?
     set -e
