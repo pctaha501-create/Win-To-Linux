@@ -5,6 +5,7 @@ TMP=$(mktemp -d)
 parent_pid=
 nested_pid=
 cleanup() {
+    if [ -n "${WTL_WINESERVER_BIN:-}" ] && [ -d "$TMP/wine-prefix" ]; then WINEPREFIX="$TMP/wine-prefix" "$WTL_WINESERVER_BIN" -k >/dev/null 2>&1 || true; fi
     if [ -n "${app_pid:-}" ]; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
     if [ -n "$nested_pid" ]; then kill "$nested_pid" >/dev/null 2>&1 || true; wait "$nested_pid" >/dev/null 2>&1 || true; fi
     if [ -n "$parent_pid" ]; then kill "$parent_pid" >/dev/null 2>&1 || true; wait "$parent_pid" >/dev/null 2>&1 || true; fi
