@@ -98,6 +98,21 @@ jobs:
           grep -q '^Runtime check:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Compositor executables:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Nested preview readiness:' "$RUNNER_TEMP/diagnostic-report.txt"
+      - name: Verify standalone session readiness safely refuses a headless runner
+        shell: bash
+        run: |
+          set +e
+          env -u WTL_ENABLE_DRM_SESSION -u DISPLAY -u WAYLAND_DISPLAY ./build/src/app/win-to-linux --standalone-check > "$RUNNER_TEMP/standalone-check.txt" 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 2 ]; then
+            cat "$RUNNER_TEMP/standalone-check.txt"
+            echo "Standalone check should refuse a non-interactive runner (exit 2), got $rc."
+            exit 1
+          fi
+          grep -q '^Not ready for standalone session:' "$RUNNER_TEMP/standalone-check.txt"
+          grep -q 'WTL_ENABLE_DRM_SESSION=1' "$RUNNER_TEMP/standalone-check.txt"
+          grep -q 'real Linux virtual terminal' "$RUNNER_TEMP/standalone-check.txt"
       - name: Verify preview preflight safely refuses a headless environment
         shell: bash
         run: |

@@ -50,6 +50,10 @@ ApplicationWindow {
   }
  }
  Dialog {
+  id: standaloneReadinessDialog; modal: true; title: "Standalone session readiness"; standardButtons: Dialog.Ok; anchors.centerIn: parent
+  Label { text: systemInfo.standaloneReadiness(); wrapMode: Text.WordWrap; width: 460; color: win.fg }
+ }
+ Dialog {
   id: windowsDialog; modal: true; title: "Launch Windows program?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   Label { text: "Run this file through Wine?\n" + win.pendingWindowsFile + "\nOnly proceed if you trust the file. Wine compatibility is not guaranteed."; wrapMode: Text.Wrap; width: 380 }
   onAccepted: systemInfo.launchWindowsFile(win.pendingWindowsFile)
@@ -404,6 +408,7 @@ ApplicationWindow {
        RowLayout { Layout.fillWidth: true
         Button { text: "Copy diagnostic report"; onClicked: { systemInfo.copyDiagnosticReport(); win.showToast("Diagnostic report copied to clipboard") } }
         Button { text: "Refresh applications"; onClicked: { systemInfo.refreshApplications(); win.showToast("Applications refreshed") } }
+        Button { text: "Standalone readiness"; onClicked: standaloneReadinessDialog.open() }
        }
       }
      }

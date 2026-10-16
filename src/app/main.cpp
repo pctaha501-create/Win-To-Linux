@@ -34,9 +34,10 @@ void printSystemInfo(const SystemInfo &system){
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")){
+ if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")||hasArgument(argc,argv,"--standalone-check")){
   QCoreApplication app(argc,argv);configureApplication();SystemInfo system;
   if(hasArgument(argc,argv,"--diagnostic-report"))qInfo().noquote()<<system.diagnosticReport();
+  else if(hasArgument(argc,argv,"--standalone-check")){const QString readiness=system.standaloneReadiness();qInfo().noquote()<<readiness;return readiness.startsWith(QStringLiteral("Ready for experimental standalone session"))?0:2;}
   else if(hasArgument(argc,argv,"--preview-check")){
    const QString readiness=system.previewReadiness();qInfo().noquote()<<readiness;
    return readiness.startsWith(QStringLiteral("Ready for nested preview"))?0:2;

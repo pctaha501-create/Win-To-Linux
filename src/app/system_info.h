@@ -37,6 +37,7 @@ public:
  bool lightAppearance() const; void setLightAppearance(bool enabled);
  bool wineAvailable() const; QString winePath() const; bool bottlesAvailable() const; QString bottlesPath() const;
  Q_INVOKABLE QString previewReadiness() const;
+ Q_INVOKABLE QString standaloneReadiness() const;
  Q_INVOKABLE QString diagnosticReport() const;
  Q_INVOKABLE void copyDiagnosticReport() const;
  Q_INVOKABLE QVariantList recentNotifications() const;

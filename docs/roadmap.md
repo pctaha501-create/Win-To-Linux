@@ -33,6 +33,7 @@
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
 - [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed again on commit `b0f991176c5ca7d1b2001fb670b715b2964388a8`
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
+- [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait and child-only cleanup (fake-backend CI only; not yet VM-certified)
 - [ ] Production compositor/login session, seat/input lifecycle, crash recovery, and supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
