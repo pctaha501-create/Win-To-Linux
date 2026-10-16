@@ -17,7 +17,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, and explicit install/remove confirmation.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
-- Wine/XWayland compatibility scope, distribution package guidance, and a per-application validation checklist ([guide](docs/wine-compatibility.md)); real Wine GUI compatibility is not yet certified.
+- Wine/XWayland compatibility scope and per-app validation checklist ([guide](docs/wine-compatibility.md)); CI verifies Wine's built-in Notepad remains open under nested XWayland, but third-party Windows apps are not certified.
 - A dedicated desktop-entry launch integration test exercises real `QProcess` launching against a fake executable and verifies that shell metacharacters are passed literally.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
 - CI launches the actual Qt shell in a disposable nested Weston Wayland session (software rendering) and uses a bounded gdb-backed startup smoke to detect crashes; taskbar icon controls include accessible names, and the headless functional test checks taskbar actions plus common keyboard shortcuts.
