@@ -20,10 +20,16 @@ while [ ! -S "$socket_path" ] && [ "$i" -lt 50 ]; do sleep 0.1; i=$((i+1)); done
 cat > "$fakebin/cage" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$*" > "$WTL_CAGE_LOG"
+[ "${1:-}" = "--" ] && shift
+WAYLAND_DISPLAY=wayland-cage "$@"
 EOF
 cat > "$TMP/fake-app" <<'EOF'
 #!/bin/sh
 printf 'WAYLAND_DISPLAY=%s\n' "${WAYLAND_DISPLAY:-}" >> "$WTL_APP_LOG"
+printf 'DISPLAY=%s\n' "${DISPLAY:-}" >> "$WTL_APP_LOG"
+printf 'XAUTHORITY=%s\n' "${XAUTHORITY:-}" >> "$WTL_APP_LOG"
+printf 'QT_QPA_PLATFORM=%s\n' "${QT_QPA_PLATFORM:-}" >> "$WTL_APP_LOG"
+printf 'XDG_SESSION_TYPE=%s\n' "${XDG_SESSION_TYPE:-}" >> "$WTL_APP_LOG"
 printf '%s\n' "$*" >> "$WTL_APP_LOG"
 if [ "${1:-}" = "--preview-check" ]; then
     [ "${WTL_FAIL_PREFLIGHT:-0}" != 1 ] && exit 0
@@ -32,7 +38,7 @@ fi
 exit 0
 EOF
 chmod +x "$fakebin/cage" "$TMP/fake-app"
-export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WAYLAND_DISPLAY=wayland-test WTL_BIN="$TMP/fake-app" WTL_CAGE_LOG="$TMP/cage.log" WTL_APP_LOG="$TMP/app.log"
+export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WAYLAND_DISPLAY=wayland-test DISPLAY=:host-display XAUTHORITY=/host/auth QT_QPA_PLATFORM=xcb WTL_BIN="$TMP/fake-app" WTL_CAGE_LOG="$TMP/cage.log" WTL_APP_LOG="$TMP/app.log"
 sh "$ROOT/scripts/start-isolated-preview.sh"
 grep -q '^--preview-check$' "$WTL_APP_LOG"
 grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"

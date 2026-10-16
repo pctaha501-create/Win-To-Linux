@@ -85,7 +85,7 @@ EOF
         fail "nested Weston did not create its Wayland socket."
     fi
     set +e
-    WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
+    env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
     app_status=$?
     set -e
     cleanup_weston
@@ -94,4 +94,4 @@ EOF
     exit "$app_status"
 fi
 printf 'Starting the Win-To-Linux preview inside nested Cage. Your existing login manager and desktop session will not be changed.\n'
-exec "$cage_bin" -- "$app_bin" --fullscreen
+exec env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland "$cage_bin" -- "$app_bin" --fullscreen
