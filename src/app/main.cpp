@@ -2,6 +2,7 @@
 #include "process_monitor.h"
 #include "package_operation_controller.h"
 #include "file_manager.h"
+#include "screen_share_controller.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -53,12 +54,13 @@ int main(int argc,char**argv){
   return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
- SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;
+ SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;ScreenShareController screenShareController;
  QQmlApplicationEngine engine;
  engine.rootContext()->setContextProperty("systemInfo",&system);
  engine.rootContext()->setContextProperty("processMonitor",&processMonitor);
  engine.rootContext()->setContextProperty("packageOperations",&packageOperations);
  engine.rootContext()->setContextProperty("fileManager",&fileManager);
+ engine.rootContext()->setContextProperty("screenShareController",&screenShareController);
  QObject::connect(&engine,&QQmlApplicationEngine::objectCreationFailed,&app,[](){QCoreApplication::exit(1);},Qt::QueuedConnection);
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
@@ -71,7 +73,8 @@ int main(int argc,char**argv){
    QStringLiteral("startMenuPopup"),QStringLiteral("notificationCenterPopup"),QStringLiteral("quickSettingsPopup"),
    QStringLiteral("taskbarStartButton"),QStringLiteral("taskbarSearchButton"),QStringLiteral("taskbarLinuxButton"),
    QStringLiteral("taskbarPackagesButton"),QStringLiteral("taskbarFilesButton"),QStringLiteral("taskbarSettingsButton"),
-   QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton"),QStringLiteral("launchNestedPreviewButton")};
+   QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton"),QStringLiteral("launchNestedPreviewButton"),
+   QStringLiteral("createMcpButton"),QStringLiteral("sectionNavigationButton_8")};
   for(const QString &name:requiredControls){
    if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }
@@ -109,6 +112,11 @@ int main(int argc,char**argv){
   QObject *settingsSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_4"));
   if(!settingsSearchResult||!settingsSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show the Settings section shortcut.";return 1;}
   if(!clickButton(QStringLiteral("startSearchSection_4"))||root->property("page").toInt()!=4||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting Settings from Start search failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for AI Screen Share search test.";return 1;}
+  root->setProperty("startSearch",QStringLiteral("mcp"));QCoreApplication::processEvents();
+  QObject *screenShareSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_8"));
+  if(!screenShareSearchResult||!screenShareSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show AI Screen Share for MCP query.";return 1;}
+  if(!clickButton(QStringLiteral("startSearchSection_8"))||root->property("page").toInt()!=8||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting AI Screen Share from Start search failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for terminal search test.";return 1;}
   root->setProperty("startSearch",QStringLiteral("terminal"));QCoreApplication::processEvents();
   QObject *terminalSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_-1"));
@@ -116,7 +124,7 @@ int main(int argc,char**argv){
   if(!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Could not close Start after terminal search test.";return 1;}
   if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!popupFitsWindow(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction or responsive sizing failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarQuickSettingsButton"))||!popupVisible(QStringLiteral("quickSettingsPopup"))||!popupFitsWindow(QStringLiteral("quickSettingsPopup"))||!closePopup(QStringLiteral("quickSettingsPopup"))){qCritical()<<"Quick settings button interaction or responsive sizing failed.";return 1;}
-  const QList<QPair<QString,int>> navigationButtons{{QStringLiteral("taskbarLinuxButton"),2},{QStringLiteral("taskbarPackagesButton"),3},{QStringLiteral("taskbarFilesButton"),7},{QStringLiteral("taskbarSettingsButton"),4}};
+  const QList<QPair<QString,int>> navigationButtons{{QStringLiteral("taskbarLinuxButton"),2},{QStringLiteral("taskbarPackagesButton"),3},{QStringLiteral("taskbarFilesButton"),7},{QStringLiteral("taskbarSettingsButton"),4},{QStringLiteral("sectionNavigationButton_8"),8}};
   for(const auto &entry:navigationButtons){
    if(!clickButton(entry.first)||root->property("page").toInt()!=entry.second){qCritical()<<"Taskbar navigation failed:"<<entry.first;return 1;}
   }

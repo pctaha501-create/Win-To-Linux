@@ -132,7 +132,7 @@ ApplicationWindow {
     visible: win.startSearch.length === 0
     Layout.fillWidth: true; columns: 4; columnSpacing: 8; rowSpacing: 6
     Repeater {
-     model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:-1},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
+     model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:-1},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"AI Screen Share",glyph:"◉",page:8},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
      delegate: Button {
       required property var modelData
       Layout.fillWidth: true; implicitHeight: 82; padding: 5
@@ -211,6 +211,21 @@ ApplicationWindow {
       Label { text: "›"; color: win.muted }
      }
      onClicked: { win.page = 4; startMenu.close() }
+    }
+    Button {
+     objectName: "startSearchSection_8"
+     visible: win.startSearch.trim().length > 0 && ("ai screen share".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "screen share".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "mcp".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: "◉"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 1; Layout.fillWidth: true
+       Label { text: "AI Screen Share"; color: win.fg; font.bold: true; Layout.fillWidth: true }
+       Label { text: "Create MCP session and share your screen with AI"; color: win.muted; font.pixelSize: 11; Layout.fillWidth: true; elide: Text.ElideRight }
+      }
+      Label { text: "›"; color: win.muted }
+     }
+     onClicked: { win.page = 8; startMenu.close() }
     }
     Button {
      objectName: "startSearchSection_2"
@@ -338,7 +353,7 @@ ApplicationWindow {
    Label { text: "Section switcher"; color: win.fg; font.pixelSize: 18; font.bold: true }
    Label { text: "Choose a Win-To-Linux section. Use Alt+Tab for application windows in your desktop compositor."; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
    GridLayout { Layout.fillWidth: true; Layout.fillHeight: true; columns: 2; rowSpacing: 8; columnSpacing: 8
-    Repeater { model: [{label:"Overview",glyph:"⌂"},{label:"Applications",glyph:"▦"},{label:"Linux System",glyph:"⌘"},{label:"Package Manager",glyph:"▤"},{label:"Settings",glyph:"⚙"},{label:"Processes",glyph:"▥"},{label:"Windows Apps",glyph:"▣"},{label:"Files",glyph:"📁"}]
+    Repeater { model: [{label:"Overview",glyph:"⌂"},{label:"Applications",glyph:"▦"},{label:"Linux System",glyph:"⌘"},{label:"Package Manager",glyph:"▤"},{label:"Settings",glyph:"⚙"},{label:"Processes",glyph:"▥"},{label:"Windows Apps",glyph:"▣"},{label:"Files",glyph:"📁"},{label:"AI Screen Share",glyph:"◉"}]
      delegate: Button { required property int index; required property var modelData; Layout.fillWidth: true; Layout.fillHeight: true
       background: Rectangle { radius: 9; color: win.page===index ? (win.light?"#dbe6ff":"#2b3e60") : (parent.hovered?(win.light?"#e8edf5":"#252d39"):win.panel); border.color: win.borderColor }
       contentItem: RowLayout { spacing: 10; Label { text: modelData.glyph; color: win.fg; font.pixelSize: 21 } Label { text: modelData.label; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true } Label { visible: win.page===index; text: "●"; color: "#5b8cff" } }
@@ -397,9 +412,10 @@ ApplicationWindow {
    Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
    ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
     Label { text: "SECTIONS"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
-    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"]
+    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files","AI Screen Share"]
      delegate: Button {
       required property int index; required property string modelData
+      objectName: "sectionNavigationButton_" + index
       Layout.fillWidth: true; implicitHeight: 43; flat: true
       background: Rectangle { radius: 8; color: win.page===index ? (win.light?"#dbe6ff":"#2b3e60") : (parent.hovered?(win.light?"#e8edf5":"#252d39"):"transparent") }
       contentItem: Text { text: modelData; color: win.fg; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter; leftPadding: 10 }
@@ -416,8 +432,8 @@ ApplicationWindow {
     visible: win.page !== 0
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
-     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
-     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Host system, session and native tool diagnostics.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers.","Browse files and folders using the host desktop."][win.page]; color: win.muted; font.pixelSize: 12 }
+     Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files","AI Screen Share"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
+     Label { text: ["Your Linux workspace at a glance.","Find and launch desktop applications.","Host system, session and native tool diagnostics.","Install, remove, or check packages with explicit controls.","Adjust the shell appearance.","Inspect processes running on this Linux host.","Detect Wine and launch compatible Windows installers.","Browse files and folders using the host desktop.","Create a private screen-share session and connect an AI client through MCP."][win.page]; color: win.muted; font.pixelSize: 12 }
     }
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
@@ -614,6 +630,11 @@ ApplicationWindow {
      }
     }
     FileManagerPage { controller: fileManager; Layout.fillWidth: true; Layout.fillHeight: true }
+    ScreenSharePage {
+     controller: screenShareController
+     foreground: win.fg; muted: win.muted; panel: win.panel; borderColor: win.borderColor; lightMode: win.light
+     Layout.fillWidth: true; Layout.fillHeight: true
+    }
    }
    Rectangle {
     Layout.fillWidth: true; Layout.preferredHeight: 42; radius: 10; color: win.panel; border.color: win.borderColor

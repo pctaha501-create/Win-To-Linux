@@ -69,3 +69,15 @@ The launcher checks the current user's runtime directory and active Wayland sock
 - Session diagnostics are read-only and never replace or disable the host display manager.
 
 See docs/architecture.md, docs/installation.md, docs/roadmap.md, and docs/standalone-session.md for the explicit independent-session implementation and release gates.
+
+## AI Screen Share (MCP)
+
+Win-To-Linux includes an **AI Screen Share** section that creates a private session through the existing The End Screen Share service. Select **Create MCP**, open the generated host link on the computer to share, and approve the browser's native screen picker. The app also provides the existing remote MCP endpoint and a copyable connection guide for an AI client.
+
+- MCP endpoint: `https://mcp.the-end.shop/mcp`
+- Screen-share session API: `https://screen-share.the-end.shop/api/sessions`
+- MCP tools: `create_screen_share_session`, `get_screen_share_status`, and `get_screen_snapshot`
+- Only browser-approved screen capture is shared; the desktop app does not silently start capture or send keyboard/mouse input.
+- The viewer token is a credential. Copy it only into an AI client you trust, and stop sharing in the host browser when finished.
+
+See [AI Screen Share setup and security](docs/ai-screen-share.md). The MCP endpoint requires its normal OAuth sign-in; creating a desktop session does not automatically configure a third-party AI client.

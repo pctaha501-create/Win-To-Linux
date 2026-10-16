@@ -39,3 +39,8 @@ target_include_directories(wtl-system-info-launch-test PRIVATE ${CMAKE_CURRENT_S
 target_link_libraries(wtl-system-info-launch-test PRIVATE wtl-core Qt6::Core Qt6::Gui)
 add_test(NAME wtl-system-info-launch-test COMMAND wtl-system-info-launch-test)
 set_tests_properties(wtl-system-info-launch-test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+add_executable(wtl-screen-share-controller-test screen_share_controller_test.cpp ../src/app/screen_share_controller.cpp ../src/app/screen_share_controller.h)
+target_include_directories(wtl-screen-share-controller-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
+target_link_libraries(wtl-screen-share-controller-test PRIVATE Qt6::Core Qt6::Gui Qt6::Network)
+add_test(NAME wtl-screen-share-controller-test COMMAND wtl-screen-share-controller-test)
