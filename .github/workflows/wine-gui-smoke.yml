@@ -1,0 +1,29 @@
+name: Wine GUI compatibility smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/weston_nested_smoke.sh'
+      - '.github/workflows/wine-gui-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  wine-gui:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated Weston and Wine test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y weston wayland-utils xwayland x11-utils xauth wine wine64
+      - name: Run real Wine GUI application under nested XWayland
+        run: |
+          command -v wine
+          command -v wineboot
+          command -v wineserver
+          WTL_WINE_BIN="$(command -v wine)" WTL_WINEBOOT_BIN="$(command -v wineboot)" WTL_WINESERVER_BIN="$(command -v wineserver)" sh tests/weston_nested_smoke.sh
