@@ -41,7 +41,7 @@ export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WTL_BIN="$TMP/fake-app" 
 if env -u WTL_ENABLE_DRM_SESSION -u DISPLAY -u WAYLAND_DISPLAY XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/optin.log" 2>&1; then echo 'Standalone session did not require explicit opt-in.' >&2; exit 1; fi
 grep -q 'WTL_ENABLE_DRM_SESSION=1' "$TMP/optin.log"
 test ! -e "$WTL_WESTON_LOG"
-if env WTL_ENABLE_DRM_SESSION=1 DISPLAY=:host -u WAYLAND_DISPLAY XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/host-display.log" 2>&1; then echo 'Standalone session accepted an active host display.' >&2; exit 1; fi
+if env -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 DISPLAY=:host XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/host-display.log" 2>&1; then echo 'Standalone session accepted an active host display.' >&2; exit 1; fi
 grep -q 'X11 display is active' "$TMP/host-display.log"
 test ! -e "$WTL_WESTON_LOG"
 env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
@@ -54,5 +54,4 @@ grep -q "^XAUTHORITY=$runtime/Xauthority$" "$WTL_APP_LOG"
 grep -q '^WAYLAND_DISPLAY=win-to-linux-session-' "$WTL_APP_LOG"
 grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
 grep -q '^--fullscreen$' "$WTL_APP_LOG"
-test ! -e "$WTL_RUNTIME_SOCKET_SHOULD_NOT_EXIST" 2>/dev/null || true
 printf '%s\n' 'Standalone-session preflight and supervised-launch tests passed.'
