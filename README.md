@@ -14,7 +14,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - File opening is delegated to the host desktop. Copy/move supports regular files and directory trees, but skips symbolic links and special files.
 - XDG desktop-entry parsing with dedicated unit tests, hidden/NoDisplay filtering, canonical-path allowlisting, and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
-- Persistent light/dark preference and same-user process inspection/confirmed SIGTERM.
+- Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, and explicit install/remove confirmation.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
@@ -51,4 +51,4 @@ The launcher checks the current user's runtime directory and active Wayland sock
 - File-manager operations validate names and current-directory boundaries; recursive directory deletion requires explicit confirmation. Copy/move does not overwrite existing destinations and refuses symbolic links/special files.
 - Session diagnostics are read-only and never replace or disable the host display manager.
 
-See docs/architecture.md, docs/installation.md, and docs/roadmap.md.
+See docs/architecture.md, docs/installation.md, docs/roadmap.md, and docs/standalone-session.md for the explicit independent-session implementation and release gates.
