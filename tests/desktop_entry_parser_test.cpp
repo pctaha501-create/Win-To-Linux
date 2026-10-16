@@ -6,17 +6,21 @@ int main(int argc,char **argv){
  QCoreApplication app(argc,argv);
  bool ok=true;
  const auto entry=DesktopEntryParser::parse(QStringLiteral(
-  "# ignored comment\n[Desktop Entry]\nName=Demo App\nComment=A test app\nExec=/usr/bin/demo --title \"Hello World\" %U\nTryExec=/usr/bin/demo\nPath=/tmp\nTerminal=false\nHidden=false\nNoDisplay=false\n[Desktop Action NewWindow]\nName=Ignored Action\nExec=ignored-command\n"));
+  "# ignored comment\n[Desktop Entry]\nName=Demo App\nComment=A test app\nIcon=demo-icon\nExec=/usr/bin/demo --title \"Hello World\" %U\nTryExec=/usr/bin/demo\nPath=/tmp\nTerminal=false\nHidden=false\nNoDisplay=false\n[Desktop Action NewWindow]\nName=Ignored Action\nExec=ignored-command\n"));
  ok &= expect(entry.name==QStringLiteral("Demo App"),"parse desktop entry name");
  ok &= expect(entry.comment==QStringLiteral("A test app"),"parse desktop entry comment");
  ok &= expect(entry.exec.contains(QStringLiteral("/usr/bin/demo")),"parse desktop entry Exec");
  ok &= expect(entry.tryExec==QStringLiteral("/usr/bin/demo"),"parse TryExec availability guard");
  ok &= expect(entry.workingDirectory==QStringLiteral("/tmp"),"parse desktop entry working directory");
+ ok &= expect(entry.icon==QStringLiteral("demo-icon"),"parse desktop entry icon");
  ok &= expect(!entry.hidden&&!entry.noDisplay&&!entry.terminal,"parse false visibility and terminal flags");
  QString program,error;QStringList args;
  ok &= expect(DesktopEntryParser::splitExec(entry.exec,&program,&args,&error),"split valid Exec command");
  ok &= expect(program==QStringLiteral("/usr/bin/demo"),"separate executable path");
- ok &= expect(args==QStringList{QStringLiteral("--title"),QStringLiteral("Hello World")},"preserve quoted argument and remove field code");
+ ok &= expect(args==QStringList{QStringLiteral("--title"),QStringLiteral("Hello World")},"preserve quoted argument and remove file field code");
+ ok &= expect(DesktopEntryParser::splitExec(QStringLiteral("demo --name=%c --desktop=%k %% %i %f"),&program,&args,&error,QStringLiteral("Demo App"),QStringLiteral("demo-icon"),QStringLiteral("/tmp/demo.desktop")),"expand supported desktop-entry field codes");
+ ok &= expect(args==QStringList{QStringLiteral("--name=Demo App"),QStringLiteral("--desktop=/tmp/demo.desktop"),QStringLiteral("%"),QStringLiteral("--icon"),QStringLiteral("demo-icon")},"expand name, desktop file, percent and icon fields safely");
+ ok &= expect(!DesktopEntryParser::splitExec(QStringLiteral("demo %Z"),&program,&args,&error),"reject unknown desktop-entry field code");
  const auto missingTryExec=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Missing\nExec=/usr/bin/demo\nTryExec=/missing/wtl-nonexistent-app\n"));
  ok &= expect(missingTryExec.tryExec==QStringLiteral("/missing/wtl-nonexistent-app"),"preserve missing TryExec for launch-time validation");
  const auto hidden=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Hidden\nExec=/usr/bin/demo\nHidden=true\nNoDisplay=true\n"));

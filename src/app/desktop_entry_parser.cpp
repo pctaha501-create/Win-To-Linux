@@ -22,6 +22,7 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
   else if(key==QStringLiteral("Exec"))result.exec=value.trimmed();
   else if(key==QStringLiteral("TryExec"))result.tryExec=value.trimmed();
   else if(key==QStringLiteral("Path"))result.workingDirectory=value.trimmed();
+  else if(key==QStringLiteral("Icon"))result.icon=value.trimmed();
   else if(key==QStringLiteral("Hidden"))result.hidden=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
   else if(key==QStringLiteral("NoDisplay"))result.noDisplay=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
   else if(key==QStringLiteral("Terminal"))result.terminal=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
@@ -29,7 +30,8 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
  return result;
 }
 
-bool DesktopEntryParser::splitExec(const QString &exec,QString *program,QStringList *arguments,QString *error) {
+bool DesktopEntryParser::splitExec(const QString &exec,QString *program,QStringList *arguments,QString *error,
+                                  const QString &applicationName,const QString &iconName,const QString &desktopFile) {
  if(program)program->clear();
  if(arguments)arguments->clear();
  auto fail=[error](const QString &message){if(error)*error=message;return false;};
@@ -38,11 +40,24 @@ bool DesktopEntryParser::splitExec(const QString &exec,QString *program,QStringL
  QString executable=parts.takeFirst();
  if(executable.isEmpty()||executable.contains(QLatin1Char('%'))||executable.startsWith(QLatin1Char('-')))
   return fail(QStringLiteral("Unsupported launch command."));
- parts.erase(std::remove_if(parts.begin(),parts.end(),[](const QString &arg){
-  return arg.startsWith(QLatin1Char('%'))||arg.contains(QLatin1Char('%'));
- }),parts.end());
+ QStringList expanded;
+ for(const QString &arg:parts){
+  if(arg==QStringLiteral("%f")||arg==QStringLiteral("%F")||arg==QStringLiteral("%u")||arg==QStringLiteral("%U"))continue;
+  if(arg==QStringLiteral("%i")){if(!iconName.isEmpty())expanded<<QStringLiteral("--icon")<<iconName;continue;}
+  QString value;value.reserve(arg.size());
+  for(qsizetype i=0;i<arg.size();++i){
+   if(arg.at(i)!=QLatin1Char('%')){value+=arg.at(i);continue;}
+   if(i+1>=arg.size())return fail(QStringLiteral("Exec contains an incomplete field code."));
+   const QChar code=arg.at(++i);
+   if(code==QLatin1Char('%'))value+=QLatin1Char('%');
+   else if(code==QLatin1Char('c'))value+=applicationName;
+   else if(code==QLatin1Char('k'))value+=desktopFile;
+   else return fail(QStringLiteral("Unsupported or misplaced desktop-entry field code: %1").arg(code));
+  }
+  if(!value.isEmpty())expanded<<value;
+ }
  if(program)*program=executable;
- if(arguments)*arguments=parts;
+ if(arguments)*arguments=expanded;
  if(error)error->clear();
  return true;
 }

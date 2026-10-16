@@ -8,6 +8,7 @@ struct DesktopEntryInfo {
  QString exec;
  QString tryExec;
  QString workingDirectory;
+ QString icon;
  bool hidden = false;
  bool noDisplay = false;
  bool terminal = false;
@@ -16,5 +17,6 @@ struct DesktopEntryInfo {
 class DesktopEntryParser final {
 public:
  static DesktopEntryInfo parse(const QString &contents);
- static bool splitExec(const QString &exec, QString *program, QStringList *arguments, QString *error=nullptr);
+ static bool splitExec(const QString &exec, QString *program, QStringList *arguments, QString *error=nullptr,
+                       const QString &applicationName={}, const QString &iconName={}, const QString &desktopFile={});
 };

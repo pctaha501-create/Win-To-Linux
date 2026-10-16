@@ -225,7 +225,7 @@ bool SystemInfo::launchDesktopFile(const QString &desktopFile){
   else {setStatus(QStringLiteral("Application working directory is unavailable."));return false;}
  }
  QString program;QStringList args;QString parseError;
- if(!DesktopEntryParser::splitExec(entry.exec,&program,&args,&parseError)){setStatus(parseError);return false;}
+ if(!DesktopEntryParser::splitExec(entry.exec,&program,&args,&parseError,entry.name,entry.icon,path)){setStatus(parseError);return false;}
  if(QFileInfo(program).isAbsolute()){
   if(!QFileInfo(program).isExecutable()){setStatus(QStringLiteral("Executable is not available."));return false;}
  }else{

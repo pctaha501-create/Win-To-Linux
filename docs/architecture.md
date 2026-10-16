@@ -22,7 +22,7 @@ The Files page browses readable directories and delegates opening files to the h
 The planner returns a program and argument list but does not run commands. Package names are validated and not interpolated into shell strings. The controller starts the selected executable with a separate argument list, limits execution time, captures bounded output, supports cancellation, and reports exit status. Privileged install/remove plans use pkexec; a working PolicyKit authentication agent is required. Package operations can modify the host and should only be confirmed when the user intends that change.
 
 ## Application discovery and launch
-The catalog reads desktop entries from standard user/system application folders and ignores Hidden/NoDisplay entries. Launching validates the path, parses Exec, resolves the executable, and invokes it through QProcess with an argument list. Some desktop-entry wrappers and field-code features are intentionally unsupported.
+The catalog reads desktop entries from standard user/system application folders and ignores Hidden/NoDisplay entries. Launching validates the path, parses Exec, resolves the executable, and invokes it through QProcess with an argument list. The launcher expands the standard application-name, desktop-file, icon, and literal-percent field codes; file/URL placeholders are omitted when no activation target is supplied, and unknown field codes are rejected rather than interpreted by a shell.
 
 ## Process safety
 The process list is read from procfs. Stop requests require explicit confirmation and are restricted to processes owned by the current user; PID start-time is revalidated to reduce PID-reuse risk. SIGTERM is sent rather than SIGKILL. A process may ignore or delay SIGTERM.

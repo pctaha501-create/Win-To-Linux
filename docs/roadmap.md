@@ -8,7 +8,7 @@
 - [x] Safe distro-specific package command plans
 - [x] Qt Quick navigation and dashboard
 - [x] Host system details and headless system diagnostics
-- [x] XDG app discovery/search and launch using a tested desktop-entry parser, TryExec/working-directory handling, and canonical-path allowlisting
+- [x] XDG app discovery/search and launch using a tested desktop-entry parser, TryExec/working-directory handling, safe Exec field-code expansion, and canonical-path allowlisting
 - [x] Native-tool discovery based on executables actually present on PATH
 - [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links
 - [x] Persistent appearance setting
