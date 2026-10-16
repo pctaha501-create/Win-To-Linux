@@ -64,9 +64,14 @@ watch=false
 EOF
 chmod 600 "$weston_config"
 weston_pid=
+app_pid=
+watchdog_pid=
+watchdog_marker="$runtime_dir/win-to-linux-watchdog-$$.failed"
 cleanup() {
+    if [ -n "$watchdog_pid" ]; then kill "$watchdog_pid" >/dev/null 2>&1 || true; wait "$watchdog_pid" >/dev/null 2>&1 || true; fi
+    if [ -n "$app_pid" ]; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
     if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
-    rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path"
+    rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path" "$watchdog_marker"
 }
 trap cleanup EXIT
 trap 'exit 130' INT
@@ -95,11 +100,31 @@ if [ -s "$xwayland_env_file" ]; then
     if ! printf '%s' "$xwayland_display" | grep -Eq '^:[0-9]+(\.[0-9]+)?$'; then xwayland_display=; xwayland_authority=; fi
     if [ -n "$xwayland_authority" ]; then [ -f "$xwayland_authority" ] && [ "$(stat -c '%u' -- "$xwayland_authority" 2>/dev/null || true)" = "$(id -u)" ] || xwayland_authority=; fi
 fi
+launch_shell() {
+    # Only supervise the compositor child this launcher created; never signal the host session.
+    "$@" &
+    app_pid=$!
+    (
+        while kill -0 "$weston_pid" 2>/dev/null; do sleep 0.2; done
+        if kill -0 "$app_pid" 2>/dev/null; then
+            printf '%s\n' 'Weston exited while Win-To-Linux was running.' > "$watchdog_marker"
+            kill -TERM "$app_pid" >/dev/null 2>&1 || true
+        fi
+    ) &
+    watchdog_pid=$!
+    if wait "$app_pid"; then app_status=0; else app_status=$?; fi
+    app_pid=
+    kill "$watchdog_pid" >/dev/null 2>&1 || true
+    wait "$watchdog_pid" >/dev/null 2>&1 || true
+    watchdog_pid=
+    if [ -s "$watchdog_marker" ]; then cat "$watchdog_marker" >&2; return 2; fi
+    return "$app_status"
+}
 if [ -n "$xwayland_display" ] && [ -n "$xwayland_authority" ]; then
-    env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --fullscreen
+    launch_shell env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --fullscreen
 elif [ -n "$xwayland_display" ]; then
-    env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --fullscreen
+    launch_shell env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --fullscreen
 else
     printf 'Warning: XWayland environment was not captured; X11-only apps may not launch.\n' >&2
-    env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --fullscreen
+    launch_shell env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --fullscreen
 fi
