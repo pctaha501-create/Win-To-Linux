@@ -39,6 +39,7 @@
 - [x] File Manager Home, Ctrl+L, and F5 actions are exercised against an isolated temporary directory by the headless QML integration smoke
 - [x] Version CLI is sourced from the CMake project version and checked in CI; latest Linux CI passed on [run 38892769036](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38892769036)
 - [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
+- [x] Regression tests verify recent notifications persist across SystemInfo instances, are capped at eight, and diagnostic reports include runtime/compositor readiness and copy to clipboard
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone

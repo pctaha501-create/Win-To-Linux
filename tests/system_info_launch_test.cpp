@@ -30,6 +30,7 @@ int main(int argc,char **argv){
  qputenv("HOME",home.toLocal8Bit());qputenv("XDG_DATA_HOME",dataHome.toLocal8Bit());qputenv("XDG_CONFIG_HOME",(home+QStringLiteral("/.config")).toLocal8Bit());
  const QByteArray oldPath=qgetenv("PATH");qputenv("PATH",QFile::encodeName(bin)+QByteArray(":")+oldPath);qputenv("WTL_LAUNCH_LOG",log.toLocal8Bit());
  QGuiApplication app(argc,argv);QCoreApplication::setApplicationName(QStringLiteral("Win-To-Linux-launch-test"));QCoreApplication::setOrganizationName(QStringLiteral("Win-To-Linux-tests"));
+ QSettings persistentSettings;persistentSettings.clear();persistentSettings.sync();
  const QString fake=bin+QStringLiteral("/wtl-launch-fixture");
  const QByteArray fakeScript="#!/bin/sh\nprintf 'cwd=%s\n' \"$PWD\" > \"$WTL_LAUNCH_LOG\"\nfor arg in \"$@\"; do printf 'arg=<%s>\n' \"$arg\" >> \"$WTL_LAUNCH_LOG\"; done\n";
  if(!writeFile(fake,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake executable.";return 1;}
@@ -41,6 +42,18 @@ int main(int argc,char **argv){
  const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
  if(!writeFile(desktop,desktopContents)){qCritical()<<"Could not create fixture desktop entry.";return 1;}
  SystemInfo system;bool ok=true;
+ QVariantList notificationFixture;
+ for(int i=0;i<10;++i)notificationFixture.append(QVariantMap{{QStringLiteral("message"),QStringLiteral("notification-%1").arg(i)},{QStringLiteral("time"),QStringLiteral("12:%1").arg(i,2,10,QLatin1Char('0'))}});
+ system.saveRecentNotifications(notificationFixture);
+ const QVariantList savedNotifications=system.recentNotifications();
+ ok &= expect(savedNotifications.size()==8,"persist at most eight recent notifications");
+ ok &= expect(savedNotifications.first().toMap().value(QStringLiteral("message")).toString()==QStringLiteral("notification-0"),"preserve newest-first notification order");
+ SystemInfo restartedSystem;
+ ok &= expect(restartedSystem.recentNotifications()==savedNotifications,"restore recent notifications from persistent settings");
+ const QString diagnostic=system.diagnosticReport();
+ ok &= expect(diagnostic.contains(QStringLiteral("Runtime check:"))&&diagnostic.contains(QStringLiteral("Compositor executables:"))&&diagnostic.contains(QStringLiteral("Nested preview readiness:")),"diagnostic report includes runtime safety and compositor readiness");
+ system.copyDiagnosticReport();
+ ok &= expect(QGuiApplication::clipboard()->text()==diagnostic,"copy the full diagnostic report to the clipboard");
  ok &= expect(system.launchDesktopFile(desktop),"launch a valid desktop entry with fake executable");
  QElapsedTimer timer;timer.start();while(!QFileInfo::exists(log)&&timer.elapsed()<2500)QThread::msleep(10);
  ok &= expect(QFileInfo::exists(log),"fake desktop executable was started");
