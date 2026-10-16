@@ -60,6 +60,7 @@ int main(int argc,char**argv){
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
  if(hasArgument(argc,argv,"--smoke-test")){
   QObject *root=engine.rootObjects().constFirst();
+  root->setProperty("width",820);root->setProperty("height",560);QCoreApplication::processEvents();
   const QStringList requiredControls{
    QStringLiteral("workspaceSwitcher"),QStringLiteral("workspaceSwitcherShortcut"),QStringLiteral("previousWorkspaceShortcut"),
    QStringLiteral("startMenuPopup"),QStringLiteral("notificationCenterPopup"),QStringLiteral("quickSettingsPopup"),
@@ -85,9 +86,13 @@ int main(int argc,char**argv){
    if(!popup||!QMetaObject::invokeMethod(popup,"close",Qt::DirectConnection))return false;
    QCoreApplication::processEvents();return true;
   };
-  if(!clickButton(QStringLiteral("taskbarStartButton"))||!popupVisible(QStringLiteral("startMenuPopup"))||!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Start menu button interaction failed.";return 1;}
-  if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction failed.";return 1;}
-  if(!clickButton(QStringLiteral("taskbarQuickSettingsButton"))||!popupVisible(QStringLiteral("quickSettingsPopup"))||!closePopup(QStringLiteral("quickSettingsPopup"))){qCritical()<<"Quick settings button interaction failed.";return 1;}
+  auto popupFitsWindow=[&](const QString &popupName)->bool{
+   QObject *popup=root->findChild<QObject *>(popupName);if(!popup)return false;
+   return popup->property("width").toReal()<=root->property("width").toReal()-16.0&&popup->property("height").toReal()<=root->property("height").toReal()-70.0;
+  };
+  if(!clickButton(QStringLiteral("taskbarStartButton"))||!popupVisible(QStringLiteral("startMenuPopup"))||!popupFitsWindow(QStringLiteral("startMenuPopup"))||!root->findChild<QObject *>(QStringLiteral("startMenuScroll"))||!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Start menu interaction or responsive sizing failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!popupFitsWindow(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction or responsive sizing failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarQuickSettingsButton"))||!popupVisible(QStringLiteral("quickSettingsPopup"))||!popupFitsWindow(QStringLiteral("quickSettingsPopup"))||!closePopup(QStringLiteral("quickSettingsPopup"))){qCritical()<<"Quick settings button interaction or responsive sizing failed.";return 1;}
   const QList<QPair<QString,int>> navigationButtons{{QStringLiteral("taskbarLinuxButton"),2},{QStringLiteral("taskbarPackagesButton"),3},{QStringLiteral("taskbarFilesButton"),7},{QStringLiteral("taskbarSettingsButton"),4}};
   for(const auto &entry:navigationButtons){
    if(!clickButton(entry.first)||root->property("page").toInt()!=entry.second){qCritical()<<"Taskbar navigation failed:"<<entry.first;return 1;}

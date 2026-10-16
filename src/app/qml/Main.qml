@@ -108,7 +108,7 @@ ApplicationWindow {
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
   background: Rectangle { radius: 18; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: Flickable {
-   id: startMenuScroll; anchors.fill: parent; clip: true
+   id: startMenuScroll; objectName: "startMenuScroll"; anchors.fill: parent; clip: true
    contentWidth: width; contentHeight: startMenuColumn.implicitHeight + 48
    boundsBehavior: Flickable.StopAtBounds
    ColumnLayout {
