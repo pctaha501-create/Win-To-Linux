@@ -84,6 +84,12 @@ int main(int argc,char **argv){
  const QString terminalOutput=readText(log);
  ok &= expect(terminalOutput.contains(QStringLiteral("cwd=%1\n").arg(QFileInfo(home).canonicalFilePath())),"launch terminal in the current user home directory");
  ok &= expect(system.status().contains(QStringLiteral("Launching terminal")),"report terminal launch status");
+ QTemporaryDir emptyPath;
+ ok &= expect(emptyPath.isValid(),"create empty PATH for missing-terminal test");
+ const QByteArray savedPath=qgetenv("PATH");qputenv("PATH",QFile::encodeName(emptyPath.path()));
+ ok &= expect(!system.launchTerminal(),"refuse terminal launch when no emulator exists on PATH");
+ ok &= expect(system.status().contains(QStringLiteral("No terminal emulator was found")),"explain missing terminal emulator without installing packages");
+ qputenv("PATH",savedPath);
  if(!ok)return 1;
  qunsetenv("WAYLAND_DISPLAY");qunsetenv("DISPLAY");qunsetenv("XDG_RUNTIME_DIR");
  SystemInfo headlessSystem;

@@ -137,7 +137,7 @@ ApplicationWindow {
        Label { text: modelData.glyph; color: win.fg; font.pixelSize: 24; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
        Label { text: modelData.label; color: win.fg; font.pixelSize: 11; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true; elide: Text.ElideRight }
       }
-      onClicked: { if(modelData.label==="Terminal") { var launched=systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
+      onClicked: { if(modelData.label==="Terminal") { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
      }
     }
    }
@@ -205,7 +205,7 @@ ApplicationWindow {
         Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
        }
       }
-      onClicked: { if(modelData.label==="Terminal") { var launched=systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
+      onClicked: { if(modelData.label==="Terminal") { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
      }
     }
    }
