@@ -95,10 +95,16 @@ fi
 xdisplay=$(sed -n '1p' "$runtime/win-to-linux-xwayland-env.test")
 xauthority=$(sed -n '2p' "$runtime/win-to-linux-xwayland-env.test")
 case "$xdisplay" in :[0-9]*) ;; *) cat "$TMP/nested.log" >&2; echo "Invalid nested XWayland DISPLAY: $xdisplay" >&2; exit 1 ;; esac
-[ -n "$xauthority" ] && [ -f "$xauthority" ] || { cat "$TMP/nested.log" >&2; echo "Nested XWayland authority file is missing." >&2; exit 1; }
-if ! DISPLAY="$xdisplay" XAUTHORITY="$xauthority" "$xdpyinfo_bin" >"$TMP/x11-client.log" 2>&1; then
+if [ -n "$xauthority" ] && [ -f "$xauthority" ]; then
+    x11_client_status=0
+    DISPLAY="$xdisplay" XAUTHORITY="$xauthority" "$xdpyinfo_bin" >"$TMP/x11-client.log" 2>&1 || x11_client_status=$?
+else
+    x11_client_status=0
+    env -u XAUTHORITY DISPLAY="$xdisplay" "$xdpyinfo_bin" >"$TMP/x11-client.log" 2>&1 || x11_client_status=$?
+fi
+if [ "$x11_client_status" -ne 0 ]; then
     cat "$TMP/nested.log" "$TMP/x11-client.log" >&2
-    echo "An X11 client could not authenticate to the nested XWayland display." >&2
+    echo "An X11 client could not connect to the nested XWayland display without host credentials." >&2
     exit 1
 fi
 grep -q 'name of display' "$TMP/x11-client.log" || { cat "$TMP/x11-client.log" >&2; exit 1; }

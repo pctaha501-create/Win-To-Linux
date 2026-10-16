@@ -128,9 +128,9 @@ EOF
             app_status=$?
             set -e
         else
-            printf 'Warning: nested XWayland authority file was not available; X11-only applications may not launch.\n' >&2
+            printf 'Nested XWayland has no exported authority path; exposing only its DISPLAY and explicitly clearing host XAUTHORITY.\n' >&2
             set +e
-            env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
+            env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --maximized
             app_status=$?
             set -e
         fi
