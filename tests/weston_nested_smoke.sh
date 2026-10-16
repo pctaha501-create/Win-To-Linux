@@ -14,7 +14,9 @@ mkdir -m 700 "$runtime"
 export XDG_RUNTIME_DIR="$runtime"
 unset WAYLAND_DISPLAY || true
 weston_bin=$(command -v weston 2>/dev/null || true)
+wayland_info=$(command -v wayland-info 2>/dev/null || true)
 [ -n "$weston_bin" ] || { echo "Weston is required for this integration test." >&2; exit 1; }
+[ -n "$wayland_info" ] || { echo "wayland-info is required for this integration test." >&2; exit 1; }
 "$weston_bin" --backend=headless --socket=wayland-parent --renderer=pixman --no-config >"$TMP/parent.log" 2>&1 &
 parent_pid=$!
 i=0
@@ -28,13 +30,7 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-cat > "$TMP/client.sh" <<'EOF'
-#!/bin/sh
-printf 'started\n' > "$WTL_CLIENT_MARKER"
-EOF
-chmod +x "$TMP/client.sh"
-export WTL_CLIENT_MARKER="$TMP/client.started"
-WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config -- "$TMP/client.sh" >"$TMP/nested.log" 2>&1 &
+WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do
@@ -47,21 +43,16 @@ if [ ! -S "$runtime/wayland-nested" ]; then
     echo "Nested Weston did not create its unique Wayland socket." >&2
     exit 1
 fi
-i=0
-while [ ! -f "$WTL_CLIENT_MARKER" ] && [ "$i" -lt 50 ]; do
-    kill -0 "$nested_pid" 2>/dev/null || break
-    sleep 0.1
-    i=$((i+1))
-done
-if [ ! -f "$WTL_CLIENT_MARKER" ]; then
-    cat "$TMP/nested.log" >&2
-    echo "Nested Weston did not launch its test client." >&2
+if ! WAYLAND_DISPLAY=wayland-nested "$wayland_info" >"$TMP/client.log" 2>&1; then
+    cat "$TMP/nested.log" "$TMP/client.log" >&2
+    echo "A Wayland client could not connect to nested Weston." >&2
     exit 1
 fi
+grep -q 'wl_compositor' "$TMP/client.log" || { cat "$TMP/client.log" >&2; exit 1; }
 kill "$nested_pid" >/dev/null 2>&1 || true
 wait "$nested_pid" >/dev/null 2>&1 || true
 nested_pid=
 kill "$parent_pid" >/dev/null 2>&1 || true
 wait "$parent_pid" >/dev/null 2>&1 || true
 parent_pid=
-printf '%s\n' 'Nested Weston headless integration check passed.'
+printf '%s\n' 'Nested Weston accepted a real Wayland client in headless mode.'

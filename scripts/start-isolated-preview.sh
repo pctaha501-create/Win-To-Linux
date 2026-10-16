@@ -49,9 +49,36 @@ fi
 
 if [ -n "$weston_bin" ]; then
     socket_name=win-to-linux-$(id -u)-$$
-    [ ! -e "$runtime_dir/$socket_name" ] || fail "the nested Weston socket path already exists: $runtime_dir/$socket_name"
-    printf 'Starting Win-To-Linux inside nested Weston (software renderer, isolated socket). The host desktop and login manager will not be changed.\n'
-    exec "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --no-config -- "$app_bin" --fullscreen
+    socket_path=$runtime_dir/$socket_name
+    [ ! -e "$socket_path" ] || fail "the nested Weston socket path already exists: $socket_path"
+    weston_log=$(mktemp "$runtime_dir/win-to-linux-weston.XXXXXX") || fail "could not create a private Weston log file."
+    weston_pid=
+    cleanup_weston() {
+        if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
+        rm -f -- "$weston_log" "$socket_path"
+    }
+    trap cleanup_weston EXIT HUP INT TERM
+    printf 'Starting a nested Weston desktop with software rendering and a unique user socket. The host desktop and login manager will not be changed.\n'
+    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --no-config >"$weston_log" 2>&1 &
+    weston_pid=$!
+    i=0
+    while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do
+        kill -0 "$weston_pid" 2>/dev/null || break
+        sleep 0.1
+        i=$((i+1))
+    done
+    if [ ! -S "$socket_path" ]; then
+        cat "$weston_log" >&2
+        fail "nested Weston did not create its Wayland socket."
+    fi
+    set +e
+    WAYLAND_DISPLAY="$socket_name" "$app_bin" --fullscreen
+    app_status=$?
+    set -e
+    cleanup_weston
+    weston_pid=
+    trap - EXIT HUP INT TERM
+    exit "$app_status"
 fi
 printf 'Starting the Win-To-Linux preview inside nested Cage. Your existing login manager and desktop session will not be changed.\n'
 exec "$cage_bin" -- "$app_bin" --fullscreen
