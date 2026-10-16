@@ -23,14 +23,14 @@
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
 - [x] Headless QML smoke test instantiates the file-manager and package-manager pages, with shell-script syntax and install-staging checks
-- [ ] CI build, all unit tests, QML smoke test, install staging, and headless diagnostics pass on latest commit
+- [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE (full application build remains Ubuntu CI only)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [ ] Full compositor/session launcher with recovery and a supported independent desktop session (implementation gates: docs/standalone-session.md)
-- [ ] Notifications and richer settings
+- [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
 - [ ] Wine/Bottles compatibility notes and app-specific testing
 - [ ] End-to-end desktop launch integration tests across supported desktop environments
 
