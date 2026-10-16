@@ -193,10 +193,11 @@ ApplicationWindow {
  Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
  Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
  Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
- Shortcut { sequence: "Alt+Tab"; onActivated: { var target = win.previousPage; win.page = target } }
- Shortcut { sequence: "Ctrl+Alt+Tab"; onActivated: workspaceSwitcher.open() }
+ Shortcut { objectName: "previousWorkspaceShortcut"; sequence: "Alt+Tab"; onActivated: { var target = win.previousPage; win.page = target } }
+ Shortcut { objectName: "workspaceSwitcherShortcut"; sequence: "Ctrl+Alt+Tab"; onActivated: workspaceSwitcher.open() }
  Popup {
   id: workspaceSwitcher
+  objectName: "workspaceSwitcher"
   width: 520; height: 330; modal: true; focus: true
   x: Math.max(8, (win.width-width)/2); y: Math.max(8, (win.height-height)/2)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside

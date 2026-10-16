@@ -51,6 +51,12 @@ int main(int argc,char**argv){
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
  if(hasArgument(argc,argv,"--smoke-test")){
+  QObject *root=engine.rootObjects().constFirst();
+  if(!root->findChild<QObject *>(QStringLiteral("workspaceSwitcher"))||
+     !root->findChild<QObject *>(QStringLiteral("workspaceSwitcherShortcut"))||
+     !root->findChild<QObject *>(QStringLiteral("previousWorkspaceShortcut"))){
+   qCritical()<<"Workspace switcher or keyboard shortcuts were not instantiated.";return 1;
+  }
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
    QQmlComponent component(&engine,QUrl(url));
