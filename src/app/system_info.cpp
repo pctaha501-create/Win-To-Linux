@@ -1,6 +1,7 @@
 #include "system_info.h"
 #include "distro_detector.h"
 #include "desktop_entry_parser.h"
+#include "session_backend.h"
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
@@ -86,27 +87,29 @@ bool SystemInfo::launchNestedPreview(){
  emit previewStateChanged();setStatus(QStringLiteral("Nested preview is starting. Your current desktop and login manager will not be changed."));return true;
 }
 QString SystemInfo::standaloneReadiness()const{
- QStringList blockers;
- if(qEnvironmentVariable("WTL_ENABLE_DRM_SESSION")!=QStringLiteral("1"))blockers.append(QStringLiteral("Explicit opt-in is missing: set WTL_ENABLE_DRM_SESSION=1 only when intentionally starting the experimental session"));
- if(!qEnvironmentVariable("DISPLAY").isEmpty())blockers.append(QStringLiteral("DISPLAY is set; an X11 desktop may be active"));
- if(!qEnvironmentVariable("WAYLAND_DISPLAY").isEmpty())blockers.append(QStringLiteral("WAYLAND_DISPLAY is set; an existing Wayland desktop may be active"));
+ SessionEnvironment environment;
+#ifdef Q_OS_LINUX
+ environment.linuxHost=true;
+#endif
+ environment.explicitOptIn=qEnvironmentVariable("WTL_ENABLE_DRM_SESSION")==QStringLiteral("1");
+ environment.x11DisplaySet=!qEnvironmentVariable("DISPLAY").isEmpty();
+ environment.waylandDisplaySet=!qEnvironmentVariable("WAYLAND_DISPLAY").isEmpty();
  const char *terminal=::ttyname(STDIN_FILENO);
- const QString ttyPath=terminal?QString::fromLocal8Bit(terminal):QString();
- if(!::isatty(STDIN_FILENO)||!ttyPath.startsWith(QStringLiteral("/dev/tty"))||ttyPath.startsWith(QStringLiteral("/dev/pts/")))blockers.append(QStringLiteral("Not running from a real Linux virtual terminal such as /dev/tty3"));
+ environment.ttyPath=terminal?QString::fromLocal8Bit(terminal):QString();
+ environment.realVirtualTerminal=::isatty(STDIN_FILENO)&&environment.ttyPath.startsWith(QStringLiteral("/dev/tty"))&&!environment.ttyPath.startsWith(QStringLiteral("/dev/pts/"));
  const QByteArray runtimeBytes=qgetenv("XDG_RUNTIME_DIR");
+ environment.runtimeDirectory=QString::fromLocal8Bit(runtimeBytes);
  struct stat runtimeInfo{};
- if(runtimeBytes.isEmpty()||::stat(runtimeBytes.constData(),&runtimeInfo)!=0||!S_ISDIR(runtimeInfo.st_mode)||runtimeInfo.st_uid!=getuid()||(runtimeInfo.st_mode&0077)!=0)blockers.append(QStringLiteral("XDG_RUNTIME_DIR is missing or is not a private directory owned by the current user"));
- if(QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty())blockers.append(QStringLiteral("Weston is not installed"));
- if(!m_qtWaylandPluginAvailable)blockers.append(QStringLiteral("Qt Wayland platform plugin is missing; install the distribution's Qt Wayland runtime package (Ubuntu: qt6-wayland)"));
+ environment.runtimeDirectoryPrivate=!runtimeBytes.isEmpty()&&::stat(runtimeBytes.constData(),&runtimeInfo)==0&&S_ISDIR(runtimeInfo.st_mode)&&runtimeInfo.st_uid==getuid()&&(runtimeInfo.st_mode&0077)==0;
+ environment.westonAvailable=!QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty();
+ environment.qtWaylandPluginAvailable=m_qtWaylandPluginAvailable;
  const QString appPath=QCoreApplication::applicationFilePath();
- if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
+ environment.applicationExecutableVerified=!appPath.isEmpty()&&QFileInfo(appPath).isExecutable();
  QDir drmDirectory(QStringLiteral("/dev/dri"));
  const QFileInfoList cards=drmDirectory.entryInfoList(QStringList{QStringLiteral("card*")},QDir::System|QDir::Files|QDir::Readable);
- bool usableDrm=false;
- for(const QFileInfo &card:cards){const QByteArray path=QFile::encodeName(card.absoluteFilePath());if(::access(path.constData(),R_OK|W_OK)==0){usableDrm=true;break;}}
- if(!usableDrm)blockers.append(QStringLiteral("No accessible /dev/dri/card* device was found; this environment may not support a DRM session"));
- if(blockers.isEmpty())return QStringLiteral("Ready for experimental standalone session preflight. This is not a guarantee of working input, graphics, suspend/resume or application compatibility; test in a disposable VM first.");
- return QStringLiteral("Not ready for standalone session:\n• %1\n\nThis check is read-only. It will not start Weston, access DRM, install packages, or change the login manager.").arg(blockers.join(QStringLiteral("\n• ")));
+ for(const QFileInfo &card:cards){const QByteArray path=QFile::encodeName(card.absoluteFilePath());if(::access(path.constData(),R_OK|W_OK)==0){environment.drmDeviceAccessible=true;break;}}
+ const WestonDrmSessionBackend backend;
+ return backend.probe(environment).summary;
 }
 QString SystemInfo::diagnosticReport()const{
  const QString report=QStringLiteral("Win-To-Linux diagnostic report\nDistribution: %1 (%2)\nVersion: %3\nFamily: %4\nKernel: %5\nArchitecture: %6\nHost: %7\nDesktop environment: %8\nSession type: %9\nWayland display: %10\nX11 display: %11\nRuntime directory: %12\nRuntime check: %13\nPackage manager: %14\nPackage manager available: %15\nWine available: %16\nBottles available: %17\nDetected compositors: %18")

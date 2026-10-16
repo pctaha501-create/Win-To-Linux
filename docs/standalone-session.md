@@ -35,3 +35,8 @@ The read-only `win-to-linux --standalone-check` command (also available as **Sta
 The launcher supervises the Weston child it starts while the Win-To-Linux shell is running. If that child exits, a watchdog terminates only the shell child and reports the session failure; cleanup reaps the watchdog and owned child processes and removes private temporary files. Automated fake-process tests cover both failure before socket creation and a simulated compositor crash after socket creation. These tests do not exercise real DRM or seat permissions.
 
 This path is not yet a production-ready login session: the CI test uses fake Weston/TTY executables and never opens DRM. Before daily use, validate it in a disposable VM with working DRM/seat access, input, suspend/resume, crash recovery, multi-window behavior and Wine GUI applications. If Weston fails, return to another virtual terminal (commonly Ctrl+Alt+F2) and log in normally; do not enable it automatically at boot.
+
+
+## Implemented backend-probe milestone
+
+The shell's read-only standalone readiness check now delegates to a small `SessionBackend` interface. `WestonDrmSessionBackend` evaluates an explicit environment snapshot and returns a stable backend ID, display name, blockers, and a diagnostic summary. The UI/CLI gathers actual host facts; the backend probe itself is side-effect-free and never starts a compositor or opens a DRM device. Unit tests exercise the ready path, each safety prerequisite, and conflicts with an existing X11/Wayland desktop. This is the first architecture layer only: it does not promote the experimental launcher to a production login session, and all physical-VM release gates above still apply.

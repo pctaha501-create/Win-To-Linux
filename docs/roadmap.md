@@ -49,6 +49,7 @@
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait, child-only cleanup, and a watchdog that terminates the shell if the owned compositor exits (fake-backend CI only; not yet VM-certified)
 - [x] Fake-process regression tests cover Weston failure before socket creation and compositor crash after startup, including private-file cleanup
 - [ ] Production compositor/login session, seat/input lifecycle, crash recovery, and supported independent desktop session (implementation gates: docs/standalone-session.md)
+- [x] Introduce a testable session-backend interface and a shared, pure Weston-DRM safety preflight used by CLI/Settings diagnostics; test every refusal prerequisite without opening DRM
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
 - [x] Wine/Bottles compatibility notes, distribution package guidance, and an app-specific validation template (`docs/wine-compatibility.md`)
 - [x] Real Wine GUI smoke: Wine's built-in Notepad stayed open under nested Weston/XWayland with a disposable prefix in the dedicated Ubuntu 24.04 workflow ([run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38886382702))

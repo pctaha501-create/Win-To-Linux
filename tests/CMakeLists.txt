@@ -49,3 +49,7 @@ add_executable(wtl-wine-prefix-controller-test wine_prefix_controller_test.cpp .
 target_include_directories(wtl-wine-prefix-controller-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
 target_link_libraries(wtl-wine-prefix-controller-test PRIVATE Qt6::Core)
 add_test(NAME wtl-wine-prefix-controller-test COMMAND wtl-wine-prefix-controller-test)
+
+add_executable(wtl-session-backend-test session_backend_test.cpp)
+target_link_libraries(wtl-session-backend-test PRIVATE wtl-core Qt6::Core)
+add_test(NAME wtl-session-backend-test COMMAND wtl-session-backend-test)
