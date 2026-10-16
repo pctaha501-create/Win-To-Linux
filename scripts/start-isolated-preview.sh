@@ -41,5 +41,10 @@ if [ -z "$app_bin" ]; then
 fi
 [ -n "$app_bin" ] && [ -x "$app_bin" ] || fail "win-to-linux was not found. Install it for your user or build the project first."
 
+if ! readiness=$("$app_bin" --preview-check 2>&1); then
+    printf '%s\n' "$readiness" >&2
+    fail "readiness preflight refused to launch the nested preview."
+fi
+
 printf 'Starting the Win-To-Linux preview inside nested Cage. Your existing login manager and desktop session will not be changed.\n'
 exec "$cage_bin" -- "$app_bin" --fullscreen
