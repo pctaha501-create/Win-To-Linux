@@ -170,6 +170,9 @@ ApplicationWindow {
   }
  }
  Shortcut { sequence: "Ctrl+Space"; onActivated: { startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } }
+ Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
+ Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
+ Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
  RowLayout {
   anchors.fill: parent; spacing: 0
   Rectangle {
