@@ -7,6 +7,8 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QDebug>
+#include <QElapsedTimer>
+#include <QThread>
 namespace {
 bool expect(bool condition, const char *message) { if (!condition) qCritical().noquote() << "FAIL:" << message; return condition; }
 bool writeExecutable(const QString &path, const QByteArray &content) {
@@ -22,7 +24,7 @@ int main(int argc, char **argv) {
  const QString wineboot=temporary.filePath(QStringLiteral("fake-wineboot"));
  const QString wine=temporary.filePath(QStringLiteral("fake-wine"));
  const QByteArray boot="#!/bin/sh\ntest -n \"$WINEPREFIX\" || exit 20\nmkdir -p \"$WINEPREFIX\" || exit 21\nprintf 'test registry\\n' > \"$WINEPREFIX/system.reg\" || exit 22\nexit 0\n";
- const QByteArray wineScript="#!/bin/sh\nexit 0\n";
+ const QByteArray wineScript="#!/bin/sh\nprintf '%s\\n' \"$WINEPREFIX\" \"$@\" > \"$WTL_TEST_WINE_LOG\"\nexit 0\n";
  if (!expect(writeExecutable(wineboot,boot),"fake wineboot is executable") || !expect(writeExecutable(wine,wineScript),"fake wine is executable")) return 1;
  WinePrefixController controller(root,wineboot,wine);
  if (!expect(controller.validPrefixName(QStringLiteral("office-test_1.0")),"safe name accepted") || !expect(!controller.validPrefixName(QStringLiteral("../outside")),"path traversal rejected") || !expect(!controller.validPrefixName(QStringLiteral("with space")),"spaces rejected") || !expect(!controller.validPrefixName(QStringLiteral(".hidden")),"leading dot rejected") || !expect(!controller.validPrefixName(QString(41,QLatin1Char('a'))),"overlong name rejected")) return 1;
@@ -30,6 +32,18 @@ int main(int argc, char **argv) {
  if (controller.busy()) { QEventLoop loop; QObject::connect(&controller,&WinePrefixController::busyChanged,&loop,[&](){if(!controller.busy())loop.quit();}); QTimer::singleShot(5000,&loop,&QEventLoop::quit); loop.exec(); }
  controller.refresh();
  if (!expect(!controller.busy(),"initialization finishes within timeout") || !expect(controller.prefixes().contains(QStringLiteral("test-prefix")),"initialized prefix discovered") || !expect(!controller.createPrefix(QStringLiteral("test-prefix")),"duplicate prefix rejected")) return 1;
+ const QString installer=temporary.filePath(QStringLiteral("installer with spaces.msi"));
+ QFile installerFile(installer); if(!installerFile.open(QIODevice::WriteOnly)||installerFile.write("fake msi")!=8)return 1; installerFile.close();
+ const QString launchLog=temporary.filePath(QStringLiteral("wine-launch.log")); qputenv("WTL_TEST_WINE_LOG",launchLog.toUtf8());
+ if(!expect(controller.launchWindowsFile(QStringLiteral("test-prefix"),installer),"MSI launch starts inside selected prefix"))return 1;
+ QElapsedTimer launchTimer; launchTimer.start();
+ while(!QFileInfo::exists(launchLog) && launchTimer.elapsed()<5000) { QCoreApplication::processEvents(); QThread::msleep(10); }
+ QFile launchLogFile(launchLog); if(!expect(launchLogFile.open(QIODevice::ReadOnly),"fake Wine wrote launch arguments"))return 1;
+ const QStringList launchLines=QString::fromUtf8(launchLogFile.readAll()).split(QLatin1Char('\n'),Qt::SkipEmptyParts); launchLogFile.close();
+ const QString expectedPrefix=QFileInfo(QDir(root).filePath(QStringLiteral("test-prefix"))).canonicalFilePath();
+ const QString expectedInstaller=QFileInfo(installer).canonicalFilePath();
+ if(!expect(launchLines.size()==4,"MSI launch passes four distinct values") || !expect(launchLines.value(0)==expectedPrefix,"WINEPREFIX is scoped to the selected managed prefix") || !expect(launchLines.value(1)==QStringLiteral("msiexec"),"MSI is launched through msiexec") || !expect(launchLines.value(2)==QStringLiteral("/i"),"MSI install flag is passed separately") || !expect(launchLines.value(3)==expectedInstaller,"installer path with spaces remains one argument"))return 1;
+ qunsetenv("WTL_TEST_WINE_LOG");
  const QString outside=temporary.filePath(QStringLiteral("outside")); if(!expect(QDir().mkpath(outside),"outside fixture created"))return 1;
  QFile registry(QDir(outside).filePath(QStringLiteral("system.reg"))); if(!registry.open(QIODevice::WriteOnly)||registry.write("keep")!=4)return 1; registry.close();
  const QString linkPath=QDir(root).filePath(QStringLiteral("outside-link"));
