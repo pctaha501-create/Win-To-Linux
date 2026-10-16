@@ -6,6 +6,8 @@ struct DesktopEntryInfo {
  QString name;
  QString comment;
  QString exec;
+ QString tryExec;
+ QString workingDirectory;
  bool hidden = false;
  bool noDisplay = false;
  bool terminal = false;

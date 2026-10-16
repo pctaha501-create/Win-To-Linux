@@ -20,6 +20,8 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
   if(key==QStringLiteral("Name"))result.name=value;
   else if(key==QStringLiteral("Comment"))result.comment=value;
   else if(key==QStringLiteral("Exec"))result.exec=value.trimmed();
+  else if(key==QStringLiteral("TryExec"))result.tryExec=value.trimmed();
+  else if(key==QStringLiteral("Path"))result.workingDirectory=value.trimmed();
   else if(key==QStringLiteral("Hidden"))result.hidden=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
   else if(key==QStringLiteral("NoDisplay"))result.noDisplay=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
   else if(key==QStringLiteral("Terminal"))result.terminal=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);

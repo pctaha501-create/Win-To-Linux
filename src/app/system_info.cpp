@@ -213,6 +213,17 @@ bool SystemInfo::launchDesktopFile(const QString &desktopFile){
  QFile file(path);if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}
  const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
  if(entry.hidden||entry.noDisplay||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
+ if(!entry.tryExec.isEmpty()){
+  QString tryExecutable=entry.tryExec;
+  const QString resolvedTry=QFileInfo(tryExecutable).isAbsolute()?(QFileInfo(tryExecutable).isExecutable()?tryExecutable:QString()):QStandardPaths::findExecutable(tryExecutable);
+  if(resolvedTry.isEmpty()){setStatus(QStringLiteral("Application is unavailable: TryExec executable '%1' was not found.").arg(entry.tryExec));return false;}
+ }
+ QString workingDirectory=QDir::homePath();
+ if(!entry.workingDirectory.isEmpty()){
+  const QFileInfo workInfo(entry.workingDirectory);
+  if(workInfo.isDir()&&workInfo.isReadable())workingDirectory=workInfo.canonicalFilePath();
+  else {setStatus(QStringLiteral("Application working directory is unavailable."));return false;}
+ }
  QString program;QStringList args;QString parseError;
  if(!DesktopEntryParser::splitExec(entry.exec,&program,&args,&parseError)){setStatus(parseError);return false;}
  if(QFileInfo(program).isAbsolute()){
@@ -222,7 +233,7 @@ bool SystemInfo::launchDesktopFile(const QString &desktopFile){
   if(resolved.isEmpty()){setStatus(QStringLiteral("Executable not found: %1").arg(program));return false;}
   program=resolved;
  }
- if(QProcess::startDetached(program,args,QDir::homePath())){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}
+ if(QProcess::startDetached(program,args,workingDirectory)){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}
  setStatus(QStringLiteral("Failed to start application."));return false;
 }
 bool SystemInfo::launchWindowsFile(const QString&selectedPath){
