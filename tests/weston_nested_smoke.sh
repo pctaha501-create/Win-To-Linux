@@ -28,7 +28,13 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-WAYLAND_DISPLAY=wayland-parent timeout 15s "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config -- /bin/sleep 2 >"$TMP/nested.log" 2>&1 &
+cat > "$TMP/client.sh" <<'EOF'
+#!/bin/sh
+printf 'started\n' > "$WTL_CLIENT_MARKER"
+EOF
+chmod +x "$TMP/client.sh"
+export WTL_CLIENT_MARKER="$TMP/client.started"
+WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config -- "$TMP/client.sh" >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do
@@ -41,7 +47,19 @@ if [ ! -S "$runtime/wayland-nested" ]; then
     echo "Nested Weston did not create its unique Wayland socket." >&2
     exit 1
 fi
-wait "$nested_pid" || { cat "$TMP/nested.log" >&2; echo "Nested Weston failed during shutdown." >&2; exit 1; }
+i=0
+while [ ! -f "$WTL_CLIENT_MARKER" ] && [ "$i" -lt 50 ]; do
+    kill -0 "$nested_pid" 2>/dev/null || break
+    sleep 0.1
+    i=$((i+1))
+done
+if [ ! -f "$WTL_CLIENT_MARKER" ]; then
+    cat "$TMP/nested.log" >&2
+    echo "Nested Weston did not launch its test client." >&2
+    exit 1
+fi
+kill "$nested_pid" >/dev/null 2>&1 || true
+wait "$nested_pid" >/dev/null 2>&1 || true
 nested_pid=
 kill "$parent_pid" >/dev/null 2>&1 || true
 wait "$parent_pid" >/dev/null 2>&1 || true
