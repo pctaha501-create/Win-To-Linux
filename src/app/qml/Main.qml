@@ -317,7 +317,11 @@ ApplicationWindow {
      Label { text: processMonitor.status; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
      RowLayout {
       Layout.fillWidth: true; spacing: 12
-      ColumnLayout { spacing: 1; Label { text: "CPU"; color: win.muted; font.pixelSize: 10 }; Label { text: processMonitor.totalCpuPercent.toFixed(1) + "%"; color: win.fg; font.pixelSize: 18; font.bold: true } }
+       ColumnLayout {
+        spacing: 1
+        Label { text: "CPU"; color: win.muted; font.pixelSize: 10 }
+        Label { text: processMonitor.totalCpuPercent.toFixed(1) + "%"; color: win.fg; font.pixelSize: 18; font.bold: true }
+       }
       ProgressBar { from: 0; to: 100; value: processMonitor.totalCpuPercent; Layout.fillWidth: true }
       Label { text: processMonitor.processes.length + " processes"; color: win.muted; font.pixelSize: 11 }
      }
