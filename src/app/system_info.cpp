@@ -57,8 +57,9 @@ QString SystemInfo::previewReadiness()const{
  environment.cageAvailable=!QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty();
  const QString appPath=QCoreApplication::applicationFilePath();
  environment.applicationExecutableVerified=!appPath.isEmpty()&&QFileInfo(appPath).isExecutable();
- const WestonNestedSessionBackend backend;
- return backend.probe(environment).summary;
+ const auto backend=createSessionBackend(QStringLiteral("weston-nested"));
+ if(!backend)return QStringLiteral("Not ready for nested preview:\n• No supported session backend was selected.");
+ return backend->probe(environment).summary;
 }
 bool SystemInfo::launchNestedPreview(){
  if(previewRunning()){setStatus(QStringLiteral("Nested preview is already running."));return false;}
@@ -103,8 +104,9 @@ QString SystemInfo::standaloneReadiness()const{
  QDir drmDirectory(QStringLiteral("/dev/dri"));
  const QFileInfoList cards=drmDirectory.entryInfoList(QStringList{QStringLiteral("card*")},QDir::System|QDir::Files|QDir::Readable);
  for(const QFileInfo &card:cards){const QByteArray path=QFile::encodeName(card.absoluteFilePath());if(::access(path.constData(),R_OK|W_OK)==0){environment.drmDeviceAccessible=true;break;}}
- const WestonDrmSessionBackend backend;
- return backend.probe(environment).summary;
+ const auto backend=createSessionBackend(QStringLiteral("weston-drm"));
+ if(!backend)return QStringLiteral("Not ready for standalone session:\n• No supported session backend was selected.");
+ return backend->probe(environment).summary;
 }
 QString SystemInfo::diagnosticReport()const{
  const QString report=QStringLiteral("Win-To-Linux diagnostic report\nDistribution: %1 (%2)\nVersion: %3\nFamily: %4\nKernel: %5\nArchitecture: %6\nHost: %7\nDesktop environment: %8\nSession type: %9\nWayland display: %10\nX11 display: %11\nRuntime directory: %12\nRuntime check: %13\nPackage manager: %14\nPackage manager available: %15\nWine available: %16\nBottles available: %17\nDetected compositors: %18")

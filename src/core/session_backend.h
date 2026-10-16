@@ -1,6 +1,7 @@
 #pragma once
 #include <QString>
 #include <QStringList>
+#include <memory>
 
 struct SessionEnvironment {
     bool linuxHost = false;
@@ -50,3 +51,7 @@ public:
     QString displayName() const override;
     SessionBackendResult probe(const SessionEnvironment &environment) const override;
 };
+
+// Creates only explicitly named backends; unknown IDs are rejected rather than guessed.
+std::unique_ptr<SessionBackend> createSessionBackend(const QString &backendId);
+QStringList supportedSessionBackendIds();

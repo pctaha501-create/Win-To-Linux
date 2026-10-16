@@ -25,6 +25,14 @@ int main(int argc, char **argv)
     ready.drmDeviceAccessible = true;
 
     bool ok = true;
+    const QStringList backendIds = supportedSessionBackendIds();
+    ok &= expect(backendIds == QStringList{QStringLiteral("weston-nested"), QStringLiteral("weston-drm")}, "registry exposes stable explicit backend IDs");
+    const auto selectedNested = createSessionBackend(QStringLiteral("weston-nested"));
+    const auto selectedDrm = createSessionBackend(QStringLiteral("weston-drm"));
+    const auto unknownBackend = createSessionBackend(QStringLiteral("guess-something"));
+    ok &= expect(selectedNested && selectedNested->id() == QStringLiteral("weston-nested"), "registry creates explicitly selected nested backend");
+    ok &= expect(selectedDrm && selectedDrm->id() == QStringLiteral("weston-drm"), "registry creates explicitly selected DRM backend");
+    ok &= expect(!unknownBackend, "registry rejects unknown backend IDs without guessing");
     const SessionBackendResult good = backend.probe(ready);
     ok &= expect(backend.id() == QStringLiteral("weston-drm"), "backend id is stable");
     ok &= expect(backend.displayName().contains(QStringLiteral("experimental")), "backend is explicitly marked experimental");

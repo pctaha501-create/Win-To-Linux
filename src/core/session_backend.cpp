@@ -84,3 +84,17 @@ QString SessionBackendResult::report() const
     return QStringLiteral("Backend: %1 (%2)\nStatus: %3\n%4")
         .arg(displayName, backendId, ready() ? QStringLiteral("ready") : QStringLiteral("blocked"), summary);
 }
+
+std::unique_ptr<SessionBackend> createSessionBackend(const QString &backendId)
+{
+    if (backendId == QStringLiteral("weston-nested"))
+        return std::make_unique<WestonNestedSessionBackend>();
+    if (backendId == QStringLiteral("weston-drm"))
+        return std::make_unique<WestonDrmSessionBackend>();
+    return {};
+}
+
+QStringList supportedSessionBackendIds()
+{
+    return {QStringLiteral("weston-nested"), QStringLiteral("weston-drm")};
+}
