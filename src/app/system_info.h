@@ -49,6 +49,7 @@ public:
  Q_INVOKABLE void refreshApplications();
  Q_INVOKABLE bool launchDesktopFile(const QString &path);
  Q_INVOKABLE bool launchWindowsFile(const QString &path);
+ Q_INVOKABLE bool launchTerminal();
 signals: void applicationsChanged(); void statusChanged(); void appearanceChanged(); void previewStateChanged();
 private:
  QString m_distribution,m_id,m_family,m_version,m_manager,m_kernel,m_arch,m_host,m_status,m_winePath,m_bottlesPath;

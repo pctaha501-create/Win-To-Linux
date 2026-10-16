@@ -35,6 +35,8 @@ int main(int argc,char **argv){
  if(!writeFile(fake,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake executable.";return 1;}
  const QString fakeWine=bin+QStringLiteral("/wine");
  if(!writeFile(fakeWine,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake Wine executable.";return 1;}
+ const QString fakeTerminal=bin+QStringLiteral("/x-terminal-emulator");
+ if(!writeFile(fakeTerminal,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake terminal emulator.";return 1;}
  const QString desktop=apps+QStringLiteral("/fixture.desktop");
  const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
  if(!writeFile(desktop,desktopContents)){qCritical()<<"Could not create fixture desktop entry.";return 1;}
@@ -76,6 +78,12 @@ int main(int argc,char **argv){
  wineOutput=readText(log);
  ok &= expect(wineOutput.contains(QStringLiteral("arg=<msiexec>\narg=</i>\narg=<%1>").arg(QFileInfo(msiPath).canonicalFilePath())),"launch MSI through wine msiexec /i with a canonical path");
  ok &= expect(!system.launchWindowsFile(invalidPath),"reject non-EXE/MSI files before invoking Wine");
+ QFile::remove(log);
+ ok &= expect(system.launchTerminal(),"launch an installed terminal emulator from PATH");
+ timer.restart();while(!QFileInfo::exists(log)&&timer.elapsed()<2500)QThread::msleep(10);
+ const QString terminalOutput=readText(log);
+ ok &= expect(terminalOutput.contains(QStringLiteral("cwd=%1\n").arg(QFileInfo(home).canonicalFilePath())),"launch terminal in the current user home directory");
+ ok &= expect(system.status().contains(QStringLiteral("Launching terminal")),"report terminal launch status");
  if(!ok)return 1;
  qunsetenv("WAYLAND_DISPLAY");qunsetenv("DISPLAY");qunsetenv("XDG_RUNTIME_DIR");
  SystemInfo headlessSystem;

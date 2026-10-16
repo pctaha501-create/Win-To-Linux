@@ -276,6 +276,15 @@ bool SystemInfo::launchDesktopFile(const QString &desktopFile){
  if(QProcess::startDetached(program,args,workingDirectory)){setStatus(QStringLiteral("Started %1.").arg(QFileInfo(program).fileName()));return true;}
  setStatus(QStringLiteral("Failed to start application."));return false;
 }
+bool SystemInfo::launchTerminal(){
+ const QStringList candidates{QStringLiteral("x-terminal-emulator"),QStringLiteral("kgx"),QStringLiteral("gnome-terminal"),QStringLiteral("konsole"),QStringLiteral("xfce4-terminal"),QStringLiteral("mate-terminal"),QStringLiteral("tilix"),QStringLiteral("terminator"),QStringLiteral("kitty"),QStringLiteral("alacritty"),QStringLiteral("foot"),QStringLiteral("wezterm"),QStringLiteral("xterm")};
+ QString executable;
+ for(const QString &candidate:candidates){executable=QStandardPaths::findExecutable(candidate);if(!executable.isEmpty())break;}
+ if(executable.isEmpty()){setStatus(QStringLiteral("No terminal emulator was found on PATH. Install a terminal for your desktop environment; Win-To-Linux will not install one automatically."));return false;}
+ if(!QProcess::startDetached(executable,{},QDir::homePath())){setStatus(QStringLiteral("Could not start terminal emulator: %1").arg(executable));return false;}
+ setStatus(QStringLiteral("Launching terminal: %1").arg(QFileInfo(executable).fileName()));return true;
+}
+
 bool SystemInfo::launchWindowsFile(const QString&selectedPath){
  if(m_winePath.isEmpty()){setStatus(QStringLiteral("Wine was not found. Win-To-Linux will not install it automatically."));return false;}
  const QFileInfo info(selectedPath);const QString suffix=info.suffix().toLower();const QString path=info.canonicalFilePath();

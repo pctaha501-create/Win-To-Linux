@@ -127,7 +127,7 @@ ApplicationWindow {
     visible: win.startSearch.length === 0
     Layout.fillWidth: true; columns: 4; columnSpacing: 8; rowSpacing: 6
     Repeater {
-     model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:2},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
+     model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:-1},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
      delegate: Button {
       required property var modelData
       Layout.fillWidth: true; implicitHeight: 82; padding: 5
@@ -137,7 +137,7 @@ ApplicationWindow {
        Label { text: modelData.glyph; color: win.fg; font.pixelSize: 24; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
        Label { text: modelData.label; color: win.fg; font.pixelSize: 11; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true; elide: Text.ElideRight }
       }
-      onClicked: { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+      onClicked: { if(modelData.label==="Terminal") { var launched=systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
      }
     }
    }
@@ -190,7 +190,7 @@ ApplicationWindow {
      onClicked: { win.page = 4; startMenu.close() }
     }
     Repeater {
-     model: [{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}]
+     model: [{label:"Terminal",comment:"Open installed terminal emulator",page:-1},{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}]
      delegate: Button {
       required property var modelData
       objectName: "startSearchSection_" + modelData.page
@@ -205,7 +205,7 @@ ApplicationWindow {
         Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
        }
       }
-      onClicked: { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+      onClicked: { if(modelData.label==="Terminal") { var launched=systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
      }
     }
    }
