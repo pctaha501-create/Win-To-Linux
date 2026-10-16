@@ -55,7 +55,13 @@ if [ -n "$weston_bin" ]; then
     weston_config=$(mktemp "$runtime_dir/win-to-linux-weston.ini.XXXXXX") || { rm -f -- "$weston_log"; fail "could not create a private Weston config."; }
     xwayland_env_file=$(mktemp "$runtime_dir/win-to-linux-xwayland-env.XXXXXX") || { rm -f -- "$weston_log" "$weston_config"; fail "could not create a private XWayland environment file."; }
     xwayland_capture=$script_dir/capture-xwayland-env.sh
-    [ -x "$xwayland_capture" ] || { rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file"; fail "the XWayland environment helper is missing; reinstall Win-To-Linux."; }
+    xwayland_wrapper=$(mktemp "$runtime_dir/win-to-linux-xwayland-capture.XXXXXX") || { rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file"; fail "could not create a private XWayland helper wrapper."; }
+    [ -f "$xwayland_capture" ] || { rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_wrapper"; fail "the XWayland environment helper is missing; reinstall Win-To-Linux."; }
+    cat > "$xwayland_wrapper" <<'EOF'
+#!/bin/sh
+exec sh "$WTL_XWAYLAND_HELPER"
+EOF
+    chmod 700 "$xwayland_wrapper"
     cat > "$weston_config" <<EOF
 [core]
 shell=desktop
@@ -68,18 +74,18 @@ close-animation=none
 startup-animation=none
 focus-animation=none
 [autolaunch]
-path=$xwayland_capture
+path=$xwayland_wrapper
 watch=false
 EOF
     chmod 600 "$weston_config"
     weston_pid=
     cleanup_weston() {
         if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
-        rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$socket_path"
+        rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path"
     }
     trap cleanup_weston EXIT HUP INT TERM
     printf 'Starting a nested Weston desktop with software rendering, a private config and a unique user socket. The host desktop and login manager will not be changed.\n'
-    WTL_XWAYLAND_ENV_FILE="$xwayland_env_file" "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
+    WTL_XWAYLAND_ENV_FILE="$xwayland_env_file" WTL_XWAYLAND_HELPER="$xwayland_capture" "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
     weston_pid=$!
     i=0
     while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do

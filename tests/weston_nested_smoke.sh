@@ -12,6 +12,11 @@ trap cleanup EXIT HUP INT TERM
 runtime="$TMP/runtime"
 mkdir -m 700 "$runtime"
 export XDG_RUNTIME_DIR="$runtime"
+cat > "$TMP/xwayland-capture-wrapper" <<'EOF'
+#!/bin/sh
+exec sh "$WTL_XWAYLAND_HELPER"
+EOF
+chmod 700 "$TMP/xwayland-capture-wrapper"
 cat > "$TMP/weston.ini" <<EOF
 [core]
 shell=desktop
@@ -24,7 +29,7 @@ close-animation=none
 startup-animation=none
 focus-animation=none
 [autolaunch]
-path=$ROOT/scripts/capture-xwayland-env.sh
+path=$TMP/xwayland-capture-wrapper
 watch=false
 EOF
 unset WAYLAND_DISPLAY || true
@@ -49,7 +54,7 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-WTL_XWAYLAND_ENV_FILE="$TMP/runtime/win-to-linux-xwayland-env.test" WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --xwayland --config="$TMP/weston.ini" >"$TMP/nested.log" 2>&1 &
+WTL_XWAYLAND_ENV_FILE="$TMP/runtime/win-to-linux-xwayland-env.test" WTL_XWAYLAND_HELPER="$ROOT/scripts/capture-xwayland-env.sh" WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --xwayland --config="$TMP/weston.ini" >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do
