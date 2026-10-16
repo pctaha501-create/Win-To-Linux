@@ -64,3 +64,10 @@ jobs:
         run: ./build/src/app/win-to-linux --system
       - name: Session diagnostic
         run: ./build/src/app/win-to-linux --session-check
+      - name: Verify diagnostic report output
+        shell: bash
+        run: |
+          ./build/src/app/win-to-linux --diagnostic-report > "$RUNNER_TEMP/diagnostic-report.txt"
+          grep -q '^Win-To-Linux diagnostic report' "$RUNNER_TEMP/diagnostic-report.txt"
+          grep -q '^Runtime check:' "$RUNNER_TEMP/diagnostic-report.txt"
+          grep -q '^Compositor executables:' "$RUNNER_TEMP/diagnostic-report.txt"

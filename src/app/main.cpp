@@ -34,8 +34,11 @@ void printSystemInfo(const SystemInfo &system){
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")){
-  QCoreApplication app(argc,argv);configureApplication();SystemInfo system;printSystemInfo(system);return 0;
+ if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")){
+  QCoreApplication app(argc,argv);configureApplication();SystemInfo system;
+  if(hasArgument(argc,argv,"--diagnostic-report"))qInfo().noquote()<<system.diagnosticReport();
+  else printSystemInfo(system);
+  return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
  SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;
