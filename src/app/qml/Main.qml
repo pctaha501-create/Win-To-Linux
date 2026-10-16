@@ -417,10 +417,10 @@ ApplicationWindow {
        }
       }
      }
-     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 170; radius: 12; color: win.panel; border.color: win.borderColor
+     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 210; radius: 12; color: win.panel; border.color: win.borderColor
       ColumnLayout { anchors.fill: parent; anchors.margins: 17; spacing: 6
        Label { text: "Keyboard shortcuts"; color: win.fg; font.bold: true }
-       Repeater { model: [{key:"Ctrl + Space",action:"Open Start and focus search"},{key:"Ctrl + Shift + N",action:"Open notifications"},{key:"Ctrl + ,",action:"Open Settings"},{key:"Ctrl + Shift + Esc",action:"Open Task Manager"},{key:"Ctrl + E",action:"Open File Explorer"},{key:"Alt + Tab",action:"Return to previous workspace"},{key:"Ctrl + Alt + Tab",action:"Open workspace switcher"},{key:"F11",action:"Toggle full screen"}]
+       Repeater { model: [{key:"Ctrl + Space",action:"Open Start and focus search"},{key:"Ctrl + Shift + N",action:"Open notifications"},{key:"Ctrl + ,",action:"Open Settings"},{key:"Ctrl + Shift + Esc",action:"Open Task Manager"},{key:"Ctrl + E",action:"Open File Explorer"},{key:"Ctrl + L",action:"Focus and select the path field in File Explorer"},{key:"Alt + Tab",action:"Return to previous workspace"},{key:"Ctrl + Alt + Tab",action:"Open workspace switcher"},{key:"F11",action:"Toggle full screen"}]
         delegate: RowLayout { required property var modelData; Layout.fillWidth: true; Label { text: modelData.key; color: win.fg; font.pixelSize: 10; font.bold: true; Layout.preferredWidth: 150 } Label { text: modelData.action; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true } }
        }
       }
