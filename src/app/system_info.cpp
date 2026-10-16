@@ -32,7 +32,7 @@ QString SystemInfo::previewReadiness()const{
   blockers.append(QStringLiteral("No active Wayland display socket is configured; this launcher does not start a physical-display compositor"));
  else if(m_runtimeDirectory!=QStringLiteral("Not set")){
   const QString socketPath=m_waylandDisplay.startsWith(QLatin1Char('/'))?m_waylandDisplay:QDir(m_runtimeDirectory).filePath(m_waylandDisplay);
-  if(!QFileInfo(socketPath).isSocket())blockers.append(QStringLiteral("The configured Wayland socket does not exist or is not a Unix socket: %1").arg(socketPath));
+  if(!QFileInfo(socketPath).exists()||!QFileInfo(socketPath).isOther())blockers.append(QStringLiteral("The configured Wayland socket does not exist or is not a Unix socket: %1").arg(socketPath));
  }
  if(QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty())
   blockers.append(QStringLiteral("Cage is not installed"));
