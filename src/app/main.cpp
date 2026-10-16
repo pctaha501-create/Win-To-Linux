@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QWindow>
 #include <QTimer>
+#include <QKeyEvent>
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
@@ -89,6 +90,21 @@ int main(int argc,char**argv){
   for(const auto &entry:navigationButtons){
    if(!clickButton(entry.first)||root->property("page").toInt()!=entry.second){qCritical()<<"Taskbar navigation failed:"<<entry.first;return 1;}
   }
+  auto *shellWindow=qobject_cast<QWindow *>(root);
+  auto sendShortcut=[&](Qt::Key key,Qt::KeyboardModifiers modifiers)->bool{
+   if(!shellWindow)return false;
+   QKeyEvent press(QEvent::KeyPress,key,modifiers);
+   QCoreApplication::sendEvent(shellWindow,&press);
+   QKeyEvent release(QEvent::KeyRelease,key,modifiers);
+   QCoreApplication::sendEvent(shellWindow,&release);
+   QCoreApplication::processEvents();return true;
+  };
+  if(!sendShortcut(Qt::Key_Space,Qt::ControlModifier)||!popupVisible(QStringLiteral("startMenuPopup"))||!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Ctrl+Space Start shortcut failed.";return 1;}
+  if(!sendShortcut(Qt::Key_N,Qt::ControlModifier|Qt::ShiftModifier)||!popupVisible(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Ctrl+Shift+N notification shortcut failed.";return 1;}
+  if(!sendShortcut(Qt::Key_Comma,Qt::ControlModifier)||root->property("page").toInt()!=4){qCritical()<<"Ctrl+, Settings shortcut failed.";return 1;}
+  if(!sendShortcut(Qt::Key_E,Qt::ControlModifier)||root->property("page").toInt()!=7){qCritical()<<"Ctrl+E File Explorer shortcut failed.";return 1;}
+  if(!sendShortcut(Qt::Key_Escape,Qt::ControlModifier|Qt::ShiftModifier)||root->property("page").toInt()!=5){qCritical()<<"Ctrl+Shift+Esc Task Manager shortcut failed.";return 1;}
+  if(!sendShortcut(Qt::Key_Tab,Qt::ControlModifier|Qt::AltModifier)||!popupVisible(QStringLiteral("workspaceSwitcher"))||!closePopup(QStringLiteral("workspaceSwitcher"))){qCritical()<<"Ctrl+Alt+Tab workspace switcher shortcut failed.";return 1;}
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
    QQmlComponent component(&engine,QUrl(url));
