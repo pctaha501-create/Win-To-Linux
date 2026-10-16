@@ -13,7 +13,10 @@
 - [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links
 - [x] Persistent appearance setting
 - [x] Parent-first procfs process tree with PID/PPID, search/refresh controls, and confirmation-gated same-user SIGTERM
-- [x] Task Manager CPU/RAM summaries, process sorting, and transient toast feedback for refresh/stop actions (full notification center remains pending)
+- [x] Task Manager CPU/RAM summaries, process sorting, and transient toast feedback for refresh/stop actions
+- [x] Persistent notification center and keyboard shortcuts for common shell actions
+- [x] Settings diagnostics export to clipboard, including runtime safety and detected compositor executable paths
+- [x] Keyboard shortcut reference in Settings
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
 - [x] Per-user install/uninstall scripts and desktop entry

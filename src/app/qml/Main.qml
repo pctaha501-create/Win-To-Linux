@@ -372,7 +372,7 @@ ApplicationWindow {
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 142; radius: 12; color: win.panel; border.color: win.borderColor
       ColumnLayout { anchors.fill: parent; anchors.margins: 17; spacing: 7
        Label { text: "System diagnostics"; color: win.fg; font.bold: true }
-       Label { text: "Copy detected distribution, session, runtime and compatibility details for troubleshooting."; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+       Label { text: "Copy detected distribution, session, runtime, available compositors and compatibility details for troubleshooting."; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
        RowLayout { Layout.fillWidth: true
         Button { text: "Copy diagnostic report"; onClicked: { systemInfo.copyDiagnosticReport(); win.showToast("Diagnostic report copied to clipboard") } }
         Button { text: "Refresh applications"; onClicked: { systemInfo.refreshApplications(); win.showToast("Applications refreshed") } }
