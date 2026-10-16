@@ -15,7 +15,7 @@ jobs:
         run: sh tests/session_service_test.sh
       - name: Validate systemd unit syntax
         run: |
-          systemd-analyze verify --man=no packaging/systemd/user/Win-To-Linux.service || {
-            echo 'systemd-analyze could not verify a user unit with a not-yet-installed %h executable; static packaging checks already ran.'
-            exit 0
-          }
+          tmpdir=$(mktemp -d)
+          trap 'rm -rf "$tmpdir"' EXIT
+          sed 's#^ExecStart=.*#ExecStart=/usr/bin/true#' packaging/systemd/user/Win-To-Linux.service > "$tmpdir/Win-To-Linux.service"
+          systemd-analyze verify --man=no "$tmpdir/Win-To-Linux.service"
