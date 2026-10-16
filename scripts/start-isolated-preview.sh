@@ -56,6 +56,7 @@ if [ -n "$weston_bin" ]; then
     cat > "$weston_config" <<'EOF'
 [core]
 shell=desktop
+xwayland=true
 [shell]
 panel-position=none
 locking=false
@@ -72,7 +73,7 @@ EOF
     }
     trap cleanup_weston EXIT HUP INT TERM
     printf 'Starting a nested Weston desktop with software rendering, a private config and a unique user socket. The host desktop and login manager will not be changed.\n'
-    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --config="$weston_config" >"$weston_log" 2>&1 &
+    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
     weston_pid=$!
     i=0
     while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do
