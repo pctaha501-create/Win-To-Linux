@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QVariantList>
+#include <QProcess>
 class SystemInfo final : public QObject {
  Q_OBJECT
  Q_PROPERTY(QString distribution READ distribution CONSTANT)
@@ -23,6 +24,7 @@ class SystemInfo final : public QObject {
  Q_PROPERTY(QVariantList availableCompositors READ availableCompositors CONSTANT)
  Q_PROPERTY(bool qtWaylandPluginAvailable READ qtWaylandPluginAvailable CONSTANT)
  Q_PROPERTY(QString status READ status NOTIFY statusChanged)
+ Q_PROPERTY(bool previewRunning READ previewRunning NOTIFY previewStateChanged)
  Q_PROPERTY(bool lightAppearance READ lightAppearance WRITE setLightAppearance NOTIFY appearanceChanged)
  Q_PROPERTY(bool wineAvailable READ wineAvailable CONSTANT)
  Q_PROPERTY(QString winePath READ winePath CONSTANT)
@@ -32,12 +34,13 @@ public:
  explicit SystemInfo(QObject *parent=nullptr);
  QString distribution() const; QString distroId() const; QString family() const; QString version() const;
  QString packageManager() const; bool managerAvailable() const; QString kernel() const;
- QString architecture() const; QString hostName() const; QVariantList applications() const; QVariantList nativeTools() const; QString status() const;
+ QString architecture() const; QString hostName() const; QVariantList applications() const; QVariantList nativeTools() const; QString status() const; bool previewRunning() const;
  QString sessionType() const; QString desktopEnvironment() const; QString waylandDisplay() const; QString xDisplay() const;
  QString runtimeDirectory() const; QString runtimeDirectoryStatus() const; QVariantList availableCompositors() const; bool qtWaylandPluginAvailable() const;
  bool lightAppearance() const; void setLightAppearance(bool enabled);
  bool wineAvailable() const; QString winePath() const; bool bottlesAvailable() const; QString bottlesPath() const;
  Q_INVOKABLE QString previewReadiness() const;
+ Q_INVOKABLE bool launchNestedPreview();
  Q_INVOKABLE QString standaloneReadiness() const;
  Q_INVOKABLE QString diagnosticReport() const;
  Q_INVOKABLE void copyDiagnosticReport() const;
@@ -46,11 +49,12 @@ public:
  Q_INVOKABLE void refreshApplications();
  Q_INVOKABLE bool launchDesktopFile(const QString &path);
  Q_INVOKABLE bool launchWindowsFile(const QString &path);
-signals: void applicationsChanged(); void statusChanged(); void appearanceChanged();
+signals: void applicationsChanged(); void statusChanged(); void appearanceChanged(); void previewStateChanged();
 private:
  QString m_distribution,m_id,m_family,m_version,m_manager,m_kernel,m_arch,m_host,m_status,m_winePath,m_bottlesPath;
  QString m_sessionType,m_desktopEnvironment,m_waylandDisplay,m_xDisplay,m_runtimeDirectory,m_runtimeDirectoryStatus;
  bool m_managerAvailable=false; bool m_lightAppearance=false; bool m_qtWaylandPluginAvailable=false; QVariantList m_apps,m_nativeTools,m_availableCompositors;
+ QProcess m_previewProcess; QString m_previewOutput;
  void setStatus(const QString &s);
  void discoverNativeTools();
  void discoverSession();

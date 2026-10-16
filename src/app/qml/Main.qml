@@ -413,6 +413,9 @@ ApplicationWindow {
        RowLayout { Layout.fillWidth: true
         Button { text: "Copy diagnostic report"; onClicked: { systemInfo.copyDiagnosticReport(); win.showToast("Diagnostic report copied to clipboard") } }
         Button { text: "Refresh applications"; onClicked: { systemInfo.refreshApplications(); win.showToast("Applications refreshed") } }
+       }
+       RowLayout { Layout.fillWidth: true
+        Button { objectName: "launchNestedPreviewButton"; text: systemInfo.previewRunning ? "Preview running" : "Launch isolated preview"; enabled: !systemInfo.previewRunning; onClicked: { if(systemInfo.launchNestedPreview()) win.showToast("Launching isolated preview..."); else win.showToast(systemInfo.status) } }
         Button { text: "Standalone readiness"; onClicked: standaloneReadinessDialog.open() }
        }
       }

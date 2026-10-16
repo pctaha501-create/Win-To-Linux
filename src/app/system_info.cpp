@@ -32,9 +32,14 @@ bool detectQtWaylandPlugin(){
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
  QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));m_qtWaylandPluginAvailable=detectQtWaylandPlugin();discoverNativeTools();discoverSession();refreshApplications();
+ m_previewProcess.setProcessChannelMode(QProcess::MergedChannels);
+ connect(&m_previewProcess,&QProcess::started,this,[this](){emit previewStateChanged();setStatus(QStringLiteral("Nested preview launcher started. Close the preview window to return to this desktop."));});
+ connect(&m_previewProcess,&QProcess::readyReadStandardOutput,this,[this](){m_previewOutput+=QString::fromLocal8Bit(m_previewProcess.readAllStandardOutput());if(m_previewOutput.size()>8192)m_previewOutput=m_previewOutput.right(8192);});
+ connect(&m_previewProcess,qOverload<int,QProcess::ExitStatus>(&QProcess::finished),this,[this](int code,QProcess::ExitStatus exitStatus){emit previewStateChanged();if(exitStatus==QProcess::NormalExit&&code==0)setStatus(QStringLiteral("Nested preview closed."));else{QString detail=m_previewOutput.trimmed();if(detail.size()>240)detail=detail.right(240);setStatus(QStringLiteral("Nested preview exited (code %1)%2").arg(code).arg(detail.isEmpty()?QString():QStringLiteral(": ")+detail));}});
+ connect(&m_previewProcess,&QProcess::errorOccurred,this,[this](QProcess::ProcessError error){if(error==QProcess::FailedToStart)setStatus(QStringLiteral("Could not start nested preview: %1").arg(m_previewProcess.errorString()));emit previewStateChanged();});
 }
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
-QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;}
+QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;} bool SystemInfo::previewRunning()const{return m_previewProcess.state()!=QProcess::NotRunning;}
 QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;} bool SystemInfo::qtWaylandPluginAvailable()const{return m_qtWaylandPluginAvailable;}
 QString SystemInfo::previewReadiness()const{
  QStringList blockers;
@@ -58,6 +63,27 @@ QString SystemInfo::previewReadiness()const{
  if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
  if(blockers.isEmpty())return westonAvailable?QStringLiteral("Ready for nested preview using Weston (multi-window desktop). This is not an independent login session."):QStringLiteral("Ready for nested preview using Cage. This is not an independent desktop session.");
  return QStringLiteral("Not ready for nested preview:\n• %1\n\nThis checker is read-only; it will not install packages or alter your login manager.").arg(blockers.join(QStringLiteral("\n• ")));
+}
+bool SystemInfo::launchNestedPreview(){
+ if(previewRunning()){setStatus(QStringLiteral("Nested preview is already running."));return false;}
+ const QString readiness=previewReadiness();
+ if(readiness.startsWith(QStringLiteral("Not ready"))){setStatus(readiness);return false;}
+ const QString appDir=QCoreApplication::applicationDirPath();
+ const QStringList candidates{
+  QDir(appDir).filePath(QStringLiteral("win-to-linux-isolated-preview")),
+  QDir(appDir).filePath(QStringLiteral("../lib/win-to-linux/start-isolated-preview.sh")),
+  QDir(appDir).filePath(QStringLiteral("../../../scripts/start-isolated-preview.sh")),
+  QStandardPaths::findExecutable(QStringLiteral("win-to-linux-isolated-preview"))
+ };
+ QString launcher;
+ for(const QString &candidate:candidates){if(candidate.isEmpty())continue;const QFileInfo info(candidate);if(info.isFile()&&info.isExecutable()){launcher=info.canonicalFilePath();break;}}
+ if(launcher.isEmpty()){setStatus(QStringLiteral("The isolated-preview launcher was not found. Reinstall Win-To-Linux or build it from the repository."));return false;}
+ const QString appPath=QCoreApplication::applicationFilePath();
+ if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable()){setStatus(QStringLiteral("The Win-To-Linux executable path could not be verified."));return false;}
+ QProcessEnvironment environment=QProcessEnvironment::systemEnvironment();environment.insert(QStringLiteral("WTL_BIN"),QFileInfo(appPath).canonicalFilePath());
+ m_previewOutput.clear();m_previewProcess.setProcessEnvironment(environment);m_previewProcess.setWorkingDirectory(QDir::homePath());m_previewProcess.setProgram(launcher);m_previewProcess.setArguments({});m_previewProcess.start();
+ if(!m_previewProcess.waitForStarted(2000)){const QString reason=m_previewProcess.errorString();setStatus(QStringLiteral("Could not start nested preview: %1").arg(reason));emit previewStateChanged();return false;}
+ emit previewStateChanged();setStatus(QStringLiteral("Nested preview is starting. Your current desktop and login manager will not be changed."));return true;
 }
 QString SystemInfo::standaloneReadiness()const{
  QStringList blockers;
