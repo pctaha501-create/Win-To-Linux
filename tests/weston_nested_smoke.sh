@@ -23,7 +23,7 @@ cat > "$TMP/weston.ini" <<EOF
 shell=desktop
 xwayland=true
 [shell]
-panel-position=none
+panel-position=top
 locking=false
 animation=none
 close-animation=none

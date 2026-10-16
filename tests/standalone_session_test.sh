@@ -48,7 +48,8 @@ env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty 
 grep -q '^--backend=drm$' "$WTL_WESTON_LOG"
 grep -q '^--tty=9$' "$WTL_WESTON_LOG"
 grep -q '^--xwayland$' "$WTL_WESTON_LOG"
-grep -q '^xwayland=true$' "$WTL_WESTON_CONFIG_LOG"
+grep -q '^xwayland=true$'
+grep -q '^panel-position=top$' "$WTL_WESTON_CONFIG_LOG"
 grep -q '^DISPLAY=:88$' "$WTL_APP_LOG"
 grep -q "^XAUTHORITY=$runtime/Xauthority$" "$WTL_APP_LOG"
 grep -q '^WAYLAND_DISPLAY=win-to-linux-session-' "$WTL_APP_LOG"
