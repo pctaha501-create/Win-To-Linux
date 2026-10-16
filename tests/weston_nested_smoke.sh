@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -eu
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 TMP=$(mktemp -d)
 parent_pid=
 nested_pid=
