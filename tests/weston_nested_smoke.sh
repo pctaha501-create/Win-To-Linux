@@ -12,6 +12,14 @@ trap cleanup EXIT HUP INT TERM
 runtime="$TMP/runtime"
 mkdir -m 700 "$runtime"
 export XDG_RUNTIME_DIR="$runtime"
+cat > "$TMP/weston.ini" <<'EOF'
+[core]
+shell=desktop
+[shell]
+panel-position=none
+locking=false
+animation=none
+EOF
 unset WAYLAND_DISPLAY || true
 weston_bin=$(command -v weston 2>/dev/null || true)
 wayland_info=$(command -v wayland-info 2>/dev/null || true)
@@ -30,7 +38,7 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config >"$TMP/nested.log" 2>&1 &
+WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --config="$TMP/weston.ini" >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do

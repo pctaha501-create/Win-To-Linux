@@ -51,6 +51,22 @@ jobs:
             cat "$RUNNER_TEMP/gui-smoke.log"
             exit 1
           fi
+      - name: Smoke-test maximized shell mode
+        shell: bash
+        run: |
+          set +e
+          QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software timeout 5s ./build/src/app/win-to-linux --maximized >"$RUNNER_TEMP/gui-maximized-smoke.log" 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 124 ]; then
+            cat "$RUNNER_TEMP/gui-maximized-smoke.log"
+            echo "Maximized GUI smoke test did not stay running (exit $rc)."
+            exit 1
+          fi
+          if grep -E "QQmlApplicationEngine failed to load component|Type .* unavailable|ReferenceError:" "$RUNNER_TEMP/gui-maximized-smoke.log"; then
+            cat "$RUNNER_TEMP/gui-maximized-smoke.log"
+            exit 1
+          fi
       - name: Verify install staging
         run: |
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"

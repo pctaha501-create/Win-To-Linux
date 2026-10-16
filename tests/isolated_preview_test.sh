@@ -40,6 +40,7 @@ rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG"
 cat > "$fakebin/weston" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$@" > "$WTL_WESTON_LOG"
+for arg in "$@"; do case "$arg" in --config=*) cat "${arg#--config=}" > "$WTL_WESTON_CONFIG_LOG" ;; esac; done
 socket_name=
 for arg in "$@"; do case "$arg" in --socket=*) socket_name=${arg#--socket=} ;; esac; done
 [ -n "$socket_name" ] || exit 3
@@ -49,17 +50,19 @@ trap 'kill "$socket_pid" >/dev/null 2>&1 || true; wait "$socket_pid" >/dev/null 
 wait "$socket_pid"
 EOF
 chmod +x "$fakebin/weston"
-export WTL_WESTON_LOG="$TMP/weston.log"
+export WTL_WESTON_LOG="$TMP/weston.log" WTL_WESTON_CONFIG_LOG="$TMP/weston-config.log"
 sh "$ROOT/scripts/start-isolated-preview.sh"
 grep -q '^--backend=wayland$' "$WTL_WESTON_LOG"
 grep -q '^--display=wayland-test$' "$WTL_WESTON_LOG"
 grep -q "^--socket=win-to-linux-$(id -u)-" "$WTL_WESTON_LOG"
 grep -q '^--renderer=pixman$' "$WTL_WESTON_LOG"
-grep -q '^--no-config$' "$WTL_WESTON_LOG"
-grep -q '^--fullscreen$' "$WTL_APP_LOG"
+grep -q '^--renderer=pixman$' "$WTL_WESTON_LOG"
+grep -q '^panel-position=none$' "$WTL_WESTON_CONFIG_LOG"
+grep -q '^shell=desktop$' "$WTL_WESTON_CONFIG_LOG"
+grep -q '^--maximized$' "$WTL_APP_LOG"
 grep -q "^WAYLAND_DISPLAY=win-to-linux-$(id -u)-" "$WTL_APP_LOG"
 test ! -e "$WTL_CAGE_LOG"
-rm -f "$WTL_WESTON_LOG" "$WTL_APP_LOG"
+rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
 if WTL_FAIL_PREFLIGHT=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/refusal.log" 2>&1; then
     echo "Launcher accepted a failed readiness preflight." >&2
     exit 1
@@ -67,4 +70,5 @@ fi
 grep -q 'readiness preflight refused to launch' "$TMP/refusal.log"
 test ! -e "$WTL_CAGE_LOG"
 test ! -e "$WTL_WESTON_LOG"
+test ! -e "$WTL_WESTON_CONFIG_LOG"
 printf '%s\n' 'Isolated preview launch/preflight integration checks passed.'

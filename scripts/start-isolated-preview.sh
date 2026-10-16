@@ -51,15 +51,28 @@ if [ -n "$weston_bin" ]; then
     socket_name=win-to-linux-$(id -u)-$$
     socket_path=$runtime_dir/$socket_name
     [ ! -e "$socket_path" ] || fail "the nested Weston socket path already exists: $socket_path"
-    weston_log=$(mktemp "$runtime_dir/win-to-linux-weston.XXXXXX") || fail "could not create a private Weston log file."
+    weston_log=$(mktemp "$runtime_dir/win-to-linux-weston.log.XXXXXX") || fail "could not create a private Weston log file."
+    weston_config=$(mktemp "$runtime_dir/win-to-linux-weston.ini.XXXXXX") || { rm -f -- "$weston_log"; fail "could not create a private Weston config."; }
+    cat > "$weston_config" <<'EOF'
+[core]
+shell=desktop
+[shell]
+panel-position=none
+locking=false
+animation=none
+close-animation=none
+startup-animation=none
+focus-animation=none
+EOF
+    chmod 600 "$weston_config"
     weston_pid=
     cleanup_weston() {
         if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
-        rm -f -- "$weston_log" "$socket_path"
+        rm -f -- "$weston_log" "$weston_config" "$socket_path"
     }
     trap cleanup_weston EXIT HUP INT TERM
-    printf 'Starting a nested Weston desktop with software rendering and a unique user socket. The host desktop and login manager will not be changed.\n'
-    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --no-config >"$weston_log" 2>&1 &
+    printf 'Starting a nested Weston desktop with software rendering, a private config and a unique user socket. The host desktop and login manager will not be changed.\n'
+    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --config="$weston_config" >"$weston_log" 2>&1 &
     weston_pid=$!
     i=0
     while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do
@@ -72,7 +85,7 @@ if [ -n "$weston_bin" ]; then
         fail "nested Weston did not create its Wayland socket."
     fi
     set +e
-    WAYLAND_DISPLAY="$socket_name" "$app_bin" --fullscreen
+    WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
     app_status=$?
     set -e
     cleanup_weston

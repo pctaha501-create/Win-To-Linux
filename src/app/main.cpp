@@ -81,6 +81,9 @@ int main(int argc,char**argv){
  if(hasArgument(argc,argv,"--fullscreen")){
   if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showFullScreen();
   else qWarning()<<"Could not switch the shell window to full-screen mode.";
+ }else if(hasArgument(argc,argv,"--maximized")){
+  if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showMaximized();
+  else qWarning()<<"Could not maximize the shell window.";
  }
  return app.exec();
 }
