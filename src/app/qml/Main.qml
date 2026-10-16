@@ -11,6 +11,8 @@ ApplicationWindow {
  property var selectedProcess: ({})
  property string pendingWindowsFile: ""
  property string startSearch: ""
+ property string toastMessage: ""
+ function showToast(message) { toastMessage = message; toastTimer.restart() }
  property string clockText: Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm")
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
@@ -28,10 +30,15 @@ ApplicationWindow {
  }
  Timer { interval: 30000; running: true; repeat: true; onTriggered: win.clockText = Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm") }
  Timer { interval: 2000; running: win.page === 5; repeat: true; onTriggered: processMonitor.refreshProcesses() }
+ Timer { id: toastTimer; interval: 3200; repeat: false; onTriggered: win.toastMessage = "" }
  Dialog {
   id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   Label { text: "Send SIGTERM to " + (win.selectedProcess.name || "process") + " (PID " + (win.selectedProcess.pid || "—") + ")? Unsaved work in that process may be lost."; wrapMode: Text.WordWrap; width: 330 }
-  onAccepted: processMonitor.terminateProcess(win.selectedProcess.pid, win.selectedProcess.startTicks)
+  onAccepted: {
+   if (processMonitor.terminateProcess(win.selectedProcess.pid, win.selectedProcess.startTicks))
+    win.showToast("Stop signal sent to " + (win.selectedProcess.name || "process"))
+   else win.showToast("Could not stop this process")
+  }
  }
  Dialog {
   id: windowsDialog; modal: true; title: "Launch Windows program?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
@@ -175,6 +182,18 @@ ApplicationWindow {
  Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
  Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
  Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
+ Rectangle {
+  z: 1000
+  visible: win.toastMessage.length > 0
+  width: 340
+  height: Math.max(52, toastLabel.implicitHeight + 24)
+  x: win.width - width - 24
+  y: win.height - height - 24
+  radius: 12
+  color: win.light ? "#ffffff" : "#252d3a"
+  border.color: win.light ? "#cbd5e4" : "#46556b"
+  Label { id: toastLabel; anchors.fill: parent; anchors.margins: 14; text: win.toastMessage; color: win.fg; wrapMode: Text.WordWrap; verticalAlignment: Text.AlignVCenter }
+ }
  RowLayout {
   anchors.fill: parent; spacing: 0
   Rectangle {
@@ -335,7 +354,7 @@ ApplicationWindow {
       Layout.fillWidth: true; spacing: 8
       TextField { id: processSearch; Layout.fillWidth: true; placeholderText: "Search process name, PID, or PPID"; selectByMouse: true }
       ComboBox { id: processSort; model: ["Name", "CPU", "RAM"]; implicitWidth: 105 }
-      Button { text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
+      Button { text: "Refresh"; onClicked: { processMonitor.refreshProcesses(); win.showToast("Process list refreshed") } }
      }
      ListView {
       Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
