@@ -16,6 +16,7 @@
 - [x] Task Manager CPU/RAM summaries, process sorting, and transient toast feedback for refresh/stop actions
 - [x] Persistent notification center and keyboard shortcuts for common shell actions
 - [x] Settings diagnostics export to clipboard, including runtime safety and detected compositor executable paths
+- [x] Read-only `--preview-check` CLI reports all nested-preview blockers and exits 2 on an unsafe/headless environment; CI asserts the refusal path
 - [x] Keyboard shortcut reference in Settings
 - [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine

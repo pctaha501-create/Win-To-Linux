@@ -14,6 +14,14 @@ sh scripts/build.sh
 
 Run `sh scripts/install-user.sh` without `sudo`. The script builds/tests, installs to `~/.local`, and installs a user service at `~/.config/systemd/user/Win-To-Linux.service` (or `$XDG_CONFIG_HOME/systemd/user` if configured).
 
+Before starting the nested preview, run the read-only readiness check:
+
+```sh
+~/.local/bin/win-to-linux --preview-check
+```
+
+It lists every missing prerequisite without starting a compositor. Exit code `0` means the nested preview prerequisites are present; exit code `2` means it is not safe/ready to launch. It never installs packages or changes the login manager.
+
 Start/restart from a terminal inside an existing Wayland desktop session:
 
 ```sh
