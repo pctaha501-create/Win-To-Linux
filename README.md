@@ -16,6 +16,8 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
 - Responsive Start, notification, and Quick Settings popups; Start menu contents scroll at short window heights, with minimum-size behavior asserted by the QML smoke test.
+- Settings can launch the isolated nested Weston/Cage preview from the GUI after read-only readiness checks; the child process is tracked and the host login manager is untouched.
+- File Manager has Home, Ctrl+L path selection, and F5 refresh; the headless smoke test exercises these actions against a temporary directory.
 - Version and diagnostics CLI (`--version`, `--system`, `--session-check`, `--diagnostic-report`, `--preview-check`, and `--standalone-check`).
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, explicit install/remove confirmation, and a clear preflight message when pkexec is missing.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
