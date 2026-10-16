@@ -67,7 +67,7 @@ jobs:
       - name: Verify diagnostic report output
         shell: bash
         run: |
-          ./build/src/app/win-to-linux --diagnostic-report > "$RUNNER_TEMP/diagnostic-report.txt"
+          ./build/src/app/win-to-linux --diagnostic-report > "$RUNNER_TEMP/diagnostic-report.txt" 2>&1
           grep -q '^Win-To-Linux diagnostic report' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Runtime check:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Compositor executables:' "$RUNNER_TEMP/diagnostic-report.txt"
