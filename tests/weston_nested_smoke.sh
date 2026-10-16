@@ -12,7 +12,7 @@ trap cleanup EXIT HUP INT TERM
 runtime="$TMP/runtime"
 mkdir -m 700 "$runtime"
 export XDG_RUNTIME_DIR="$runtime"
-cat > "$TMP/weston.ini" <<'EOF'
+cat > "$TMP/weston.ini" <<EOF
 [core]
 shell=desktop
 xwayland=true

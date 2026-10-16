@@ -7,6 +7,7 @@ fail() {
 }
 
 [ "$(uname -s)" = "Linux" ] || fail "this launcher is Linux-only."
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
 runtime_dir=${XDG_RUNTIME_DIR:-}
 wayland_display=${WAYLAND_DISPLAY:-}
@@ -31,7 +32,6 @@ if [ -z "$app_bin" ]; then
     app_bin=$(command -v win-to-linux 2>/dev/null || true)
 fi
 if [ -z "$app_bin" ]; then
-    script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
     sibling=$script_dir/win-to-linux
     [ -x "$sibling" ] && app_bin=$sibling
     if [ -z "$app_bin" ]; then
