@@ -38,7 +38,8 @@
 - [x] Fake-process regression tests cover Weston failure before socket creation and compositor crash after startup, including private-file cleanup
 - [ ] Production compositor/login session, seat/input lifecycle, crash recovery, and supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
-- [ ] Wine/Bottles compatibility notes and app-specific testing (XWayland client integration is being added; a real Wine GUI app is still unverified)
+- [x] Wine/Bottles compatibility notes, distribution package guidance, and an app-specific validation template (`docs/wine-compatibility.md`)
+- [ ] Real Wine GUI application test inside the nested/standalone XWayland session; a real Wine GUI app is still unverified
 - [ ] End-to-end desktop launch integration tests across supported desktop environments
 
 ## Release gate

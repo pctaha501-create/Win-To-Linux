@@ -17,6 +17,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, and explicit install/remove confirmation.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
+- Wine/XWayland compatibility scope, distribution package guidance, and a per-application validation checklist ([guide](docs/wine-compatibility.md)); real Wine GUI compatibility is not yet certified.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
 - Full-app build/test matrix for Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`).
 
