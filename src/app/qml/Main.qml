@@ -630,10 +630,7 @@ ApplicationWindow {
       }
      }
     }
-    ColumnLayout {
-     spacing: 12
-     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 130; radius: 12; color: win.panel; border.color: win.borderColor
-      ScrollView {
+    ScrollView {
      id: windowsAppsScrollView; Layout.fillWidth: true; Layout.fillHeight: true; clip: true
      contentWidth: availableWidth
      ColumnLayout {
