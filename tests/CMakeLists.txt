@@ -33,3 +33,9 @@ add_executable(wtl-desktop-entry-test desktop_entry_parser_test.cpp ../src/app/d
 target_include_directories(wtl-desktop-entry-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
 target_link_libraries(wtl-desktop-entry-test PRIVATE Qt6::Core)
 add_test(NAME wtl-desktop-entry-test COMMAND wtl-desktop-entry-test)
+
+add_executable(wtl-system-info-launch-test system_info_launch_test.cpp ../src/app/system_info.cpp ../src/app/system_info.h ../src/app/desktop_entry_parser.cpp ../src/app/desktop_entry_parser.h)
+target_include_directories(wtl-system-info-launch-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app ${CMAKE_CURRENT_SOURCE_DIR}/../src/core)
+target_link_libraries(wtl-system-info-launch-test PRIVATE wtl-core Qt6::Core Qt6::Gui)
+add_test(NAME wtl-system-info-launch-test COMMAND wtl-system-info-launch-test)
+set_tests_properties(wtl-system-info-launch-test PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
