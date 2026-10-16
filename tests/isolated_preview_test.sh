@@ -78,7 +78,7 @@ grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"
 grep -q '^DISPLAY=$' "$WTL_APP_LOG"
 grep -q '^XAUTHORITY=$' "$WTL_APP_LOG"
 grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
-test ! -e "$WTL_WESTON_CONFIG_LOG"
+rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG" "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG"
 if WTL_FAIL_PREFLIGHT=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/refusal.log" 2>&1; then
     echo "Launcher accepted a failed readiness preflight." >&2
     exit 1
