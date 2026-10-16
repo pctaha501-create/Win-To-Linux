@@ -23,6 +23,12 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - CI launches the actual Qt shell in a disposable nested Weston Wayland session (software rendering) and uses a bounded gdb-backed startup smoke to detect crashes; taskbar icon controls include accessible names, and the headless functional test checks taskbar actions plus common keyboard shortcuts.
 - Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all six jobs passed on [the verified run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38887168320).
 
+## Command-line diagnostics
+
+- `win-to-linux --version` prints the build version without opening the graphical shell.
+- `win-to-linux --system` and `win-to-linux --session-check` print host/session information.
+- `win-to-linux --diagnostic-report` prints a support report; `--preview-check` and `--standalone-check` perform read-only readiness checks and return exit code 2 when blocked.
+
 ## Build and test on Ubuntu 24.04
 Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-wayland, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
 
