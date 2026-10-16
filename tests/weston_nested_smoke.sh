@@ -134,6 +134,43 @@ if [ -n "${WTL_APP_BIN:-}" ]; then
         exit 1
     fi
 fi
+if [ -n "${WTL_WINE_BIN:-}" ]; then
+    [ -x "$WTL_WINE_BIN" ] || { echo "WTL_WINE_BIN is not executable." >&2; exit 1; }
+    wineboot_bin=${WTL_WINEBOOT_BIN:-$(command -v wineboot 2>/dev/null || true)}
+    [ -n "$wineboot_bin" ] && [ -x "$wineboot_bin" ] || { echo "wineboot is required." >&2; exit 1; }
+    wine_prefix="$TMP/wine-prefix"
+    mkdir -m 700 "$wine_prefix"
+    if [ -n "$xauthority" ] && [ -f "$xauthority" ]; then
+        set +e
+        timeout 45s env DISPLAY="$xdisplay" XAUTHORITY="$xauthority" WINEPREFIX="$wine_prefix" WINEDEBUG=-all "$wineboot_bin" -u >"$TMP/wineboot.log" 2>&1
+        wineboot_status=$?
+        set -e
+    else
+        set +e
+        env -u XAUTHORITY DISPLAY="$xdisplay" WINEPREFIX="$wine_prefix" WINEDEBUG=-all timeout 45s "$wineboot_bin" -u >"$TMP/wineboot.log" 2>&1
+        wineboot_status=$?
+        set -e
+    fi
+    if [ "$wineboot_status" -ne 0 ]; then cat "$TMP/wineboot.log" "$TMP/nested.log" >&2; echo "Wine prefix initialization failed (exit $wineboot_status)." >&2; exit 1; fi
+    if [ -n "$xauthority" ] && [ -f "$xauthority" ]; then
+        set +e
+        timeout 15s env DISPLAY="$xdisplay" XAUTHORITY="$xauthority" WINEPREFIX="$wine_prefix" WINEDEBUG=-all "$WTL_WINE_BIN" notepad >"$TMP/wine-gui.log" 2>&1
+        wine_gui_status=$?
+        set -e
+    else
+        set +e
+        env -u XAUTHORITY DISPLAY="$xdisplay" WINEPREFIX="$wine_prefix" WINEDEBUG=-all timeout 15s "$WTL_WINE_BIN" notepad >"$TMP/wine-gui.log" 2>&1
+        wine_gui_status=$?
+        set -e
+    fi
+    if [ "$wine_gui_status" -ne 124 ]; then
+        cat "$TMP/wineboot.log" "$TMP/wine-gui.log" "$TMP/nested.log" >&2
+        echo "Wine notepad did not stay open as a nested XWayland GUI client (exit $wine_gui_status)." >&2
+        exit 1
+    fi
+    if grep -E 'failed to open display|X connection to .* broken|wine: Unhandled' "$TMP/wine-gui.log"; then cat "$TMP/wine-gui.log" >&2; exit 1; fi
+    printf '%s\n' 'Wine notepad stayed open in the disposable nested XWayland session.'
+fi
 kill "$nested_pid" >/dev/null 2>&1 || true
 wait "$nested_pid" >/dev/null 2>&1 || true
 nested_pid=
