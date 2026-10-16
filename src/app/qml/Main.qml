@@ -65,7 +65,7 @@ ApplicationWindow {
  }
  Popup {
   id: quickSettings; objectName: "quickSettingsPopup"
-  width: 340; height: 350; modal: false; focus: true
+  width: Math.min(340, win.width - 16); height: Math.min(350, win.height - 70); modal: false; focus: true
   x: Math.max(8, win.width-width-12)
   y: Math.max(8, win.height-height-82)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
@@ -102,13 +102,17 @@ ApplicationWindow {
  }
  Popup {
   id: startMenu; objectName: "startMenuPopup"
-  width: 560; height: 590; modal: true; focus: true
+  width: Math.min(560, win.width - 16); height: Math.min(590, win.height - 70); modal: true; focus: true
   x: Math.max(8, (win.width-width)/2)
   y: Math.max(8, win.height-height-55)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
   background: Rectangle { radius: 18; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
-  contentItem: ColumnLayout {
-   anchors.fill: parent; anchors.margins: 24; spacing: 13
+  contentItem: Flickable {
+   id: startMenuScroll; anchors.fill: parent; clip: true
+   contentWidth: width; contentHeight: startMenuColumn.implicitHeight + 48
+   boundsBehavior: Flickable.StopAtBounds
+   ColumnLayout {
+    id: startMenuColumn; x: 24; y: 24; width: Math.max(0, startMenuScroll.width - 48); spacing: 13
    TextField {
     id: startSearchField
     placeholderText: "Search for apps, settings, and documents"
@@ -189,6 +193,7 @@ ApplicationWindow {
      Label { text: systemInfo.distribution; color: win.muted; font.pixelSize: 10 }
     }
    }
+   }
   }
  }
  Shortcut { sequence: "Ctrl+Space"; onActivated: { startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } }
@@ -223,7 +228,7 @@ ApplicationWindow {
  }
  Popup {
   id: notificationCenter; objectName: "notificationCenterPopup"
-  width: 360; height: 390; modal: false; focus: true
+  width: Math.min(360, win.width - 16); height: Math.min(390, win.height - 70); modal: false; focus: true
   x: Math.max(8, win.width - width - 12)
   y: Math.max(8, win.height - height - 82)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
