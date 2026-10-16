@@ -66,6 +66,29 @@ int main(int argc,char**argv){
   for(const QString &name:requiredControls){
    if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }
+  auto clickButton=[&](const QString &buttonName)->bool{
+   QObject *button=root->findChild<QObject *>(buttonName);
+   if(!button||!QMetaObject::invokeMethod(button,"clicked",Qt::DirectConnection)){
+    qCritical()<<"Could not trigger shell button:"<<buttonName;return false;
+   }
+   QCoreApplication::processEvents();return true;
+  };
+  auto popupVisible=[&](const QString &popupName)->bool{
+   QObject *popup=root->findChild<QObject *>(popupName);
+   return popup&&popup->property("visible").toBool();
+  };
+  auto closePopup=[&](const QString &popupName)->bool{
+   QObject *popup=root->findChild<QObject *>(popupName);
+   if(!popup||!QMetaObject::invokeMethod(popup,"close",Qt::DirectConnection))return false;
+   QCoreApplication::processEvents();return true;
+  };
+  if(!clickButton(QStringLiteral("taskbarStartButton"))||!popupVisible(QStringLiteral("startMenuPopup"))||!closePopup(QStringLiteral("startMenuPopup"))){qCritical()<<"Start menu button interaction failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction failed.";return 1;}
+  if(!clickButton(QStringLiteral("taskbarQuickSettingsButton"))||!popupVisible(QStringLiteral("quickSettingsPopup"))||!closePopup(QStringLiteral("quickSettingsPopup"))){qCritical()<<"Quick settings button interaction failed.";return 1;}
+  const QList<QPair<QString,int>> navigationButtons{{QStringLiteral("taskbarLinuxButton"),2},{QStringLiteral("taskbarPackagesButton"),3},{QStringLiteral("taskbarFilesButton"),7},{QStringLiteral("taskbarSettingsButton"),4}};
+  for(const auto &entry:navigationButtons){
+   if(!clickButton(entry.first)||root->property("page").toInt()!=entry.second){qCritical()<<"Taskbar navigation failed:"<<entry.first;return 1;}
+  }
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
    QQmlComponent component(&engine,QUrl(url));
