@@ -39,11 +39,13 @@ QString SystemInfo::previewReadiness()const{
   if(::lstat(encodedSocket.constData(),&socketInfo)!=0||!S_ISSOCK(socketInfo.st_mode)||socketInfo.st_uid!=getuid())
    blockers.append(QStringLiteral("The configured Wayland socket is missing, is not a Unix socket, or is not owned by the current user: %1").arg(socketPath));
  }
- if(QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty())
-  blockers.append(QStringLiteral("Cage is not installed"));
+ const bool westonAvailable=!QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty();
+ const bool cageAvailable=!QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty();
+ if(!westonAvailable&&!cageAvailable)
+  blockers.append(QStringLiteral("Neither Weston nor Cage is installed"));
  const QString appPath=QCoreApplication::applicationFilePath();
  if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
- if(blockers.isEmpty())return QStringLiteral("Ready for nested preview only. This is not an independent desktop session.");
+ if(blockers.isEmpty())return westonAvailable?QStringLiteral("Ready for nested preview using Weston (multi-window desktop). This is not an independent login session."):QStringLiteral("Ready for nested preview using Cage. This is not an independent desktop session.");
  return QStringLiteral("Not ready for nested preview:\n• %1\n\nThis checker is read-only; it will not install packages or alter your login manager.").arg(blockers.join(QStringLiteral("\n• ")));
 }
 QString SystemInfo::diagnosticReport()const{

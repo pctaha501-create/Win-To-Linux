@@ -22,8 +22,9 @@ case "$wayland_display" in
 esac
 [ -S "$wayland_socket" ] || fail "the active Wayland socket was not found at $wayland_socket."
 
+weston_bin=$(command -v weston 2>/dev/null || true)
 cage_bin=$(command -v cage 2>/dev/null || true)
-[ -n "$cage_bin" ] || fail "Cage is not installed. Install it with your distribution's package manager; this script will not install packages automatically."
+[ -n "$weston_bin" ] || [ -n "$cage_bin" ] || fail "Neither Weston nor Cage is installed. Install one with your distribution's package manager; this script will not install packages automatically."
 
 app_bin=${WTL_BIN:-}
 if [ -z "$app_bin" ]; then
@@ -46,5 +47,11 @@ if ! readiness=$("$app_bin" --preview-check 2>&1); then
     fail "readiness preflight refused to launch the nested preview."
 fi
 
+if [ -n "$weston_bin" ]; then
+    socket_name=win-to-linux-$(id -u)-$$
+    [ ! -e "$runtime_dir/$socket_name" ] || fail "the nested Weston socket path already exists: $runtime_dir/$socket_name"
+    printf 'Starting Win-To-Linux inside nested Weston (software renderer, isolated socket). The host desktop and login manager will not be changed.\n'
+    exec "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --no-config -- "$app_bin" --fullscreen
+fi
 printf 'Starting the Win-To-Linux preview inside nested Cage. Your existing login manager and desktop session will not be changed.\n'
 exec "$cage_bin" -- "$app_bin" --fullscreen

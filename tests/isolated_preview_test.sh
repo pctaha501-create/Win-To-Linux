@@ -36,10 +36,27 @@ sh "$ROOT/scripts/start-isolated-preview.sh"
 grep -q '^--preview-check$' "$WTL_APP_LOG"
 grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"
 rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG"
+cat > "$fakebin/weston" <<'EOF'
+#!/bin/sh
+printf '%s\n' "$@" > "$WTL_WESTON_LOG"
+EOF
+chmod +x "$fakebin/weston"
+export WTL_WESTON_LOG="$TMP/weston.log"
+sh "$ROOT/scripts/start-isolated-preview.sh"
+grep -q '^--backend=wayland$' "$WTL_WESTON_LOG"
+grep -q '^--display=wayland-test$' "$WTL_WESTON_LOG"
+grep -q "^--socket=win-to-linux-$(id -u)-" "$WTL_WESTON_LOG"
+grep -q '^--renderer=pixman$' "$WTL_WESTON_LOG"
+grep -q '^--no-config$' "$WTL_WESTON_LOG"
+grep -q "^$WTL_BIN$" "$WTL_WESTON_LOG"
+grep -q '^--fullscreen$' "$WTL_WESTON_LOG"
+test ! -e "$WTL_CAGE_LOG"
+rm -f "$WTL_WESTON_LOG" "$WTL_APP_LOG"
 if WTL_FAIL_PREFLIGHT=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/refusal.log" 2>&1; then
     echo "Launcher accepted a failed readiness preflight." >&2
     exit 1
 fi
 grep -q 'readiness preflight refused to launch' "$TMP/refusal.log"
 test ! -e "$WTL_CAGE_LOG"
+test ! -e "$WTL_WESTON_LOG"
 printf '%s\n' 'Isolated preview launch/preflight integration checks passed.'
