@@ -19,6 +19,11 @@ ApplicationWindow {
   systemInfo.saveRecentNotifications(notifications)
   toastTimer.restart()
  }
+ function launchDesktopEntry(path) {
+  var started = systemInfo.launchDesktopFile(path)
+  win.showToast(systemInfo.status)
+  return started
+ }
  property string clockText: Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm")
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
@@ -168,7 +173,7 @@ ApplicationWindow {
         Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true }
        }
       }
-      onClicked: { systemInfo.launchDesktopFile(modelData.desktopFile); startMenu.close() }
+      onClicked: { win.launchDesktopEntry(modelData.desktopFile); startMenu.close() }
      }
     }
    }
@@ -375,7 +380,7 @@ ApplicationWindow {
           Rectangle { Layout.alignment: Qt.AlignHCenter; width: 27; height: 27; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true; font.pixelSize: 15 } }
           Label { text: modelData.name; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; Layout.fillWidth: true }
          }
-         onClicked: systemInfo.launchDesktopFile(modelData.desktopFile)
+         onClicked: win.launchDesktopEntry(modelData.desktopFile)
         }
        }
       }
@@ -393,7 +398,7 @@ ApplicationWindow {
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
         Rectangle { width: 32; height: 32; radius: 8; color: "#5b8cff"; Text { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true } }
         ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true } }
-        Button { text: "Open"; onClicked: systemInfo.launchDesktopFile(modelData.desktopFile) }
+        Button { text: "Open"; onClicked: win.launchDesktopEntry(modelData.desktopFile) }
        }
       }
      }

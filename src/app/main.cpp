@@ -95,6 +95,8 @@ int main(int argc,char**argv){
    QObject *popup=root->findChild<QObject *>(popupName);if(!popup)return false;
    return popup->property("width").toReal()<=root->property("width").toReal()-16.0&&popup->property("height").toReal()<=root->property("height").toReal()-70.0;
   };
+  QVariant launchResult;
+  if(!QMetaObject::invokeMethod(root,"launchDesktopEntry",Qt::DirectConnection,Q_RETURN_ARG(QVariant,launchResult),Q_ARG(QVariant,QVariant(QStringLiteral("/invalid.desktop"))))||launchResult.toBool()||root->property("toastMessage").toString().isEmpty()){qCritical()<<"Failed application launch did not report visible UI feedback.";return 1;}
   if(!clickButton(QStringLiteral("taskbarStartButton"))||!popupVisible(QStringLiteral("startMenuPopup"))||!popupFitsWindow(QStringLiteral("startMenuPopup"))){qCritical()<<"Start menu interaction or responsive sizing failed.";return 1;}
   QObject *startScroll=root->findChild<QObject *>(QStringLiteral("startMenuScroll"));
   if(!startScroll||startScroll->property("contentHeight").toReal()<=startScroll->property("height").toReal()){qCritical()<<"Start menu content is not scrollable at minimum window height.";return 1;}
