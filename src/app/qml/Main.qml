@@ -180,7 +180,7 @@ ApplicationWindow {
      delegate: Button {
       required property var modelData
       objectName: "startSearchSection_" + modelData.page
-      visible: { var query = win.startSearch.trim().toLowerCase(); return modelData.label.toLowerCase().indexOf(query) !== -1 || modelData.comment.toLowerCase().indexOf(query) !== -1 }
+      visible: win.startSearch.trim().length > 0 && (modelData.label.toLowerCase().indexOf(win.startSearch.trim().toLowerCase()) !== -1 || modelData.comment.toLowerCase().indexOf(win.startSearch.trim().toLowerCase()) !== -1)
       Layout.fillWidth: true; implicitHeight: 40; flat: true
       background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
       contentItem: RowLayout {
