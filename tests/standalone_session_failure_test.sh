@@ -30,13 +30,13 @@ EOF
 cat > "$TMP/fake-app" <<'EOF'
 #!/bin/sh
 if [ "${WTL_FAKE_MODE:-early}" = crash ]; then
-  trap 'exit 0' TERM INT
+  trap 'printf "%s\n" terminated >> "$WTL_APP_LOG"; exit 0' TERM INT
   while :; do sleep 1; done
 fi
 exit 99
 EOF
 chmod +x "$fakebin/tty" "$fakebin/weston" "$TMP/fake-app"
-export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WTL_BIN="$TMP/fake-app" WTL_WESTON_LOG="$TMP/weston.log"
+export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WTL_BIN="$TMP/fake-app" WTL_WESTON_LOG="$TMP/weston.log" WTL_APP_LOG="$TMP/app.log"
 start=$(date +%s)
 if env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/launcher.log" 2>&1; then
   echo 'Launcher unexpectedly accepted Weston exiting before socket creation.' >&2; exit 1
@@ -60,7 +60,8 @@ fi
 elapsed=$(( $(date +%s) - start ))
 [ "$elapsed" -lt 5 ] || { echo "Compositor watchdog took too long: ${elapsed}s" >&2; cat "$TMP/crash.log" >&2; exit 1; }
 grep -q 'Weston exited while Win-To-Linux was running' "$TMP/crash.log"
-if find "$runtime" -maxdepth 1 -type f \( -name 'win-to-linux-session.*' -o -name 'win-to-linux-xwayland-*' -o -name 'win-to-linux-watchdog-*' \) | grep -q .; then
+grep -q '^terminated$' "$WTL_APP_LOG"
+if find "$runtime" -maxdepth 1 \( -type f \( -name 'win-to-linux-session.*' -o -name 'win-to-linux-xwayland-*' -o -name 'win-to-linux-watchdog-*' \) -o -type s -name 'win-to-linux-session-*' \) | grep -q .; then
   echo 'Standalone launcher leaked private temporary files after compositor crash.' >&2
   find "$runtime" -maxdepth 1 -type f -print >&2
   exit 1
