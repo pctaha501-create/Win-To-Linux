@@ -115,12 +115,18 @@ if [ -n "${WTL_APP_BIN:-}" ]; then
     env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH \
         XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY=wayland-nested XDG_RUNTIME_DIR="$runtime" \
         QT_DEBUG_PLUGINS=1 QSG_INFO=1 'QT_LOGGING_RULES=qt.qpa.*=true;qt.wayland.*=true' \
-        QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software timeout 8s "$WTL_APP_BIN" --maximized >"$TMP/wtl-shell.log" 2>&1
+        QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software \
+        gdb -q --batch -ex run -ex 'thread apply all bt full' --args "$WTL_APP_BIN" --startup-smoke-test --maximized >"$TMP/wtl-shell.log" 2>&1
     shell_status=$?
     set -e
-    if [ "$shell_status" -ne 124 ]; then
+    if grep -q 'Program received signal SIGSEGV' "$TMP/wtl-shell.log"; then
         cat "$TMP/nested.log" "$TMP/wtl-shell.log" >&2
-        echo "Win-To-Linux did not remain running inside nested Wayland (exit $shell_status)." >&2
+        echo "Win-To-Linux crashed during real nested-Wayland startup." >&2
+        exit 1
+    fi
+    if [ "$shell_status" -ne 0 ]; then
+        cat "$TMP/nested.log" "$TMP/wtl-shell.log" >&2
+        echo "Win-To-Linux startup smoke failed under nested Wayland (gdb exit $shell_status)." >&2
         exit 1
     fi
     if grep -E 'QQmlApplicationEngine failed to load component|Type .* unavailable|ReferenceError:|Could not load the Qt platform plugin|Failed to create .*window' "$TMP/wtl-shell.log"; then

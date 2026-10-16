@@ -9,6 +9,7 @@
 #include <QQmlContext>
 #include <QDebug>
 #include <QWindow>
+#include <QTimer>
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
@@ -90,5 +91,6 @@ int main(int argc,char**argv){
   if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showMaximized();
   else qWarning()<<"Could not maximize the shell window.";
  }
+ if(hasArgument(argc,argv,"--startup-smoke-test"))QTimer::singleShot(3000,&app,&QCoreApplication::quit);
  return app.exec();
 }
