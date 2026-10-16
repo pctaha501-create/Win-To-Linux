@@ -101,7 +101,9 @@ Item {
    modal: true
    title: "Confirm deletion"
    standardButtons: Dialog.Yes | Dialog.No
+   width: 420
    contentItem: Label {
+    width: 388
     text: root.selectedEntryIsDir
       ? "Delete folder and all its contents? This cannot be undone.\\n\\n" + root.selectedEntryName
       : "Delete this file? This cannot be undone.\\n\\n" + root.selectedEntryName

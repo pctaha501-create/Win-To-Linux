@@ -198,6 +198,21 @@ ApplicationWindow {
      }
     }
     Button {
+     objectName: "startSearchSection_4"
+     visible: win.startSearch.trim().length > 0 && ("settings".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "preferences".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "personalize desktop".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "⚙"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 1; Layout.fillWidth: true
+       Label { text: "Settings"; color: win.fg; font.bold: true; Layout.fillWidth: true }
+       Label { text: "Appearance, system diagnostics and desktop preferences"; color: win.muted; font.pixelSize: 11; Layout.fillWidth: true; elide: Text.ElideRight }
+      }
+      Label { text: "›"; color: win.muted }
+     }
+     onClicked: { win.page = 4; startMenu.close() }
+    }
+    Button {
      objectName: "startSearchSection_2"
      visible: win.startSearch.trim().length > 0 && ("linux system".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "system and distribution details".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
      Layout.fillWidth: true; implicitHeight: 40; flat: true
