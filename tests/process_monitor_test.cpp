@@ -39,5 +39,6 @@ int main(int argc,char **argv){
  }
  if(!expect(foundSelf,"the test process has a valid parent PID"))return 1;
  if(!expect(!monitor.status().isEmpty(),"monitor status is reported"))return 1;
+ if(!expect(monitor.totalCpuPercent()>=0.0&&monitor.totalCpuPercent()<=100.0,"overall CPU utilization is normalized"))return 1;
  qInfo()<<"Process monitor tests passed";return 0;
 }

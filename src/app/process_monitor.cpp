@@ -106,6 +106,7 @@ qint64 residentKiB(qint64 pid) {
 ProcessMonitor::ProcessMonitor(QObject *parent) : QObject(parent) { refreshProcesses(); }
 QVariantList ProcessMonitor::processes() const { return m_processes; }
 QString ProcessMonitor::status() const { return m_status; }
+double ProcessMonitor::totalCpuPercent() const { return m_totalCpuPercent; }
 void ProcessMonitor::setStatus(const QString &s) { if (m_status == s) return; m_status = s; emit statusChanged(); }
 void ProcessMonitor::refreshProcesses() {
  QVariantList result;
@@ -189,6 +190,9 @@ void ProcessMonitor::refreshProcesses() {
   const qint64 pid=entry.toMap().value(QStringLiteral("pid")).toLongLong();
   if(!visited.contains(pid))appendTree(pid,0);
  }
+ double totalCpuPercent = 0.0;
+ for (const QVariant &entry : result) totalCpuPercent += entry.toMap().value(QStringLiteral("cpuPercent")).toDouble();
+ m_totalCpuPercent = qBound(0.0, totalCpuPercent, 100.0);
  m_processes = tree;
  m_previousCpuTicks = currentCpuTicks;
  m_previousStartTicks = currentStartTicks;
