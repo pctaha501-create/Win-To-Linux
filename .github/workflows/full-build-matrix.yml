@@ -26,6 +26,9 @@ jobs:
           - name: Ubuntu 24.04
             image: ubuntu:24.04
             install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs"
+          - name: Debian 13 (Trixie)
+            image: debian:trixie
+            install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs"
           - name: Kali Linux Rolling
             image: kalilinux/kali-rolling
             install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs"
@@ -34,7 +37,7 @@ jobs:
             install: "dnf install -y dnf-plugins-core && dnf config-manager --set-enabled crb && dnf install -y gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtquickcontrols2-devel"
           - name: Fedora
             image: fedora:latest
-            install: "dnf install -y gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtquickcontrols2-devel qt6-qtdeclarative"
+            install: "dnf install -y gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtquickcontrols2-devel qt6-qtdeclarative-devel"
           - name: Arch Linux
             image: archlinux:latest
             install: "pacman -Sy --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative"
@@ -51,4 +54,4 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src:ro" \
             -w /src \
-            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && cmake -S /src -B /tmp/wtl-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON && cmake --build /tmp/wtl-build --parallel 2 && ctest --timeout 45 --test-dir /tmp/wtl-build --output-on-failure"
+            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && cmake -S /src -B /tmp/wtl-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON && cmake --build /tmp/wtl-build --parallel 2 && ctest --test-dir /tmp/wtl-build --timeout 45 --output-on-failure"
