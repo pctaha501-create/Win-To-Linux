@@ -28,7 +28,7 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config -- /bin/sleep 2 >"$TMP/nested.log" 2>&1 &
+WAYLAND_DISPLAY=wayland-parent timeout 15s "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --no-config -- /bin/sleep 2 >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do
