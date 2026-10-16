@@ -42,3 +42,10 @@ Before calling a Windows application supported, record:
 - Known issues and exact reproduction steps
 
 No app-specific Wine GUI compatibility claim is made until this record has been completed on a supported VM/session.
+
+
+## Isolated Wine prefixes in Win-To-Linux
+
+The Windows Apps page can create isolated prefixes under `~/.local/share/win-to-linux/wine-prefixes`. A prefix is created with `wineboot -u` in an asynchronous child process and appears in the selector only after Wine has initialized its `system.reg` registry file. Launching an `.exe` or `.msi` in a selected prefix sets `WINEPREFIX` for that child process only; it does not change the environment of the Win-To-Linux shell or other applications. Every launch requires the existing confirmation dialog.
+
+Prefix names are limited to 1–40 ASCII letters, digits, dots, underscores and hyphens, must begin with a letter or digit, and cannot contain path separators. The manager rejects symlinked prefix directories and validates that operations remain within its managed root. Removing a prefix requires an explicit confirmation and permanently removes the applications, registry and data stored inside that prefix. Back up important prefix data first. This feature does not install Wine, download Windows installers, or guarantee third-party application compatibility. `wineboot` and `wine` must both be installed and available on `PATH`.

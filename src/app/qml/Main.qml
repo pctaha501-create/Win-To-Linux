@@ -10,6 +10,8 @@ ApplicationWindow {
  property string search: ""
  property var selectedProcess: ({})
  property string pendingWindowsFile: ""
+ property string pendingWinePrefix: ""
+ property string pendingWinePrefixRemoval: ""
  property string startSearch: ""
  property string toastMessage: ""
  property var notifications: systemInfo.recentNotifications()
@@ -57,9 +59,25 @@ ApplicationWindow {
  }
  Dialog {
   id: windowsDialog; modal: true; title: "Launch Windows program?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
-  Label { text: "Run this file through Wine?\n" + win.pendingWindowsFile + "\nOnly proceed if you trust the file. Wine compatibility is not guaranteed."; wrapMode: Text.Wrap; width: 380 }
-  onAccepted: systemInfo.launchWindowsFile(win.pendingWindowsFile)
+   Label { text: (win.pendingWinePrefix.length > 0 ? ("Run this file through isolated Wine prefix " + win.pendingWinePrefix + "?\n") : "Run this file through the system Wine prefix?\n") + win.pendingWindowsFile + "\nOnly proceed if you trust the file. Wine compatibility is not guaranteed."; wrapMode: Text.Wrap; width: 380 }
+  onAccepted: {
+   if (win.pendingWinePrefix.length > 0) {
+    winePrefixController.launchWindowsFile(win.pendingWinePrefix, win.pendingWindowsFile)
+    win.showToast(winePrefixController.status)
+    win.pendingWinePrefix = ""
+   } else {
+    systemInfo.launchWindowsFile(win.pendingWindowsFile)
+    win.showToast(systemInfo.status)
+   }
+  }
+  onRejected: win.pendingWinePrefix = ""
  }
+  Dialog {
+   id: removeWinePrefixDialog; modal: true; title: "Remove isolated Wine prefix?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
+   Label { text: "Permanently delete the managed prefix '" + win.pendingWinePrefixRemoval + "'? Installed Windows applications, registry settings and files inside that prefix will be removed. This cannot be undone."; wrapMode: Text.WordWrap; width: 420 }
+   onAccepted: { winePrefixController.removePrefix(win.pendingWinePrefixRemoval); win.showToast(winePrefixController.status); win.pendingWinePrefixRemoval = "" }
+   onRejected: win.pendingWinePrefixRemoval = ""
+  }
  FileDialog {
   id: windowsFileDialog; title: "Select a Windows installer or program"; fileMode: FileDialog.OpenFile
   nameFilters: ["Windows programs (*.exe *.msi)", "All files (*)"]
@@ -438,7 +456,7 @@ ApplicationWindow {
     Item { Layout.fillWidth: true }
     TextField { visible: win.page===1; placeholderText: "Search apps"; text: win.search; onTextChanged: win.search=text; implicitWidth: 200 }
     Button { visible: win.page===5; text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
-    Button { visible: win.page===6; text: "Choose .exe / .msi"; enabled: systemInfo.wineAvailable; onClicked: windowsFileDialog.open() }
+    Button { visible: win.page===6; text: "Run with system Wine"; enabled: systemInfo.wineAvailable; onClicked: { win.pendingWinePrefix = ""; windowsFileDialog.open() } }
    }
    StackLayout {
     Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: win.page
@@ -615,17 +633,48 @@ ApplicationWindow {
     ColumnLayout {
      spacing: 12
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 130; radius: 12; color: win.panel; border.color: win.borderColor
-      ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
-       Label { text: "Windows compatibility"; color: win.fg; font.pixelSize: 17; font.bold: true }
-       Label { text: systemInfo.wineAvailable ? ("Wine detected: "+systemInfo.winePath) : "Wine was not found on PATH. Win-To-Linux will not install it automatically."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-       Label { text: systemInfo.bottlesAvailable ? ("Bottles detected: "+systemInfo.bottlesPath) : "Bottles: not detected"; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+      ScrollView {
+     id: windowsAppsScrollView; Layout.fillWidth: true; Layout.fillHeight: true; clip: true
+     contentWidth: availableWidth
+     ColumnLayout {
+      width: Math.max(windowsAppsScrollView.availableWidth, 420); spacing: 12
+      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 132; radius: 12; color: win.panel; border.color: win.borderColor
+       ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
+        Label { text: "Windows compatibility"; color: win.fg; font.pixelSize: 17; font.bold: true }
+        Label { text: systemInfo.wineAvailable ? ("Wine detected: "+systemInfo.winePath) : "Wine was not found on PATH. Win-To-Linux will not install it automatically."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Label { text: systemInfo.bottlesAvailable ? ("Bottles detected: "+systemInfo.bottlesPath) : "Bottles: not detected"; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+       }
       }
-     }
-     Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 120; radius: 12; color: win.panel; border.color: win.borderColor
-      ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
-       Label { text: "Run an existing Windows file"; color: win.fg; font.bold: true }
-       Label { text: "Select an .exe or .msi file, then confirm before it is passed to Wine. Compatibility, dependencies, and installer behavior vary by application."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
-       Button { text: "Choose .exe / .msi"; enabled: systemInfo.wineAvailable; onClicked: windowsFileDialog.open() }
+      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 112; radius: 12; color: win.panel; border.color: win.borderColor
+       ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 8
+        Label { text: "Run with the default Wine environment"; color: win.fg; font.bold: true }
+        Label { text: "Use the existing default Wine prefix. You will be asked to confirm every .exe or .msi launch."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Button { text: "Choose .exe / .msi"; enabled: systemInfo.wineAvailable; onClicked: { win.pendingWinePrefix = ""; windowsFileDialog.open() } }
+       }
+      }
+      Rectangle { Layout.fillWidth: true; Layout.minimumHeight: 238; radius: 12; color: win.panel; border.color: win.borderColor
+       ColumnLayout { anchors.fill: parent; anchors.margins: 18; spacing: 10
+        Label { text: "Isolated Wine prefixes"; color: win.fg; font.pixelSize: 17; font.bold: true }
+        Label { text: "Keep each application's Windows registry and configuration in a separate managed prefix. Prefixes are stored only under the path below; Win-To-Linux will not install Wine or Windows applications automatically."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        Label { text: winePrefixController.rootDirectory; color: win.muted; font.pixelSize: 10; wrapMode: Text.WrapAnywhere; Layout.fillWidth: true }
+        RowLayout {
+         Layout.fillWidth: true; spacing: 8
+         TextField { id: winePrefixNameField; objectName: "winePrefixNameField"; Layout.fillWidth: true; placeholderText: "Prefix name (e.g. office-test)"; enabled: winePrefixController.available && !winePrefixController.busy; selectByMouse: true }
+         Button { id: createWinePrefixButton; objectName: "createWinePrefixButton"; text: "Create"; enabled: winePrefixController.available && !winePrefixController.busy && winePrefixNameField.text.trim().length > 0; onClicked: { winePrefixController.createPrefix(winePrefixNameField.text.trim()); win.showToast(winePrefixController.status) } }
+        }
+        RowLayout {
+         Layout.fillWidth: true; spacing: 8
+         ComboBox { id: winePrefixSelector; objectName: "winePrefixSelector"; Layout.fillWidth: true; model: winePrefixController.prefixes; enabled: winePrefixController.prefixes.length > 0 && !winePrefixController.busy }
+         Button { text: "Refresh"; enabled: !winePrefixController.busy; onClicked: winePrefixController.refresh() }
+         Button { id: removeWinePrefixButton; objectName: "removeWinePrefixButton"; text: "Remove"; enabled: winePrefixController.prefixes.length > 0 && winePrefixSelector.currentText.length > 0 && !winePrefixController.busy; onClicked: { win.pendingWinePrefixRemoval = winePrefixSelector.currentText; removeWinePrefixDialog.open() } }
+        }
+        RowLayout {
+         Layout.fillWidth: true; spacing: 8
+         Button { id: launchWinePrefixFileButton; objectName: "launchWinePrefixFileButton"; text: "Choose .exe / .msi for selected prefix"; enabled: winePrefixController.available && winePrefixController.prefixes.length > 0 && winePrefixSelector.currentText.length > 0 && !winePrefixController.busy; onClicked: { win.pendingWinePrefix = winePrefixSelector.currentText; windowsFileDialog.open() } }
+         Item { Layout.fillWidth: true }
+        }
+        Label { text: winePrefixController.status; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.name: "Wine prefix operation status" }
+       }
       }
      }
     }

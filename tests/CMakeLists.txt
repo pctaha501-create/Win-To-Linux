@@ -44,3 +44,8 @@ add_executable(wtl-screen-share-controller-test screen_share_controller_test.cpp
 target_include_directories(wtl-screen-share-controller-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
 target_link_libraries(wtl-screen-share-controller-test PRIVATE Qt6::Core Qt6::Gui Qt6::Network)
 add_test(NAME wtl-screen-share-controller-test COMMAND wtl-screen-share-controller-test)
+
+add_executable(wtl-wine-prefix-controller-test wine_prefix_controller_test.cpp ../src/app/wine_prefix_controller.cpp ../src/app/wine_prefix_controller.h)
+target_include_directories(wtl-wine-prefix-controller-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src/app)
+target_link_libraries(wtl-wine-prefix-controller-test PRIVATE Qt6::Core)
+add_test(NAME wtl-wine-prefix-controller-test COMMAND wtl-wine-prefix-controller-test)

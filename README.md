@@ -23,7 +23,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - File Manager has Home, Ctrl+L path selection, and F5 refresh; the headless smoke test exercises these actions against a temporary directory.
 - Version and diagnostics CLI (`--version`, `--system`, `--session-check`, `--diagnostic-report`, `--preview-check`, and `--standalone-check`).
 - Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, explicit install/remove confirmation, and a clear preflight message when pkexec is missing.
-- Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
+- Wine/Bottles detection, confirmed Windows-file launch, and a managed isolated Wine-prefix workflow: create prefixes asynchronously, launch .exe/.msi files inside a selected prefix, and remove only validated managed prefixes after confirmation.
 - Wine/XWayland compatibility scope and per-app validation checklist ([guide](docs/wine-compatibility.md)); CI verifies Wine's built-in Notepad remains open under nested XWayland, but third-party Windows apps are not certified.
 - A dedicated desktop-entry launch integration test exercises real `QProcess` launching against a fake executable and verifies that shell metacharacters are passed literally.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.

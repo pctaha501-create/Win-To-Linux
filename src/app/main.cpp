@@ -3,6 +3,7 @@
 #include "package_operation_controller.h"
 #include "file_manager.h"
 #include "screen_share_controller.h"
+#include "wine_prefix_controller.h"
 #include <QCoreApplication>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -54,13 +55,14 @@ int main(int argc,char**argv){
   return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
- SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;ScreenShareController screenShareController;
+ SystemInfo system;ProcessMonitor processMonitor;PackageOperationController packageOperations;FileManager fileManager;ScreenShareController screenShareController;WinePrefixController winePrefixController;
  QQmlApplicationEngine engine;
  engine.rootContext()->setContextProperty("systemInfo",&system);
  engine.rootContext()->setContextProperty("processMonitor",&processMonitor);
  engine.rootContext()->setContextProperty("packageOperations",&packageOperations);
  engine.rootContext()->setContextProperty("fileManager",&fileManager);
  engine.rootContext()->setContextProperty("screenShareController",&screenShareController);
+ engine.rootContext()->setContextProperty("winePrefixController",&winePrefixController);
  QObject::connect(&engine,&QQmlApplicationEngine::objectCreationFailed,&app,[](){QCoreApplication::exit(1);},Qt::QueuedConnection);
  engine.load(QUrl("qrc:/qml/Main.qml"));
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
@@ -74,7 +76,9 @@ int main(int argc,char**argv){
    QStringLiteral("taskbarStartButton"),QStringLiteral("taskbarSearchButton"),QStringLiteral("taskbarLinuxButton"),
    QStringLiteral("taskbarPackagesButton"),QStringLiteral("taskbarFilesButton"),QStringLiteral("taskbarSettingsButton"),
    QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton"),QStringLiteral("launchNestedPreviewButton"),
-   QStringLiteral("createMcpButton")};
+   QStringLiteral("createMcpButton"),QStringLiteral("winePrefixNameField"),
+   QStringLiteral("winePrefixSelector"),QStringLiteral("createWinePrefixButton"),
+   QStringLiteral("removeWinePrefixButton"),QStringLiteral("launchWinePrefixFileButton")};
   for(const QString &name:requiredControls){
    if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }

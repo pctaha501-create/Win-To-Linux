@@ -24,7 +24,7 @@
 - [x] Alt+Tab is left to the native compositor for real application-window switching; the shell smoke asserts no in-app Alt+Tab interceptor exists
 - [x] Session launch regression tests inject host Qt platform/plugin overrides and verify the nested/standalone shell receives none of them
 - [x] In-shell section switcher with Ctrl+Alt+Tab; Alt+Tab is left to the host/compositor for real application-window switching, and the smoke test asserts the shell does not intercept it
-- [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
+- [x] Wine/Bottles detection, confirmation-gated default-prefix launch, and isolated Wine-prefix management (asynchronous initialization, validated names/paths, per-launch `WINEPREFIX`, and confirmation-gated removal)
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status; preflight reports missing `pkexec`/PolicyKit before starting
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
