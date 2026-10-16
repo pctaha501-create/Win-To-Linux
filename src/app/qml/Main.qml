@@ -111,8 +111,8 @@ ApplicationWindow {
    ColumnLayout {
     id: startMenuColumn; x: 24; y: 24; width: Math.max(0, startMenuScroll.width - 48); height: implicitHeight; spacing: 13
    TextField {
-    id: startSearchField
-    placeholderText: "Search for apps, settings, and documents"
+    id: startSearchField; objectName: "startSearchField"
+    placeholderText: "Search apps and Win-To-Linux sections"
     text: win.startSearch; onTextChanged: win.startSearch=text
     Layout.fillWidth: true; implicitHeight: 42
     background: Rectangle { radius: 7; color: win.panel; border.color: win.light ? "#9aa8bc" : "#586273" }
@@ -172,12 +172,37 @@ ApplicationWindow {
      }
     }
    }
+   ColumnLayout {
+    visible: win.startSearch.trim().length > 0
+    Layout.fillWidth: true; spacing: 2
+    Repeater {
+     model: [{label:"Settings",comment:"Appearance and diagnostics",page:4},{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}].filter(function(item) {
+      var query = win.startSearch.trim().toLowerCase()
+      return item.label.toLowerCase().indexOf(query) !== -1 || item.comment.toLowerCase().indexOf(query) !== -1
+     })
+     delegate: Button {
+      required property var modelData
+      objectName: "startSearchSection_" + modelData.page
+      Layout.fillWidth: true; implicitHeight: 40; flat: true
+      background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+      contentItem: RowLayout {
+       spacing: 10
+       Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+       ColumnLayout { spacing: 0; Layout.fillWidth: true
+        Label { text: modelData.label; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+        Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+       }
+      }
+      onClicked: { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+   }
    Label {
     visible: win.startSearch.trim().length > 0 && systemInfo.applications.filter(function(app) {
      var query = win.startSearch.trim().toLowerCase()
      return app.name.toLowerCase().indexOf(query) !== -1 || app.comment.toLowerCase().indexOf(query) !== -1
     }).length === 0
-    text: "No installed apps matched. Try another search or open All apps."
+    text: "No installed apps matched. Try another search; section shortcuts may still be available."
     color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true
    }
    Item { Layout.fillHeight: true }
