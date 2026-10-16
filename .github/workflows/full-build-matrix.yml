@@ -18,6 +18,7 @@ jobs:
   full-build:
     name: Full build (${{ matrix.name }})
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -50,4 +51,4 @@ jobs:
           docker run --rm \
             -v "$GITHUB_WORKSPACE:/src:ro" \
             -w /src \
-            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && cmake -S /src -B /tmp/wtl-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON && cmake --build /tmp/wtl-build --parallel 2 && ctest --test-dir /tmp/wtl-build --output-on-failure"
+            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && cmake -S /src -B /tmp/wtl-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON && cmake --build /tmp/wtl-build --parallel 2 && ctest --timeout 45 --test-dir /tmp/wtl-build --output-on-failure"
