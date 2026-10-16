@@ -41,29 +41,80 @@ ApplicationWindow {
  }
  Popup {
   id: startMenu
-  width: 380; height: 390; modal: true; focus: true
+  width: 560; height: 590; modal: true; focus: true
   x: Math.max(8, (win.width-width)/2)
   y: Math.max(8, win.height-height-55)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-  background: Rectangle { radius: 16; color: win.panel; border.color: win.borderColor }
+  background: Rectangle { radius: 18; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: ColumnLayout {
-   anchors.fill: parent; anchors.margins: 16; spacing: 12
-   Label { text: "Start"; color: win.fg; font.pixelSize: 21; font.bold: true }
-   TextField { placeholderText: "Search workspace"; text: win.startSearch; onTextChanged: win.startSearch=text; Layout.fillWidth: true }
-   Label { text: "Quick launch"; color: win.muted; font.pixelSize: 11 }
+   anchors.fill: parent; anchors.margins: 24; spacing: 13
+   TextField {
+    placeholderText: "Search for apps, settings, and documents"
+    text: win.startSearch; onTextChanged: win.startSearch=text
+    Layout.fillWidth: true; implicitHeight: 42
+    background: Rectangle { radius: 7; color: win.panel; border.color: win.light ? "#9aa8bc" : "#586273" }
+   }
+   RowLayout {
+    Layout.fillWidth: true
+    Label { text: win.startSearch.length ? "Search results" : "Pinned"; color: win.fg; font.pixelSize: 17; font.bold: true }
+    Item { Layout.fillWidth: true }
+    Button { text: "All apps  ›"; onClicked: { win.page=1; startMenu.close(); systemInfo.refreshApplications() } }
+   }
    GridLayout {
-    Layout.fillWidth: true; columns: 2; columnSpacing: 8; rowSpacing: 8
+    Layout.fillWidth: true; columns: 4; columnSpacing: 8; rowSpacing: 6
     Repeater {
-     model: [{label:"Overview",page:0},{label:"Applications",page:1},{label:"Linux System",page:2},{label:"Packages",page:3},{label:"Settings",page:4},{label:"Processes",page:5},{label:"Windows Apps",page:6},{label:"Files",page:7}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
+     model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:2},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
      delegate: Button {
       required property var modelData
-      text: modelData.label; Layout.fillWidth: true
+      Layout.fillWidth: true; implicitHeight: 82; padding: 5
+      background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+      contentItem: ColumnLayout {
+       spacing: 4
+       Label { text: modelData.glyph; color: win.fg; font.pixelSize: 24; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
+       Label { text: modelData.label; color: win.fg; font.pixelSize: 11; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true; elide: Text.ElideRight }
+      }
       onClicked: { win.page=modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
      }
     }
    }
+   Rectangle { Layout.fillWidth: true; height: 1; color: win.borderColor }
+   RowLayout {
+    Layout.fillWidth: true
+    Label { text: "Recommended"; color: win.fg; font.pixelSize: 16; font.bold: true }
+    Item { Layout.fillWidth: true }
+    Button { text: "More"; onClicked: { win.page=1; startMenu.close(); systemInfo.refreshApplications() } }
+   }
+   ColumnLayout {
+    Layout.fillWidth: true; spacing: 2
+    Repeater {
+     model: systemInfo.applications.slice(0, 3)
+     delegate: Button {
+      required property var modelData
+      Layout.fillWidth: true; implicitHeight: 43; flat: true
+      background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+      contentItem: RowLayout {
+       spacing: 10
+       Rectangle { width: 30; height: 30; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: "A"; color: "white"; font.bold: true } }
+       ColumnLayout {
+        spacing: 1
+        Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true }
+        Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true }
+       }
+      }
+      onClicked: { systemInfo.launchDesktopFile(modelData.desktopFile); startMenu.close() }
+     }
+    }
+   }
    Item { Layout.fillHeight: true }
-   Label { text: "Win-To-Linux preview · does not replace your login session"; color: win.muted; font.pixelSize: 10; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+   Rectangle {
+    Layout.fillWidth: true; height: 46; radius: 9; color: win.light ? "#e9edf5" : "#292d36"
+    RowLayout {
+     anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10
+     Rectangle { width: 30; height: 30; radius: 15; color: "#3978d4"; Label { anchors.centerIn: parent; text: "U"; color: "white"; font.bold: true } }
+     Label { text: systemInfo.hostName || "Linux user"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+     Label { text: systemInfo.distribution; color: win.muted; font.pixelSize: 10 }
+    }
+   }
   }
  }
  Shortcut { sequence: "Ctrl+Space"; onActivated: startMenu.open() }
