@@ -70,6 +70,15 @@ grep -q '^--maximized$' "$WTL_APP_LOG"
 grep -q "^WAYLAND_DISPLAY=win-to-linux-$(id -u)-" "$WTL_APP_LOG"
 test ! -e "$WTL_CAGE_LOG"
 rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
+# If Weston lacks the nested Wayland backend, clean up and fall back to Cage.
+rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG" "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG"
+WTL_WESTON_FAIL=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/fallback.log" 2>&1
+grep -q 'falling back to Cage' "$TMP/fallback.log"
+grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"
+grep -q '^DISPLAY=$' "$WTL_APP_LOG"
+grep -q '^XAUTHORITY=$' "$WTL_APP_LOG"
+grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
+test ! -e "$WTL_WESTON_CONFIG_LOG"
 if WTL_FAIL_PREFLIGHT=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/refusal.log" 2>&1; then
     echo "Launcher accepted a failed readiness preflight." >&2
     exit 1
