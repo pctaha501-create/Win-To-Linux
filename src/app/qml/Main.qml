@@ -12,10 +12,11 @@ ApplicationWindow {
  property string pendingWindowsFile: ""
  property string startSearch: ""
  property string toastMessage: ""
- property var notifications: []
+ property var notifications: systemInfo.recentNotifications()
  function showToast(message) {
   toastMessage = message
   notifications = [{message: message, time: Qt.formatDateTime(new Date(), "hh:mm")}].concat(notifications).slice(0, 8)
+  systemInfo.saveRecentNotifications(notifications)
   toastTimer.restart()
  }
  property string clockText: Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm")
@@ -199,7 +200,7 @@ ApplicationWindow {
    RowLayout {
     Layout.fillWidth: true
     Label { text: "Notifications"; color: win.fg; font.pixelSize: 18; font.bold: true; Layout.fillWidth: true }
-    Button { text: "Clear all"; enabled: win.notifications.length > 0; onClicked: win.notifications = [] }
+    Button { text: "Clear all"; enabled: win.notifications.length > 0; onClicked: { win.notifications = []; systemInfo.saveRecentNotifications([]); win.showToast("Notification history cleared") } }
    }
    Label { visible: win.notifications.length === 0; Layout.fillWidth: true; Layout.fillHeight: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; text: "You're all caught up"; color: win.muted }
    ListView {
