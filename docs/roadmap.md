@@ -26,6 +26,8 @@
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
 - [x] Headless QML smoke test instantiates the file-manager and package-manager pages, with shell-script syntax and install-staging checks
+- [x] CI starts the actual Qt shell as a Wayland client inside nested Weston with software rendering; a bounded gdb-backed startup smoke checks for crashes and QML/platform errors
+- [x] Icon-only taskbar controls have explicit accessible names and stable object names; the application smoke test asserts the Start/search/system/packages/files/settings/notifications/quick-settings controls exist
 - [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
