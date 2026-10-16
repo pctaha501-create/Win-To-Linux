@@ -4,6 +4,8 @@
 #include <QDir>
 #include <QGuiApplication>
 #include <QClipboard>
+#include <QStringList>
+#include <QVariantMap>
 #include <QFile>
 #include <QFileInfo>
 #include <QProcess>
@@ -23,7 +25,12 @@ QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::ma
 QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;}
 QString SystemInfo::diagnosticReport()const{
  const QString report=QStringLiteral("Win-To-Linux diagnostic report\nDistribution: %1 (%2)\nVersion: %3\nFamily: %4\nKernel: %5\nArchitecture: %6\nHost: %7\nDesktop environment: %8\nSession type: %9\nWayland display: %10\nX11 display: %11\nRuntime directory: %12\nRuntime check: %13\nPackage manager: %14\nPackage manager available: %15\nWine available: %16\nBottles available: %17\nDetected compositors: %18")
-  .arg(m_distribution,m_id,m_version,m_family,m_kernel,m_arch,m_host,m_desktopEnvironment,m_sessionType,m_waylandDisplay,m_xDisplay,m_runtimeDirectory,m_runtimeDirectoryStatus,m_manager,m_managerAvailable?QStringLiteral("yes"):QStringLiteral("no"),wineAvailable()?QStringLiteral("yes"):QStringLiteral("no"),bottlesAvailable()?QStringLiteral("yes"):QStringLiteral("no"),QString::number(m_availableCompositors.size()));
+  .arg(m_distribution).arg(m_id).arg(m_version).arg(m_family).arg(m_kernel).arg(m_arch).arg(m_host).arg(m_desktopEnvironment).arg(m_sessionType)
+  .arg(m_waylandDisplay).arg(m_xDisplay).arg(m_runtimeDirectory).arg(m_runtimeDirectoryStatus).arg(m_manager)
+  .arg(m_managerAvailable?QStringLiteral("yes"):QStringLiteral("no"))
+  .arg(wineAvailable()?QStringLiteral("yes"):QStringLiteral("no"))
+  .arg(bottlesAvailable()?QStringLiteral("yes"):QStringLiteral("no"))
+  .arg(QString::number(m_availableCompositors.size()));
  QStringList compositorDetails;
  for(const QVariant &entry:m_availableCompositors){const QVariantMap item=entry.toMap();compositorDetails.append(QStringLiteral("%1: %2").arg(item.value(QStringLiteral("name")).toString(),item.value(QStringLiteral("path")).toString()));}
  return report + QStringLiteral("\nCompositor executables:\n%1").arg(compositorDetails.isEmpty()?QStringLiteral("None detected"):compositorDetails.join(QLatin1Char('\n')));
