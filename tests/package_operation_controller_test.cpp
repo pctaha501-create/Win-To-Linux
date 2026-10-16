@@ -16,7 +16,7 @@ int main(int argc,char **argv){
  QTemporaryDir emptyPath;
  if(!expect(emptyPath.isValid(),"create isolated empty PATH"))return 1;
  const QByteArray originalPath=qgetenv("PATH");qputenv("PATH",emptyPath.path().toLocal8Bit());
- const bool started=controller.checkUpdates();const QString missingHelperStatus=controller.status();qputenv("PATH",originalPath);
+ const bool started=controller.installPackage(QStringLiteral("curl"));const QString missingHelperStatus=controller.status();qputenv("PATH",originalPath);
  if(!expect(!started,"do not start package operation without pkexec"))return 1;
  if(!expect(missingHelperStatus.contains(QStringLiteral("pkexec")),"missing PolicyKit helper has a specific actionable message"))return 1;
  if(!expect(!controller.running(),"missing helper leaves controller idle"))return 1;
