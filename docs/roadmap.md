@@ -18,6 +18,7 @@
 - [x] Settings diagnostics export to clipboard, including runtime safety and detected compositor executable paths
 - [x] Read-only `--preview-check` CLI reports all nested-preview blockers and exits 2 on an unsafe/headless environment; CI asserts the refusal path
 - [x] Isolated-preview integration test uses a fake owned Wayland socket/Cage to verify preflight runs first and refuses unsafe launch (Linux CI passed on `8f83e02449d3e74e58ffc1069b81a2c8675dc005`)
+- [x] Weston-first nested desktop backend: unique per-user socket, nested Wayland backend, pixman renderer, no user config, supervised cleanup, and Cage fallback; headless Weston plus real `wayland-info` client smoke test passed
 - [x] Keyboard shortcut reference in Settings
 - [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
