@@ -28,6 +28,7 @@
 - [x] Headless QML smoke test instantiates the file-manager and package-manager pages, with shell-script syntax and install-staging checks
 - [x] CI starts the actual Qt shell as a Wayland client inside nested Weston with software rendering; a bounded gdb-backed startup smoke checks for crashes and QML/platform errors
 - [x] Icon-only taskbar controls have explicit accessible names and stable object names; the application smoke test asserts the Start/search/system/packages/files/settings/notifications/quick-settings controls exist
+- [x] Headless functional smoke dispatches Qt key events for Ctrl+Space, Ctrl+Shift+N, Ctrl+comma, Ctrl+E, Ctrl+Shift+Esc, and Ctrl+Alt+Tab; verifies popup visibility and page navigation, plus taskbar-button actions
 - [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
