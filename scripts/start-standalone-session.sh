@@ -76,12 +76,17 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
+child_running() {
+    child_state=$(ps -o stat= -p "$1" 2>/dev/null | tr -d ' ')
+    [ -n "$child_state" ] || return 1
+    case "$child_state" in Z*|X*) return 1 ;; *) return 0 ;; esac
+}
 printf 'Starting experimental Win-To-Linux on virtual terminal %s via Weston DRM. The login manager is not modified.\n' "$tty_number"
 WTL_XWAYLAND_ENV_FILE="$xwayland_env_file" WTL_XWAYLAND_HELPER="$xwayland_capture" "$weston_bin" --backend=drm --tty="$tty_number" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
 weston_pid=$!
 i=0
 while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do
-    kill -0 "$weston_pid" 2>/dev/null || break
+    child_running "$weston_pid" || break
     sleep 0.1
     i=$((i+1))
 done
@@ -90,7 +95,7 @@ xwayland_display=
 xwayland_authority=
 i=0
 while [ ! -s "$xwayland_env_file" ] && [ "$i" -lt 50 ]; do
-    kill -0 "$weston_pid" 2>/dev/null || break
+    child_running "$weston_pid" || break
     sleep 0.1
     i=$((i+1))
 done
@@ -105,8 +110,8 @@ launch_shell() {
     "$@" &
     app_pid=$!
     (
-        while kill -0 "$weston_pid" 2>/dev/null; do sleep 0.2; done
-        if kill -0 "$app_pid" 2>/dev/null; then
+        while child_running "$weston_pid"; do sleep 0.2; done
+        if child_running "$app_pid"; then
             printf '%s\n' 'Weston exited while Win-To-Linux was running.' > "$watchdog_marker"
             kill -TERM "$app_pid" >/dev/null 2>&1 || true
         fi
