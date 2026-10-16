@@ -14,7 +14,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - File opening is delegated to the host desktop. Copy/move supports regular files and directory trees; cross-filesystem moves use copy-then-remove with rollback, while recursive copy refuses symbolic links and special files.
 - XDG desktop-entry parsing with dedicated unit tests, hidden/NoDisplay filtering, canonical-path allowlisting, and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
-- Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
+- Persistent light/dark preference, in-shell section switcher (Ctrl+Alt+Tab), native compositor Alt+Tab window switching, and same-user process inspection/confirmed SIGTERM.
 - Responsive Start, notification, and Quick Settings popups; Start menu contents scroll at short window heights, with minimum-size behavior asserted by the QML smoke test.
 - Settings can launch the isolated nested Weston/Cage preview from the GUI after read-only readiness checks; the child process is tracked and the host login manager is untouched.
 - File Manager has Home, Ctrl+L path selection, and F5 refresh; the headless smoke test exercises these actions against a temporary directory.

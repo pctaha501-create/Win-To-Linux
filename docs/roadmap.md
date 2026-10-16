@@ -20,7 +20,7 @@
 - [x] Isolated-preview integration test uses a fake owned Wayland socket/Cage to verify preflight runs first and refuses unsafe launch (Linux CI passed on `8f83e02449d3e74e58ffc1069b81a2c8675dc005`)
 - [x] Weston-first nested desktop backend: unique per-user socket, nested Wayland backend, pixman renderer, no user config, supervised cleanup, and Cage fallback; headless Weston plus real `wayland-info` client smoke test passed; private `panel-position=top` config that preserves native window/workspace controls and `--maximized` shell startup also passed CI on commit `e05a2f7762d0452d2401e0349be6039ba6ea35c2`
 - [x] Keyboard shortcut reference in Settings
-- [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
+- [x] In-shell section switcher with Ctrl+Alt+Tab; Alt+Tab is left to the host/compositor for real application-window switching, and the smoke test asserts the shell does not intercept it
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status; preflight reports missing `pkexec`/PolicyKit before starting
 - [x] Per-user install/uninstall scripts and desktop entry

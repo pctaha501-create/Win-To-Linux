@@ -6,9 +6,6 @@ ApplicationWindow {
  id: win; visible: true; width: 1120; height: 720; minimumWidth: 820; minimumHeight: 560
  title: "Win-To-Linux"; color: light ? "#f1f4f8" : "#10141b"
  property int page: 0
- property int previousPage: 0
- property int observedPage: 0
- onPageChanged: { if (page !== observedPage) { previousPage = observedPage; observedPage = page } }
  property bool light: systemInfo.lightAppearance
  property string search: ""
  property var selectedProcess: ({})
@@ -202,7 +199,6 @@ ApplicationWindow {
  Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
  Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
  Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
- Shortcut { objectName: "previousWorkspaceShortcut"; sequence: "Alt+Tab"; onActivated: { var target = win.previousPage; win.page = target } }
  Shortcut { objectName: "workspaceSwitcherShortcut"; sequence: "Ctrl+Alt+Tab"; onActivated: workspaceSwitcher.open() }
  Popup {
   id: workspaceSwitcher
@@ -213,8 +209,8 @@ ApplicationWindow {
   background: Rectangle { radius: 16; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: ColumnLayout {
    anchors.fill: parent; anchors.margins: 18; spacing: 12
-   Label { text: "Workspace switcher"; color: win.fg; font.pixelSize: 18; font.bold: true }
-   Label { text: "Choose a workspace to bring it to the foreground."; color: win.muted; font.pixelSize: 11 }
+   Label { text: "Section switcher"; color: win.fg; font.pixelSize: 18; font.bold: true }
+   Label { text: "Choose a Win-To-Linux section. Use Alt+Tab for application windows in your desktop compositor."; color: win.muted; font.pixelSize: 11; wrapMode: Text.WordWrap; Layout.fillWidth: true }
    GridLayout { Layout.fillWidth: true; Layout.fillHeight: true; columns: 2; rowSpacing: 8; columnSpacing: 8
     Repeater { model: [{label:"Overview",glyph:"⌂"},{label:"Applications",glyph:"▦"},{label:"Linux System",glyph:"⌘"},{label:"Package Manager",glyph:"▤"},{label:"Settings",glyph:"⚙"},{label:"Processes",glyph:"▥"},{label:"Windows Apps",glyph:"▣"},{label:"Files",glyph:"📁"}]
      delegate: Button { required property int index; required property var modelData; Layout.fillWidth: true; Layout.fillHeight: true
@@ -423,7 +419,7 @@ ApplicationWindow {
      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 210; radius: 12; color: win.panel; border.color: win.borderColor
       ColumnLayout { anchors.fill: parent; anchors.margins: 17; spacing: 6
        Label { text: "Keyboard shortcuts"; color: win.fg; font.bold: true }
-       Repeater { model: [{key:"Ctrl + Space",action:"Open Start and focus search"},{key:"Ctrl + Shift + N",action:"Open notifications"},{key:"Ctrl + ,",action:"Open Settings"},{key:"Ctrl + Shift + Esc",action:"Open Task Manager"},{key:"Ctrl + E",action:"Open File Explorer"},{key:"Ctrl + L",action:"Focus and select the path field in File Explorer"},{key:"Alt + Tab",action:"Return to previous workspace"},{key:"Ctrl + Alt + Tab",action:"Open workspace switcher"},{key:"F11",action:"Toggle full screen"}]
+       Repeater { model: [{key:"Ctrl + Space",action:"Open Start and focus search"},{key:"Ctrl + Shift + N",action:"Open notifications"},{key:"Ctrl + ,",action:"Open Settings"},{key:"Ctrl + Shift + Esc",action:"Open Task Manager"},{key:"Ctrl + E",action:"Open File Explorer"},{key:"Ctrl + L",action:"Focus and select the path field in File Explorer"},{key:"Alt + Tab",action:"Switch application windows (desktop compositor)"},{key:"Ctrl + Alt + Tab",action:"Open section switcher"},{key:"F11",action:"Toggle full screen"}]
         delegate: RowLayout { required property var modelData; Layout.fillWidth: true; Label { text: modelData.key; color: win.fg; font.pixelSize: 10; font.bold: true; Layout.preferredWidth: 150 } Label { text: modelData.action; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true } }
        }
       }

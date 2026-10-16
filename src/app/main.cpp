@@ -64,9 +64,10 @@ int main(int argc,char**argv){
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
  if(hasArgument(argc,argv,"--smoke-test")){
   QObject *root=engine.rootObjects().constFirst();
+   if(root->findChild<QObject *>(QStringLiteral("previousWorkspaceShortcut"))){qCritical()<<"Win-To-Linux must not intercept Alt+Tab from the native window manager.";return 1;}
   root->setProperty("width",820);root->setProperty("height",560);QCoreApplication::processEvents();
   const QStringList requiredControls{
-   QStringLiteral("workspaceSwitcher"),QStringLiteral("workspaceSwitcherShortcut"),QStringLiteral("previousWorkspaceShortcut"),
+   QStringLiteral("workspaceSwitcher"),QStringLiteral("workspaceSwitcherShortcut"),
    QStringLiteral("startMenuPopup"),QStringLiteral("notificationCenterPopup"),QStringLiteral("quickSettingsPopup"),
    QStringLiteral("taskbarStartButton"),QStringLiteral("taskbarSearchButton"),QStringLiteral("taskbarLinuxButton"),
    QStringLiteral("taskbarPackagesButton"),QStringLiteral("taskbarFilesButton"),QStringLiteral("taskbarSettingsButton"),
