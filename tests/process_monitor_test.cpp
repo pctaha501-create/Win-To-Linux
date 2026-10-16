@@ -21,6 +21,10 @@ int main(int argc,char **argv){
   if(!expect(process.value(QStringLiteral("depth")).toInt()>=0&&process.value(QStringLiteral("depth")).toInt()<=32,"bounded process tree depth"))return 1;
   if(!expect(!process.value(QStringLiteral("name")).toString().isEmpty(),"nonempty process name"))return 1;
   if(!expect(process.contains(QStringLiteral("startTicks")),"process identity includes start time"))return 1;
+  if(!expect(process.contains(QStringLiteral("cpuPercent")),"process exposes CPU utilization"))return 1;
+  const double cpu=process.value(QStringLiteral("cpuPercent")).toDouble();
+  if(!expect(cpu>=0.0&&cpu<=100.0,"normalized CPU utilization stays between 0 and 100 percent"))return 1;
+  if(!expect(!process.value(QStringLiteral("cpuText")).toString().isEmpty(),"CPU utilization has display text"))return 1;
  }
  for(int i=0;i<monitor.processes().size();++i){
   const QVariantMap process=monitor.processes().at(i).toMap();

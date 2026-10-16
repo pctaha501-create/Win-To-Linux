@@ -27,6 +27,36 @@ bool readStartTicks(qint64 pid, qint64 *ticks) {
  *ticks = value;
  return true;
 }
+qint64 readTotalCpuTicks() {
+ QFile file(QStringLiteral("/proc/stat"));
+ if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return -1;
+ const QList<QByteArray> fields = file.readLine().simplified().split(' ');
+ if (fields.size() < 9 || fields.first() != "cpu") return -1;
+ qint64 total = 0;
+ for (qsizetype i = 1; i < 9; ++i) {
+  bool ok = false;
+  const qint64 value = fields.at(i).toLongLong(&ok);
+  if (!ok || value < 0) return -1;
+  total += value;
+ }
+ return total;
+}
+bool readProcessCpuTicks(qint64 pid, qint64 *ticks) {
+ QFile file(QStringLiteral("/proc/%1/stat").arg(pid));
+ if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) return false;
+ const QByteArray line = file.readAll().trimmed();
+ const qsizetype closeParen = line.lastIndexOf(')');
+ if (closeParen < 0 || closeParen + 2 >= line.size()) return false;
+ const QList<QByteArray> fields = line.mid(closeParen + 2).simplified().split(' ');
+ // After the process name, utime and stime are fields 14 and 15 (indices 11 and 12).
+ if (fields.size() <= 12) return false;
+ bool userOk = false, systemOk = false;
+ const qint64 userTicks = fields.at(11).toLongLong(&userOk);
+ const qint64 systemTicks = fields.at(12).toLongLong(&systemOk);
+ if (!userOk || !systemOk || userTicks < 0 || systemTicks < 0) return false;
+ *ticks = userTicks + systemTicks;
+ return true;
+}
 qint64 parentProcessId(qint64 pid) {
  QFile file(QStringLiteral("/proc/%1/stat").arg(pid));
  if(!file.open(QIODevice::ReadOnly|QIODevice::Text))return -1;
@@ -82,6 +112,9 @@ void ProcessMonitor::refreshProcesses() {
  QDir proc(QStringLiteral("/proc"));
  const QFileInfoList entries = proc.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
  const uid_t ownUid = getuid();
+ const qint64 totalCpuTicks = readTotalCpuTicks();
+ QHash<qint64,qint64> currentCpuTicks;
+ QHash<qint64,qint64> currentStartTicks;
  for (const QFileInfo &entry : entries) {
   bool ok = false;
   const qint64 pid = entry.fileName().toLongLong(&ok);
@@ -94,11 +127,24 @@ void ProcessMonitor::refreshProcesses() {
   const bool hasUid = readRealUid(pid, &uid);
   const qint64 rss = residentKiB(pid);
   const qint64 ppid = parentProcessId(pid);
+  qint64 processCpuTicks = 0;
+  const bool hasCpuTicks = readProcessCpuTicks(pid, &processCpuTicks);
+  double cpuPercent = 0.0;
+  if (hasCpuTicks && totalCpuTicks > m_previousTotalCpuTicks && m_previousStartTicks.value(pid, -1) == ticks) {
+   const qint64 previousTicks = m_previousCpuTicks.value(pid, -1);
+   if (previousTicks >= 0 && processCpuTicks >= previousTicks) {
+    cpuPercent = qBound(0.0, 100.0 * static_cast<double>(processCpuTicks - previousTicks)
+      / static_cast<double>(totalCpuTicks - m_previousTotalCpuTicks), 100.0);
+   }
+  }
+  if (hasCpuTicks) { currentCpuTicks.insert(pid, processCpuTicks); currentStartTicks.insert(pid, ticks); }
   result.append(QVariantMap{
    {QStringLiteral("pid"), pid},
    {QStringLiteral("parentPid"), ppid},
    {QStringLiteral("name"), name},
    {QStringLiteral("memoryKiB"), rss},
+   {QStringLiteral("cpuPercent"), cpuPercent},
+   {QStringLiteral("cpuText"), QStringLiteral("%1%").arg(cpuPercent, 0, 'f', 1)},
    {QStringLiteral("memoryText"), rss < 0 ? QStringLiteral("—") : QStringLiteral("%1 MiB").arg(static_cast<double>(rss) / 1024.0, 0, 'f', 1)},
    {QStringLiteral("canTerminate"), hasUid && uid == ownUid && pid > 1 && pid != static_cast<qint64>(getpid())},
    {QStringLiteral("startTicks"), ticks}
@@ -144,6 +190,9 @@ void ProcessMonitor::refreshProcesses() {
   if(!visited.contains(pid))appendTree(pid,0);
  }
  m_processes = tree;
+ m_previousCpuTicks = currentCpuTicks;
+ m_previousStartTicks = currentStartTicks;
+ if (totalCpuTicks > 0) m_previousTotalCpuTicks = totalCpuTicks;
  emit processesChanged();
  setStatus(QStringLiteral("Showing %1 processes. Only processes owned by this user can be requested to stop.").arg(result.size()));
 }

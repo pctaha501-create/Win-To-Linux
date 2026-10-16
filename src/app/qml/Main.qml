@@ -27,6 +27,7 @@ ApplicationWindow {
   }
  }
  Timer { interval: 30000; running: true; repeat: true; onTriggered: win.clockText = Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm") }
+ Timer { interval: 2000; running: win.page === 5; repeat: true; onTriggered: processMonitor.refreshProcesses() }
  Dialog {
   id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   Label { text: "Send SIGTERM to " + (win.selectedProcess.name || "process") + " (PID " + (win.selectedProcess.pid || "—") + ")? Unsaved work in that process may be lost."; wrapMode: Text.WordWrap; width: 330 }
@@ -329,7 +330,7 @@ ApplicationWindow {
       })
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
-        ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; Layout.leftMargin: Math.min(modelData.depth, 8) * 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · PPID "+modelData.parentPid+" · "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
+        ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; font.pixelSize: 12; Layout.leftMargin: Math.min(modelData.depth, 8) * 12; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: "PID "+modelData.pid+" · PPID "+modelData.parentPid+" · CPU "+modelData.cpuText+" · RAM "+modelData.memoryText; color: win.muted; font.pixelSize: 10 } }
         Button { visible: modelData.canTerminate; text: "Stop"; onClicked: { win.selectedProcess=modelData; stopDialog.open() } }
        }
       }

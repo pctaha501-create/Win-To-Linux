@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QVariantList>
+#include <QHash>
 class ProcessMonitor final : public QObject {
  Q_OBJECT
  Q_PROPERTY(QVariantList processes READ processes NOTIFY processesChanged)
@@ -17,5 +18,8 @@ signals:
 private:
  QVariantList m_processes;
  QString m_status;
+ QHash<qint64,qint64> m_previousCpuTicks;
+ QHash<qint64,qint64> m_previousStartTicks;
+ qint64 m_previousTotalCpuTicks = 0;
  void setStatus(const QString &status);
 };
