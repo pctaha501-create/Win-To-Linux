@@ -109,7 +109,7 @@ ApplicationWindow {
   background: Rectangle { radius: 18; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: Flickable {
    id: startMenuScroll; objectName: "startMenuScroll"; anchors.fill: parent; clip: true
-   contentWidth: width; contentHeight: startMenuColumn.height + 48
+   contentWidth: width; contentHeight: Math.max(startMenuColumn.implicitHeight + 48, startMenuColumn.childrenRect.height + 48, height + 1)
    boundsBehavior: Flickable.StopAtBounds
    ColumnLayout {
     id: startMenuColumn; x: 24; y: 24; width: Math.max(0, startMenuScroll.width - 48); height: implicitHeight; spacing: 13
