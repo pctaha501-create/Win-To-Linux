@@ -46,7 +46,7 @@ rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG"
 chmod 755 "$runtime"
 if sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/unsafe-runtime.log" 2>&1; then echo 'Isolated preview accepted a runtime directory accessible to other users.' >&2; exit 1; fi
 grep -q 'accessible to other users' "$TMP/unsafe-runtime.log"
-test ! -e "$WTL_CAGE_LOG" && test ! -e "$WTL_WESTON_LOG"
+test ! -e "$WTL_CAGE_LOG" && test ! -e "$TMP/weston.log"
 chmod 700 "$runtime"
 cat > "$fakebin/weston" <<'EOF'
 #!/bin/sh
