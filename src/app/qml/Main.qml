@@ -307,7 +307,7 @@ ApplicationWindow {
   Rectangle {
    Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
    ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
-    Label { text: "WORKSPACE"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
+    Label { text: "SECTIONS"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
     Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"]
      delegate: Button {
       required property int index; required property string modelData
