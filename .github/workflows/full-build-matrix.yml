@@ -1,0 +1,47 @@
+name: Cross-distribution full build
+on:
+  push:
+    branches: ["main", "feature/**"]
+    paths:
+      - "CMakeLists.txt"
+      - "src/**"
+      - "tests/**"
+      - "scripts/build.sh"
+      - ".github/workflows/full-build-matrix.yml"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-build:
+    name: Full build (${{ matrix.name }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu 24.04
+            image: ubuntu:24.04
+            install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs"
+          - name: Fedora
+            image: fedora:latest
+            install: "dnf install -y gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qtquickcontrols2-devel qt6-qtdeclarative"
+          - name: Arch Linux
+            image: archlinux:latest
+            install: "pacman -Sy --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative"
+          - name: openSUSE Tumbleweed
+            image: opensuse/tumbleweed
+            install: "zypper --non-interactive refresh && zypper --non-interactive install gcc-c++ cmake ninja qt6-base-devel qt6-declarative-devel qt6-quickcontrols2-devel"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test full application in ${{ matrix.image }}
+        env:
+          DISTRO_IMAGE: ${{ matrix.image }}
+          DISTRO_INSTALL: ${{ matrix.install }}
+        run: |
+          docker run --rm \
+            -v "$GITHUB_WORKSPACE:/src:ro" \
+            -w /src \
+            "$DISTRO_IMAGE" sh -lc "$DISTRO_INSTALL && cmake -S /src -B /tmp/wtl-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON && cmake --build /tmp/wtl-build --parallel 2 && ctest --test-dir /tmp/wtl-build --output-on-failure"
