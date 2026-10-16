@@ -126,10 +126,10 @@ launch_shell() {
     return "$app_status"
 }
 if [ -n "$xwayland_display" ] && [ -n "$xwayland_authority" ]; then
-    launch_shell env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --fullscreen
+    launch_shell env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --maximized
 elif [ -n "$xwayland_display" ]; then
-    launch_shell env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --fullscreen
+    launch_shell env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_PLUGIN_PATH -u QT_QPA_PLATFORM_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --maximized
 else
     printf 'Warning: XWayland environment was not captured; X11-only apps may not launch.\n' >&2
-    launch_shell env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --fullscreen
+    launch_shell env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
 fi

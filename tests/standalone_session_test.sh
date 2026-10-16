@@ -59,5 +59,5 @@ grep -q '^DISPLAY=:88$' "$WTL_APP_LOG"
 grep -q "^XAUTHORITY=$runtime/Xauthority$" "$WTL_APP_LOG"
 grep -q '^WAYLAND_DISPLAY=win-to-linux-session-' "$WTL_APP_LOG"
 grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
-grep -q '^--fullscreen$' "$WTL_APP_LOG"
+grep -q '^--maximized$' "$WTL_APP_LOG"
 printf '%s\n' 'Standalone-session preflight and supervised-launch tests passed.'
