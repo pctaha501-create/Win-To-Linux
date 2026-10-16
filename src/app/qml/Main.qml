@@ -139,7 +139,7 @@ ApplicationWindow {
       background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
       contentItem: RowLayout {
        spacing: 10
-       Rectangle { width: 30; height: 30; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: "A"; color: "white"; font.bold: true } }
+       Rectangle { width: 30; height: 30; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true } }
        ColumnLayout {
         spacing: 1
         Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true }
@@ -219,7 +219,7 @@ ApplicationWindow {
       anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 14
       columns: 1; rowSpacing: 8
       Repeater {
-       model: [{label:"This PC",glyph:"▣",page:2},{label:"Home",glyph:"⌂",page:7},{label:"Applications",glyph:"▦",page:1},{label:"Packages",glyph:"▤",page:3},{label:"Settings",glyph:"⚙",page:4},{label:"Task Manager",glyph:"▥",page:5},{label:"Windows apps",glyph:"▣",page:6}]
+       model: [{label:"This PC",glyph:"▣",page:7},{label:"Home",glyph:"⌂",page:7},{label:"Applications",glyph:"▦",page:1},{label:"Packages",glyph:"▤",page:3},{label:"Settings",glyph:"⚙",page:4},{label:"Task Manager",glyph:"▥",page:5},{label:"Windows apps",glyph:"▣",page:6}]
        delegate: Button {
         required property var modelData
         Layout.preferredWidth: 82; Layout.preferredHeight: 78; padding: 4
@@ -229,7 +229,7 @@ ApplicationWindow {
          Label { text: modelData.glyph; color: "white"; font.pixelSize: 27; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
          Label { text: modelData.label; color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; Layout.fillWidth: true }
         }
-        onClicked: { win.page=modelData.page; if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+        onClicked: { win.page=modelData.page; if(modelData.label==="This PC")fileManager.navigate("/"); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
        }
       }
      }
