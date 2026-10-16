@@ -233,14 +233,19 @@ ApplicationWindow {
    }
    Rectangle {
     Layout.fillWidth: true; Layout.preferredHeight: 42; radius: 10; color: win.panel; border.color: win.borderColor
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 8; anchors.rightMargin: 8; spacing: 6
-     Button { text: "⊞ Start"; onClicked: startMenu.open() }
-     Button { text: "Apps"; onClicked: { win.page=1; systemInfo.refreshApplications() } }
-     Button { text: "Linux"; onClicked: win.page=2 }
-     Button { text: "Packages"; onClicked: win.page=3 }
-     Button { text: "Files"; onClicked: win.page=7 }
+    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 0
      Item { Layout.fillWidth: true }
-     Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight }
+     RowLayout {
+      spacing: 5
+      Button { text: "⊞"; ToolTip.visible: hovered; ToolTip.text: "Start"; onClicked: startMenu.open() }
+      Button { text: "⌕"; ToolTip.visible: hovered; ToolTip.text: "Search apps"; onClicked: { win.page=1; systemInfo.refreshApplications() } }
+      Button { text: "▦"; ToolTip.visible: hovered; ToolTip.text: "Linux"; onClicked: win.page=2 }
+      Button { text: "▤"; ToolTip.visible: hovered; ToolTip.text: "Packages"; onClicked: win.page=3 }
+      Button { text: "📁"; ToolTip.visible: hovered; ToolTip.text: "File Explorer"; onClicked: win.page=7 }
+      Button { text: "⚙"; ToolTip.visible: hovered; ToolTip.text: "Settings"; onClicked: win.page=4 }
+     }
+     Item { Layout.fillWidth: true }
+     Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 180 }
     }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
