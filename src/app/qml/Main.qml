@@ -64,7 +64,7 @@ ApplicationWindow {
   onAccepted: { win.pendingWindowsFile = selectedFile.toLocalFile(); windowsDialog.open() }
  }
  Popup {
-  id: quickSettings
+  id: quickSettings; objectName: "quickSettingsPopup"
   width: 340; height: 350; modal: false; focus: true
   x: Math.max(8, win.width-width-12)
   y: Math.max(8, win.height-height-82)
@@ -101,7 +101,7 @@ ApplicationWindow {
   }
  }
  Popup {
-  id: startMenu
+  id: startMenu; objectName: "startMenuPopup"
   width: 560; height: 590; modal: true; focus: true
   x: Math.max(8, (win.width-width)/2)
   y: Math.max(8, win.height-height-55)
@@ -222,7 +222,7 @@ ApplicationWindow {
   }
  }
  Popup {
-  id: notificationCenter
+  id: notificationCenter; objectName: "notificationCenterPopup"
   width: 360; height: 390; modal: false; focus: true
   x: Math.max(8, win.width - width - 12)
   y: Math.max(8, win.height - height - 82)
@@ -492,19 +492,19 @@ ApplicationWindow {
      RowLayout {
       spacing: 5
       Button {
-       text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarStartButton"; Accessible.name: "Start menu"; text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "Start"
        background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
        onClicked: startMenu.open()
       }
       Button {
-       text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSearchButton"; Accessible.name: "Search applications"; text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "Search apps"
        background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
        onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) }
       }
       Button {
-       text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarLinuxButton"; Accessible.name: "Linux system"; text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "Linux"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -513,7 +513,7 @@ ApplicationWindow {
        onClicked: win.page=2
       }
       Button {
-       text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarPackagesButton"; Accessible.name: "Package manager"; text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "Packages"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -522,7 +522,7 @@ ApplicationWindow {
        onClicked: win.page=3
       }
       Button {
-       text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarFilesButton"; Accessible.name: "File Explorer"; text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "File Explorer"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -531,7 +531,7 @@ ApplicationWindow {
        onClicked: win.page=7
       }
       Button {
-       text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSettingsButton"; Accessible.name: "Settings"; text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0
        ToolTip.visible: hovered; ToolTip.text: "Settings"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -542,8 +542,8 @@ ApplicationWindow {
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
-     Button { text: "🔔"; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
-     Button { text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
+     Button { objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: "🔔"; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
+     Button { objectName: "taskbarQuickSettingsButton"; Accessible.name: "Clock and quick settings"; text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel

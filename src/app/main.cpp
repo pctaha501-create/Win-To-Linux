@@ -56,10 +56,14 @@ int main(int argc,char**argv){
  if(engine.rootObjects().isEmpty()){qCritical()<<"Unable to load Win-To-Linux shell.";return 1;}
  if(hasArgument(argc,argv,"--smoke-test")){
   QObject *root=engine.rootObjects().constFirst();
-  if(!root->findChild<QObject *>(QStringLiteral("workspaceSwitcher"))||
-     !root->findChild<QObject *>(QStringLiteral("workspaceSwitcherShortcut"))||
-     !root->findChild<QObject *>(QStringLiteral("previousWorkspaceShortcut"))){
-   qCritical()<<"Workspace switcher or keyboard shortcuts were not instantiated.";return 1;
+  const QStringList requiredControls{
+   QStringLiteral("workspaceSwitcher"),QStringLiteral("workspaceSwitcherShortcut"),QStringLiteral("previousWorkspaceShortcut"),
+   QStringLiteral("startMenuPopup"),QStringLiteral("notificationCenterPopup"),QStringLiteral("quickSettingsPopup"),
+   QStringLiteral("taskbarStartButton"),QStringLiteral("taskbarSearchButton"),QStringLiteral("taskbarLinuxButton"),
+   QStringLiteral("taskbarPackagesButton"),QStringLiteral("taskbarFilesButton"),QStringLiteral("taskbarSettingsButton"),
+   QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton")};
+  for(const QString &name:requiredControls){
+   if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
