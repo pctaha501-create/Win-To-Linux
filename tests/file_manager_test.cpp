@@ -17,6 +17,9 @@ int main(int argc,char **argv){
  file.write("hello");file.close();
  FileManager manager;
  if(!expect(manager.navigate(temporary.path()),"navigate to readable directory"))return 1;
+ if(!expect(manager.goHome(),"navigate to user home directory"))return 1;
+ if(!expect(manager.currentPath()==QFileInfo(QDir::homePath()).canonicalFilePath(),"home path is canonical"))return 1;
+ if(!expect(manager.navigate(temporary.path()),"return to test fixture directory"))return 1;
  if(!expect(manager.entries().size()==2,"list folder and file"))return 1;
  bool foundFolder=false,foundFile=false;
  for(const QVariant &entry:manager.entries()){

@@ -39,6 +39,7 @@ QVariantList FileManager::entries()const{return m_entries;}
 QString FileManager::status()const{return m_status;}
 bool FileManager::canGoUp()const{return QDir(m_currentPath).absolutePath()!=QDir::rootPath();}
 void FileManager::setStatus(const QString&s){if(m_status==s)return;m_status=s;emit statusChanged();}
+bool FileManager::goHome(){return navigate(QDir::homePath());}
 bool FileManager::navigate(const QString&path){
  QFileInfo info(path);
  if(!info.exists()||!info.isDir()||!info.isReadable()){setStatus(QStringLiteral("Cannot open directory: %1").arg(path));return false;}

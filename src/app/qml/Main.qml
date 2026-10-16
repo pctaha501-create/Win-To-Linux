@@ -230,7 +230,7 @@ ApplicationWindow {
           Label { text: modelData.glyph; color: "white"; font.pixelSize: 23; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
           Label { text: modelData.label; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; Layout.fillWidth: true }
          }
-         onClicked: { win.page=modelData.page; if(modelData.label==="This PC")fileManager.navigate("/"); if(modelData.label==="Home")fileManager.refresh(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+         onClicked: { win.page=modelData.page; if(modelData.label==="This PC")fileManager.navigate("/"); if(modelData.label==="Home")fileManager.goHome(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
         }
        }
       }
