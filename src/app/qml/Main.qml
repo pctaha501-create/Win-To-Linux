@@ -334,6 +334,7 @@ ApplicationWindow {
      RowLayout {
       Layout.fillWidth: true; spacing: 8
       TextField { id: processSearch; Layout.fillWidth: true; placeholderText: "Search process name, PID, or PPID"; selectByMouse: true }
+      ComboBox { id: processSort; model: ["Name", "CPU", "RAM"]; implicitWidth: 105; accessibleName: "Sort processes" }
       Button { text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
      }
      ListView {
@@ -343,6 +344,10 @@ ApplicationWindow {
        return query.length === 0 || process.name.toLowerCase().indexOf(query) !== -1
          || String(process.pid).indexOf(query) !== -1
          || String(process.parentPid).indexOf(query) !== -1
+      }).sort(function(a, b) {
+       if (processSort.currentIndex === 1) return b.cpuPercent - a.cpuPercent
+       if (processSort.currentIndex === 2) return b.memoryKiB - a.memoryKiB
+       return a.name.localeCompare(b.name)
       })
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 52; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
