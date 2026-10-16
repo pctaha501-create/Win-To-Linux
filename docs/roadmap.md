@@ -28,7 +28,7 @@
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
-- [ ] Full application build/test matrix across Ubuntu, Fedora, Arch, and openSUSE (workflow added; first run pending)
+- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed on commit `312b0611976f3117628076e9e2971cb06ca4fbf8`
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [ ] Full compositor/session launcher with recovery and a supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
