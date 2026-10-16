@@ -8,7 +8,7 @@
 4. In the host browser, press **Share screen** and explicitly select the screen, window, or tab. The browser owns the permission prompt; Win-To-Linux does not bypass it.
 5. Add `https://mcp.the-end.shop/mcp` to an AI client that supports remote MCP and complete its normal OAuth sign-in.
 6. Press **Copy AI connection details** and give those details only to the intended AI client. The current snapshot tool is `get_screen_snapshot`, with the session ID and viewer token.
-7. Stop sharing from the host browser when done.
+7. Stop sharing from the host browser when done. You can also press **End session** in Win-To-Linux to revoke the host/viewer tokens and remove the stored snapshot.
 
 ## Service architecture
 
@@ -19,6 +19,7 @@
 
 ## Security boundaries
 
+- Sessions expire after 60 minutes. The Screen Share Worker closes active WebSockets and clears stored snapshots and tokens when the session expires.
 - The desktop client accepts only HTTPS links on the expected `screen-share.the-end.shop` host, and opens the MCP endpoint only on `mcp.the-end.shop`.
 - Creating a session does not start capture. The host browser must explicitly grant screen capture.
 - Session links and viewer tokens are credentials. Do not post them in public chats or issue trackers.

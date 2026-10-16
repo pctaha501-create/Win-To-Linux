@@ -78,6 +78,7 @@ Win-To-Linux includes an **AI Screen Share** section that creates a private sess
 - Screen-share session API: `https://screen-share.the-end.shop/api/sessions`
 - MCP tools: `create_screen_share_session`, `get_screen_share_status`, and `get_screen_snapshot`
 - Only browser-approved screen capture is shared; the desktop app does not silently start capture or send keyboard/mouse input.
-- The viewer token is a credential. Copy it only into an AI client you trust, and stop sharing in the host browser when finished.
+- Sessions expire after 60 minutes. **End session** revokes the tokens and stored snapshot; also stop sharing in the host browser when finished.
+- The viewer token is a credential. Copy it only into an AI client you trust.
 
 See [AI Screen Share setup and security](docs/ai-screen-share.md). The MCP endpoint requires its normal OAuth sign-in; creating a desktop session does not automatically configure a third-party AI client.

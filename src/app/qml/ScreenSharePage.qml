@@ -91,12 +91,14 @@ Item {
                         Layout.fillWidth: true; spacing: 8
                         Button { text: "Open host page"; onClicked: controller.openHostLink() }
                         Button { text: "Copy host link"; onClicked: controller.copyText(controller.hostUrl) }
+                        Button { text: "End session"; enabled: !controller.busy; onClicked: controller.endSession() }
                     }
                     TextField {
                         visible: controller.ready
                         Layout.fillWidth: true; readOnly: true; selectByMouse: true
                         text: controller.hostUrl; placeholderText: "Host link appears after session creation"
                     }
+                    Label { visible: controller.ready; text: "Session expiry (UTC): " + controller.expiresAt; color: page.cardMuted; font.pixelSize: 10 }
                     Label {
                         visible: controller.ready; Layout.fillWidth: true
                         text: "Open the host page on the computer whose screen you want to share. Press Share screen in the browser and choose the screen/window/tab yourself."

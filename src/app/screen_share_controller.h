@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QNetworkAccessManager>
+#include <QTimer>
 #include <QString>
 
 class ScreenShareController final : public QObject {
@@ -12,6 +13,7 @@ class ScreenShareController final : public QObject {
     Q_PROPERTY(QString sessionId READ sessionId NOTIFY stateChanged)
     Q_PROPERTY(QString hostUrl READ hostUrl NOTIFY stateChanged)
     Q_PROPERTY(QString viewerUrl READ viewerUrl NOTIFY stateChanged)
+    Q_PROPERTY(QString expiresAt READ expiresAt NOTIFY stateChanged)
     Q_PROPERTY(QString mcpEndpoint READ mcpEndpoint CONSTANT)
 
 public:
@@ -23,9 +25,11 @@ public:
     QString sessionId() const;
     QString hostUrl() const;
     QString viewerUrl() const;
+    QString expiresAt() const;
     QString mcpEndpoint() const;
 
     Q_INVOKABLE void createMcp();
+    Q_INVOKABLE void endSession();
     Q_INVOKABLE void openHostLink();
     Q_INVOKABLE void openViewerLink();
     Q_INVOKABLE void openMcpEndpoint();
@@ -45,5 +49,7 @@ private:
     QString m_hostUrl;
     QString m_viewerUrl;
     QString m_viewerToken;
+    QString m_expiresAt;
+    QTimer m_expiryTimer;
     bool m_busy = false;
 };

@@ -1,6 +1,7 @@
 #include "screen_share_controller.h"
 
 #include <QClipboard>
+#include <QDateTime>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QJsonDocument>
@@ -27,6 +28,11 @@ bool safeServiceUrl(const QString &value, const QString &host)
 ScreenShareController::ScreenShareController(QObject *parent)
     : QObject(parent)
 {
+    m_expiryTimer.setSingleShot(true);
+    connect(&m_expiryTimer, &QTimer::timeout, this, [this]() {
+        m_sessionId.clear(); m_hostUrl.clear(); m_viewerUrl.clear(); m_viewerToken.clear(); m_expiresAt.clear();
+        setStatus(QStringLiteral("The screen-share session expired. Create a new session to reconnect."));
+    });
 }
 
 QString ScreenShareController::status() const { return m_status; }
@@ -35,6 +41,7 @@ bool ScreenShareController::ready() const { return !m_sessionId.isEmpty() && !m_
 QString ScreenShareController::sessionId() const { return m_sessionId; }
 QString ScreenShareController::hostUrl() const { return m_hostUrl; }
 QString ScreenShareController::viewerUrl() const { return m_viewerUrl; }
+QString ScreenShareController::expiresAt() const { return m_expiresAt; }
 QString ScreenShareController::mcpEndpoint() const { return mcpUrl; }
 
 void ScreenShareController::setStatus(const QString &status)
@@ -81,6 +88,8 @@ void ScreenShareController::createMcp()
         const QString hostUrl = json.value(QStringLiteral("hostUrl")).toString();
         const QString viewerUrl = json.value(QStringLiteral("viewerUrl")).toString();
         const QString viewerToken = json.value(QStringLiteral("viewerToken")).toString();
+        const QString expiresAt = json.value(QStringLiteral("expiresAt")).toString();
+        const QDateTime expiry = QDateTime::fromString(expiresAt, Qt::ISODateWithMs);
         const QUrl host(hostUrl);
         const QUrl viewer(viewerUrl);
         const QUrlQuery hostQuery(host);
@@ -92,7 +101,8 @@ void ScreenShareController::createMcp()
             && !hostQuery.queryItemValue(QStringLiteral("token")).isEmpty()
             && viewerQuery.queryItemValue(QStringLiteral("token")) == viewerToken;
         if (!json.value(QStringLiteral("ok")).toBool() || sessionId.isEmpty()
-            || sessionId.size() > 100 || viewerToken.size() < 32 || !urlsMatchSession
+            || sessionId.size() > 100 || viewerToken.size() < 32 || !expiry.isValid()
+            || expiry <= QDateTime::currentDateTimeUtc() || !urlsMatchSession
             || !safeServiceUrl(hostUrl, QStringLiteral("screen-share.the-end.shop"))
             || !safeServiceUrl(viewerUrl, QStringLiteral("screen-share.the-end.shop"))) {
             setStatus(QStringLiteral("The service response failed security validation; no link was accepted."));
@@ -103,7 +113,46 @@ void ScreenShareController::createMcp()
         m_hostUrl = hostUrl;
         m_viewerUrl = viewerUrl;
         m_viewerToken = viewerToken;
-        setStatus(QStringLiteral("Session created. Open the host link and explicitly approve screen sharing."));
+        m_expiresAt = expiry.toUTC().toString(Qt::ISODateWithMs);
+        m_expiryTimer.start(static_cast<int>(qMin<qint64>(expiry.toMSecsSinceEpoch() - QDateTime::currentDateTimeUtc().toMSecsSinceEpoch(), 3600000)));
+        setStatus(QStringLiteral("Session created. It expires in 60 minutes; open the host link and explicitly approve screen sharing."));
+    });
+}
+
+void ScreenShareController::endSession()
+{
+    if (m_busy) return;
+    if (m_sessionId.isEmpty() || m_hostUrl.isEmpty()) {
+        setStatus(QStringLiteral("There is no active session to end."));
+        return;
+    }
+    const QUrl host(m_hostUrl);
+    const QUrlQuery hostQuery(host);
+    const QString hostToken = hostQuery.queryItemValue(QStringLiteral("token"));
+    if (hostToken.isEmpty() || QUuid::fromString(m_sessionId).isNull()) {
+        setStatus(QStringLiteral("Could not validate the active session credentials."));
+        return;
+    }
+    QUrl revokeUrl(QStringLiteral("https://screen-share.the-end.shop/api/sessions/") + m_sessionId + QStringLiteral("/revoke"));
+    QUrlQuery query; query.addQueryItem(QStringLiteral("token"), hostToken); revokeUrl.setQuery(query);
+    QNetworkRequest request(revokeUrl);
+    request.setRawHeader("Accept", "application/json");
+    request.setRawHeader("User-Agent", "Win-To-Linux/0.2.0");
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute, QNetworkRequest::NoLessSafeRedirectPolicy);
+    m_busy = true; m_status = QStringLiteral("Ending session and revoking its tokens…"); emit stateChanged();
+    QNetworkReply *reply = m_network.post(request, QByteArray{});
+    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
+        const int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        const auto networkError = reply->error();
+        const QString errorText = reply->errorString();
+        reply->deleteLater(); m_busy = false;
+        if ((networkError == QNetworkReply::NoError && httpStatus >= 200 && httpStatus < 300) || httpStatus == 410) {
+            m_expiryTimer.stop(); m_sessionId.clear(); m_hostUrl.clear(); m_viewerUrl.clear(); m_viewerToken.clear(); m_expiresAt.clear();
+            setStatus(QStringLiteral("Session ended. Its tokens and stored snapshot have been revoked."));
+            return;
+        }
+        setStatus(QStringLiteral("Could not confirm session revocation (HTTP %1). Retry or stop sharing from the host browser.")
+                      .arg(httpStatus ? QString::number(httpStatus) : errorText));
     });
 }
 
@@ -157,10 +206,11 @@ QString ScreenShareController::connectionInstructions() const
     return QStringLiteral(
         "MCP endpoint: %1\n"
         "Session ID: %2\n"
+        "Session expiry (UTC): %4\n"
         "Tool: get_screen_snapshot\n"
         "Token: %3\n\n"
         "First open the host link on the sharing computer and explicitly approve screen capture. "
         "Then connect the AI client to the MCP endpoint, finish OAuth sign-in, and call get_screen_snapshot "
         "with the Session ID and Token above. This token grants access to snapshots for this session; do not share it publicly.")
-        .arg(mcpUrl, m_sessionId, m_viewerToken);
+        .arg(mcpUrl, m_sessionId, m_viewerToken, m_expiresAt);
 }
