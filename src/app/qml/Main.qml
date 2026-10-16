@@ -12,7 +12,12 @@ ApplicationWindow {
  property string pendingWindowsFile: ""
  property string startSearch: ""
  property string toastMessage: ""
- function showToast(message) { toastMessage = message; toastTimer.restart() }
+ property var notifications: []
+ function showToast(message) {
+  toastMessage = message
+  notifications = [{message: message, time: Qt.formatDateTime(new Date(), "hh:mm")}].concat(notifications).slice(0, 8)
+  toastTimer.restart()
+ }
  property string clockText: Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm")
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
@@ -182,6 +187,37 @@ ApplicationWindow {
  Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
  Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
  Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
+ Popup {
+  id: notificationCenter
+  width: 360; height: 390; modal: false; focus: true
+  x: Math.max(8, win.width - width - 12)
+  y: Math.max(8, win.height - height - 82)
+  closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+  background: Rectangle { radius: 16; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
+  contentItem: ColumnLayout {
+   anchors.fill: parent; anchors.margins: 16; spacing: 10
+   RowLayout {
+    Layout.fillWidth: true
+    Label { text: "Notifications"; color: win.fg; font.pixelSize: 18; font.bold: true; Layout.fillWidth: true }
+    Button { text: "Clear all"; enabled: win.notifications.length > 0; onClicked: win.notifications = [] }
+   }
+   Label { visible: win.notifications.length === 0; Layout.fillWidth: true; Layout.fillHeight: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; text: "You're all caught up"; color: win.muted }
+   ListView {
+    Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 6
+    model: win.notifications
+    delegate: Rectangle {
+     required property var modelData
+     width: ListView.view.width; height: notificationText.implicitHeight + 30; radius: 10
+     color: win.panel; border.color: win.borderColor
+     ColumnLayout {
+      anchors.fill: parent; anchors.margins: 10; spacing: 4
+      RowLayout { Layout.fillWidth: true; Label { text: "Win-To-Linux"; color: win.fg; font.bold: true; Layout.fillWidth: true } Label { text: modelData.time; color: win.muted; font.pixelSize: 10 } }
+      Label { id: notificationText; Layout.fillWidth: true; text: modelData.message; color: win.muted; wrapMode: Text.WordWrap }
+     }
+    }
+   }
+  }
+ }
  Rectangle {
   z: 1000
   visible: win.toastMessage.length > 0
@@ -452,6 +488,7 @@ ApplicationWindow {
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
+     Button { text: "♧"; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
      Button { text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
