@@ -17,7 +17,8 @@ ApplicationWindow {
  readonly property color panel: light ? "#ffffff" : "#191f29"
  readonly property color borderColor: light ? "#dce2eb" : "#2b3340"
  header: Rectangle {
-  height: 62; color: win.panel; border.color: win.borderColor
+  visible: win.page !== 0
+  height: visible ? 62 : 0; color: win.panel; border.color: win.borderColor
   RowLayout { anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
    Rectangle { width: 34; height: 34; radius: 9; color: "#5b8cff"; Text { anchors.centerIn: parent; text: "W"; color: "white"; font.bold: true; font.pixelSize: 20 } }
    ColumnLayout { spacing: 0; Label { text: "Win-To-Linux"; color: win.fg; font.bold: true; font.pixelSize: 17 } Label { text: "Linux desktop workspace"; color: win.muted; font.pixelSize: 11 } }
@@ -193,8 +194,9 @@ ApplicationWindow {
    }
   }
   ColumnLayout {
-   Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: 24; spacing: 15
+   Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: win.page === 0 ? 0 : 24; spacing: win.page === 0 ? 0 : 15
    RowLayout {
+    visible: win.page !== 0
     Layout.fillWidth: true
     ColumnLayout { spacing: 2
      Label { text: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files"][win.page]; color: win.fg; font.pixelSize: 26; font.bold: true }
@@ -207,35 +209,31 @@ ApplicationWindow {
    }
    StackLayout {
     Layout.fillWidth: true; Layout.fillHeight: true; currentIndex: win.page
-    Flickable {
-     clip: true; contentWidth: width; contentHeight: dash.implicitHeight
-     ColumnLayout { id: dash; width: parent.width; spacing: 14
-      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 160; radius: 16; gradient: Gradient { GradientStop { position: 0; color: "#315b9a" } GradientStop { position: 1; color: "#222c48" } }
-       ColumnLayout { anchors.fill: parent; anchors.margins: 22; spacing: 8
-        Label { text: "A familiar desktop. Your Linux system."; color: "white"; font.pixelSize: 22; font.bold: true; wrapMode: Text.WordWrap }
-        Label { text: "Keep your native distribution and tools, with a consistent workspace on top."; color: "#e2eaff"; wrapMode: Text.WordWrap }
-        Item { Layout.fillHeight: true }
-        Button { text: "Browse applications"; onClicked: { win.page=1; systemInfo.refreshApplications() } }
-       }
-      }
-      GridLayout { Layout.fillWidth: true; columns: width>720?3:2; columnSpacing: 12; rowSpacing: 12
-       Repeater { model: [{t:"Distribution",v:systemInfo.distribution,d:"Detected host"},{t:"Package manager",v:systemInfo.packageManager,d:systemInfo.managerAvailable?"Executable found":"Not available"},{t:"Native tools",v:String(systemInfo.nativeTools.length),d:"Commands found on PATH"},{t:"Desktop apps",v:String(systemInfo.applications.length),d:"Entries discovered"}]
-        delegate: Rectangle { required property var modelData; Layout.fillWidth: true; Layout.preferredHeight: 105; radius: 12; color: win.panel; border.color: win.borderColor
-         ColumnLayout { anchors.fill: parent; anchors.margins: 15; spacing: 7
-          Label { text: modelData.t; color: win.muted; font.pixelSize: 11 }
-          Label { text: modelData.v; color: win.fg; font.pixelSize: 17; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
-          Label { text: modelData.d; color: win.muted; font.pixelSize: 10 }
-         }
+    Item {
+     Layout.fillWidth: true; Layout.fillHeight: true; clip: true
+     Rectangle { anchors.fill: parent; gradient: Gradient { GradientStop { position: 0; color: "#061632" } GradientStop { position: 0.55; color: "#0c3470" } GradientStop { position: 1; color: "#071a3c" } } }
+     Rectangle { x: parent.width*0.37; y: parent.height*0.04; width: parent.width*0.62; height: parent.height*0.88; radius: width/2; rotation: -24; opacity: 0.9; gradient: Gradient { GradientStop { position: 0; color: "#6bb8ff" } GradientStop { position: 0.55; color: "#2469d2" } GradientStop { position: 1; color: "#143b91" } } }
+     Rectangle { x: parent.width*0.52; y: parent.height*0.23; width: parent.width*0.49; height: parent.height*0.68; radius: width/2; rotation: 20; opacity: 0.88; gradient: Gradient { GradientStop { position: 0; color: "#d0e7ff" } GradientStop { position: 0.28; color: "#5799f5" } GradientStop { position: 1; color: "#2049ae" } } }
+     Rectangle { x: parent.width*0.48; y: parent.height*0.36; width: parent.width*0.45; height: parent.height*0.50; radius: width/2; rotation: -12; opacity: 0.72; gradient: Gradient { GradientStop { position: 0; color: "#76c6ff" } GradientStop { position: 1; color: "#17428f" } } }
+     GridLayout {
+      anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 14
+      columns: 1; rowSpacing: 8
+      Repeater {
+       model: [{label:"This PC",glyph:"▣",page:2},{label:"Home",glyph:"⌂",page:7},{label:"Applications",glyph:"▦",page:1},{label:"Packages",glyph:"▤",page:3},{label:"Settings",glyph:"⚙",page:4},{label:"Task Manager",glyph:"▥",page:5},{label:"Windows apps",glyph:"▣",page:6}]
+       delegate: Button {
+        required property var modelData
+        Layout.preferredWidth: 82; Layout.preferredHeight: 78; padding: 4
+        background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
+        contentItem: ColumnLayout {
+         spacing: 4
+         Label { text: modelData.glyph; color: "white"; font.pixelSize: 27; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
+         Label { text: modelData.label; color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; Layout.fillWidth: true }
         }
-       }
-      }
-      Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 90; radius: 12; color: win.panel; border.color: win.borderColor
-       ColumnLayout { anchors.fill: parent; anchors.margins: 15; spacing: 5
-        Label { text: "Safety boundary"; color: win.fg; font.bold: true }
-        Label { text: "This preview does not replace your login session. System package changes require explicit confirmation."; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true }
+        onClicked: { win.page=modelData.page; if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
        }
       }
      }
+     Label { anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 18; text: "Win-To-Linux"; color: "#c8ddff"; opacity: 0.7; font.pixelSize: 12 }
     }
     ColumnLayout {
      spacing: 10
