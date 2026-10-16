@@ -1,0 +1,66 @@
+name: Linux release package
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build, runtime, and nested-session test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev \
+            qt6-declarative-dev-tools qt6-wayland \
+            qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript \
+            qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates \
+            qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs \
+            weston xwayland wayland-utils x11-utils xauth
+      - name: Build and run tests
+        run: |
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+          cmake --build build --parallel 2
+          ctest --test-dir build --timeout 45 --output-on-failure
+      - name: Stage versioned portable install archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n 's/^project(Win-To-Linux VERSION \([^ ]*\).*/\1/p' CMakeLists.txt | head -n1)"
+          test -n "$VERSION"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            test "${GITHUB_REF_NAME#v}" = "$VERSION" || { echo "Tag $GITHUB_REF_NAME does not match CMake version $VERSION" >&2; exit 1; }
+          fi
+          mkdir -p stage/usr/share/doc/win-to-linux
+          cmake --install build --prefix "$PWD/stage/usr"
+          install -m 0644 README.md stage/usr/share/doc/win-to-linux/README.md
+          cp -R docs stage/usr/share/doc/win-to-linux/
+          ARCHIVE="win-to-linux-${VERSION}-linux-x86_64.tar.gz"
+          tar -C stage -czf "$ARCHIVE" usr
+          sha256sum "$ARCHIVE" > "$ARCHIVE.sha256"
+          printf 'Package version: %s\nArchive: %s\n' "$VERSION" "$ARCHIVE"
+          cat "$ARCHIVE.sha256"
+      - name: Upload portable package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: win-to-linux-linux-x86_64
+          path: |
+            win-to-linux-*-linux-x86_64.tar.gz
+            win-to-linux-*-linux-x86_64.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish tagged GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            win-to-linux-*-linux-x86_64.tar.gz
+            win-to-linux-*-linux-x86_64.tar.gz.sha256
+          generate_release_notes: true
