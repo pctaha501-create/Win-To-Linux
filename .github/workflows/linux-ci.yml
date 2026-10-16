@@ -21,6 +21,8 @@ jobs:
             exit 1
           fi
           grep -q "WAYLAND_DISPLAY is not set" "$RUNNER_TEMP/isolated-preview.log"
+      - name: Test isolated preview launch and preflight refusal paths
+        run: sh tests/isolated_preview_test.sh
       - name: Install dependencies
         run: |
           sudo apt-get update
