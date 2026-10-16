@@ -31,13 +31,15 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs weston wayland-utils xwayland x11-utils xauth
+          sudo apt-get install --no-install-recommends -y build-essential cmake ninja-build qt6-base-dev qt6-wayland qt6-declarative-dev qt6-declarative-dev-tools qml6-module-qtqml qml6-module-qtqml-models qml6-module-qtqml-workerscript qml6-module-qtquick qml6-module-qtquick-controls qml6-module-qtquick-templates qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtquick-dialogs weston wayland-utils xwayland x11-utils xauth
       - name: Test nested Weston backend without physical display access
         run: sh tests/weston_nested_smoke.sh
       - name: Configure
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Build
         run: cmake --build build --parallel 2
+      - name: Smoke-test the actual Qt shell inside nested Wayland
+        run: WTL_APP_BIN="$PWD/build/src/app/win-to-linux" sh tests/weston_nested_smoke.sh
       - name: Test
         run: ctest --test-dir build --output-on-failure
       - name: Smoke-test Qt Quick desktop startup

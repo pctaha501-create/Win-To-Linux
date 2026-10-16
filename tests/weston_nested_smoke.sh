@@ -5,6 +5,7 @@ TMP=$(mktemp -d)
 parent_pid=
 nested_pid=
 cleanup() {
+    if [ -n "${app_pid:-}" ]; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
     if [ -n "$nested_pid" ]; then kill "$nested_pid" >/dev/null 2>&1 || true; wait "$nested_pid" >/dev/null 2>&1 || true; fi
     if [ -n "$parent_pid" ]; then kill "$parent_pid" >/dev/null 2>&1 || true; wait "$parent_pid" >/dev/null 2>&1 || true; fi
     rm -rf -- "$TMP"
@@ -108,6 +109,24 @@ if [ "$x11_client_status" -ne 0 ]; then
     exit 1
 fi
 grep -q 'name of display' "$TMP/x11-client.log" || { cat "$TMP/x11-client.log" >&2; exit 1; }
+if [ -n "${WTL_APP_BIN:-}" ]; then
+    [ -x "$WTL_APP_BIN" ] || { echo "WTL_APP_BIN is not executable: $WTL_APP_BIN" >&2; exit 1; }
+    set +e
+    env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH \
+        XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY=wayland-nested XDG_RUNTIME_DIR="$runtime" \
+        QT_QPA_PLATFORM=wayland QT_QUICK_BACKEND=software timeout 8s "$WTL_APP_BIN" --maximized >"$TMP/wtl-shell.log" 2>&1
+    shell_status=$?
+    set -e
+    if [ "$shell_status" -ne 124 ]; then
+        cat "$TMP/nested.log" "$TMP/wtl-shell.log" >&2
+        echo "Win-To-Linux did not remain running inside nested Wayland (exit $shell_status)." >&2
+        exit 1
+    fi
+    if grep -E 'QQmlApplicationEngine failed to load component|Type .* unavailable|ReferenceError:|Could not load the Qt platform plugin|Failed to create .*window' "$TMP/wtl-shell.log"; then
+        cat "$TMP/wtl-shell.log" >&2
+        exit 1
+    fi
+fi
 kill "$nested_pid" >/dev/null 2>&1 || true
 wait "$nested_pid" >/dev/null 2>&1 || true
 nested_pid=
