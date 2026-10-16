@@ -181,36 +181,105 @@ ApplicationWindow {
     visible: win.startSearch.trim().length > 0
     Layout.fillWidth: true; spacing: 2
     Button {
-     objectName: "startSearchSection_4"
-     visible: win.startSearch.trim().toLowerCase().indexOf("settings") !== -1 || "appearance and diagnostics".indexOf(win.startSearch.trim().toLowerCase()) !== -1
+     objectName: "startSearchSection_-1"
+     visible: win.startSearch.trim().length > 0 && ("terminal".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "open installed terminal emulator".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
      Layout.fillWidth: true; implicitHeight: 40; flat: true
      background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
      contentItem: RowLayout { spacing: 10
-      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "⚙"; color: "white"; font.bold: true } }
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
       ColumnLayout { spacing: 0; Layout.fillWidth: true
-       Label { text: "Settings"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
-       Label { text: "Appearance and diagnostics"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+       Label { text: "Terminal"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "Open installed terminal emulator"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
       }
      }
-     onClicked: { win.page = 4; startMenu.close() }
+     onClicked: {
+      if(-1 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = -1; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
     }
-    Repeater {
-     model: [{label:"Terminal",comment:"Open installed terminal emulator",page:-1},{label:"Linux System",comment:"System and distribution details",page:2},{label:"Package Manager",comment:"Install or remove packages",page:3},{label:"Files",comment:"Browse folders and files",page:7},{label:"Processes",comment:"Task Manager and process list",page:5},{label:"Windows Apps",comment:"Run compatible EXE/MSI files",page:6}]
-     delegate: Button {
-      required property var modelData
-      objectName: "startSearchSection_" + modelData.page
-      visible: win.startSearch.trim().length > 0 && (modelData.label.toLowerCase().indexOf(win.startSearch.trim().toLowerCase()) !== -1 || modelData.comment.toLowerCase().indexOf(win.startSearch.trim().toLowerCase()) !== -1)
-      Layout.fillWidth: true; implicitHeight: 40; flat: true
-      background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
-      contentItem: RowLayout {
-       spacing: 10
-       Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
-       ColumnLayout { spacing: 0; Layout.fillWidth: true
-        Label { text: modelData.label; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
-        Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
-       }
+    Button {
+     objectName: "startSearchSection_2"
+     visible: win.startSearch.trim().length > 0 && ("linux system".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "system and distribution details".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 0; Layout.fillWidth: true
+       Label { text: "Linux System"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "System and distribution details"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
       }
-      onClicked: { if(modelData.label==="Terminal") { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) } else { win.page = modelData.page; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() } }
+     }
+     onClicked: {
+      if(2 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = 2; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+    Button {
+     objectName: "startSearchSection_3"
+     visible: win.startSearch.trim().length > 0 && ("package manager".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "install or remove packages".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 0; Layout.fillWidth: true
+       Label { text: "Package Manager"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "Install or remove packages"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+      }
+     }
+     onClicked: {
+      if(3 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = 3; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+    Button {
+     objectName: "startSearchSection_7"
+     visible: win.startSearch.trim().length > 0 && ("files".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "browse folders and files".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 0; Layout.fillWidth: true
+       Label { text: "Files"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "Browse folders and files"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+      }
+     }
+     onClicked: {
+      if(7 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = 7; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+    Button {
+     objectName: "startSearchSection_5"
+     visible: win.startSearch.trim().length > 0 && ("processes".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "task manager and process list".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 0; Layout.fillWidth: true
+       Label { text: "Processes"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "Task Manager and process list"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+      }
+     }
+     onClicked: {
+      if(5 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = 5; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+     }
+    }
+    Button {
+     objectName: "startSearchSection_6"
+     visible: win.startSearch.trim().length > 0 && ("windows apps".indexOf(win.startSearch.trim().toLowerCase()) !== -1 || "run compatible exe/msi files".indexOf(win.startSearch.trim().toLowerCase()) !== -1)
+     Layout.fillWidth: true; implicitHeight: 40; flat: true
+     background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
+     contentItem: RowLayout { spacing: 10
+      Rectangle { width: 28; height: 28; radius: 7; color: "#315f9e"; Label { anchors.centerIn: parent; text: "›"; color: "white"; font.bold: true } }
+      ColumnLayout { spacing: 0; Layout.fillWidth: true
+       Label { text: "Windows Apps"; color: win.fg; font.pixelSize: 12; Layout.fillWidth: true }
+       Label { text: "Run compatible EXE/MSI files"; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true }
+      }
+     }
+     onClicked: {
+      if(6 === -1) { systemInfo.launchTerminal(); startMenu.close(); win.showToast(systemInfo.status) }
+      else { win.page = 6; startMenu.close(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
      }
     }
    }
