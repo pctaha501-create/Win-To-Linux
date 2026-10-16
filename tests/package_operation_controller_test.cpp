@@ -1,6 +1,7 @@
 #include "package_operation_controller.h"
 #include <QCoreApplication>
 #include <QDebug>
+#include <QTemporaryDir>
 namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
 int main(int argc,char **argv){
  QCoreApplication app(argc,argv);
@@ -12,5 +13,12 @@ int main(int argc,char **argv){
  if(!expect(!controller.removePackage(QStringLiteral("../important")),"reject path-like remove name"))return 1;
  if(!expect(!controller.running(),"invalid remove never starts a process"))return 1;
  if(!expect(controller.status().contains(QStringLiteral("Invalid package name")),"remove rejection explains validation failure"))return 1;
+ QTemporaryDir emptyPath;
+ if(!expect(emptyPath.isValid(),"create isolated empty PATH"))return 1;
+ const QByteArray originalPath=qgetenv("PATH");qputenv("PATH",emptyPath.path().toLocal8Bit());
+ const bool started=controller.checkUpdates();const QString missingHelperStatus=controller.status();qputenv("PATH",originalPath);
+ if(!expect(!started,"do not start package operation without pkexec"))return 1;
+ if(!expect(missingHelperStatus.contains(QStringLiteral("pkexec")),"missing PolicyKit helper has a specific actionable message"))return 1;
+ if(!expect(!controller.running(),"missing helper leaves controller idle"))return 1;
  qInfo()<<"Package operation controller validation tests passed";return 0;
 }

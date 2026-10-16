@@ -2,6 +2,8 @@
 #include "distro_detector.h"
 #include "package_command_planner.h"
 #include <QDir>
+#include <QFileInfo>
+#include <QStandardPaths>
 PackageOperationController::PackageOperationController(QObject *parent):QObject(parent),m_distro(wtl::DistroDetector::detect()){
  m_timeout.setSingleShot(true);m_killTimer.setSingleShot(true);
  connect(&m_timeout,&QTimer::timeout,this,[this](){if(!m_running)return;m_timedOut=true;setStatus(QStringLiteral("Operation timed out; asking the package manager to stop."));m_process.terminate();m_killTimer.start(1500);});
@@ -25,8 +27,21 @@ void PackageOperationController::appendOutput(const QString&value){
 bool PackageOperationController::startPlan(const QString&operation,const QString&program,const QStringList&arguments,int timeoutMs,bool supported,const QString&error){
  if(m_running){setStatus(QStringLiteral("Another package operation is already running."));return false;}
  if(!supported||program.isEmpty()){setStatus(error.isEmpty()?QStringLiteral("This operation is not supported on the detected system."):error);return false;}
+ QString executable;
+ const QFileInfo requested(program);
+ if(requested.isAbsolute()){
+  if(requested.isFile()&&requested.isExecutable())executable=requested.canonicalFilePath();
+ }else if(program.contains(QLatin1Char('/'))){
+  if(requested.isFile()&&requested.isExecutable())executable=requested.canonicalFilePath();
+ }else executable=QStandardPaths::findExecutable(program);
+ if(executable.isEmpty()){
+  const QString message=program==QStringLiteral("pkexec")
+   ?QStringLiteral("PolicyKit helper 'pkexec' was not found. Install polkit or use the host package manager.")
+   :QStringLiteral("Required executable '%1' was not found or is not executable.").arg(program);
+  setStatus(message);appendOutput(message+QLatin1Char('\n'));return false;
+ }
  m_operation=operation;m_output.clear();emit outputChanged();m_timedOut=false;m_cancelled=false;m_finalized=false;
- m_process.setProgram(program);m_process.setArguments(arguments);m_process.setWorkingDirectory(QDir::homePath());m_process.setProcessChannelMode(QProcess::SeparateChannels);
+ m_process.setProgram(executable);m_process.setArguments(arguments);m_process.setWorkingDirectory(QDir::homePath());m_process.setProcessChannelMode(QProcess::SeparateChannels);
  m_running=true;emit runningChanged();setStatus(QStringLiteral("%1 started.").arg(operation));m_timeout.start(qBound(1000,timeoutMs,180000));
  m_process.start();
  return true;
