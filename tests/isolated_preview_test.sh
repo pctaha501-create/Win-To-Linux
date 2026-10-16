@@ -47,6 +47,7 @@ cat > "$fakebin/weston" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$@" > "$WTL_WESTON_LOG"
 for arg in "$@"; do case "$arg" in --config=*) cat "${arg#--config=}" > "$WTL_WESTON_CONFIG_LOG" ;; esac; done
+if [ "${WTL_WESTON_FAIL:-0}" = 1 ]; then echo 'simulated unsupported nested backend' >&2; exit 1; fi
 socket_name=
 for arg in "$@"; do case "$arg" in --socket=*) socket_name=${arg#--socket=} ;; esac; done
 [ -n "$socket_name" ] || exit 3

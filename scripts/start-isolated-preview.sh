@@ -82,7 +82,14 @@ EOF
     done
     if [ ! -S "$socket_path" ]; then
         cat "$weston_log" >&2
-        fail "nested Weston did not create its Wayland socket."
+        if [ -n "$cage_bin" ]; then
+            printf 'Nested Weston failed to initialize; falling back to Cage without changing the host session.\n' >&2
+            cleanup_weston
+            weston_pid=
+            trap - EXIT HUP INT TERM
+            exec env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland "$cage_bin" -- "$app_bin" --fullscreen
+        fi
+        fail "nested Weston did not create its Wayland socket and Cage is unavailable."
     fi
     set +e
     env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
