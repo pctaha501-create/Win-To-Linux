@@ -71,9 +71,15 @@ Item {
                     }
                     Button {
                         objectName: "createMcpButton"
-                        text: controller.busy ? "Creating session…" : (controller.ready ? "Create another MCP session" : "Create MCP")
-                        enabled: !controller.busy
+                        text: controller.busy ? "Working…" : "Create MCP"
+                        enabled: !controller.busy && !controller.ready
                         onClicked: controller.createMcp()
+                    }
+                    Label {
+                        visible: controller.ready
+                        Layout.fillWidth: true
+                        text: "A session is already active. End it first to revoke its tokens before creating another."
+                        color: page.cardMuted; wrapMode: Text.WordWrap; font.pixelSize: 11
                     }
                 }
             }
