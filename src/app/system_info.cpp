@@ -4,6 +4,8 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
+#include <QCoreApplication>
+#include <QLibraryInfo>
 #include <QGuiApplication>
 #include <QClipboard>
 #include <QStringList>
@@ -19,13 +21,21 @@
 #include <algorithm>
 #include <unistd.h>
 #include <sys/stat.h>
+namespace {
+bool detectQtWaylandPlugin(){
+ QStringList roots=QCoreApplication::libraryPaths();roots.append(QLibraryInfo::path(QLibraryInfo::PluginsPath));
+ const QStringList names{QStringLiteral("libqwayland-generic.so"),QStringLiteral("libqwayland-egl.so")};
+ for(const QString &root:roots){const QDir platforms(QDir(root).filePath(QStringLiteral("platforms")));for(const QString &name:names)if(QFileInfo(platforms.filePath(name)).isFile())return true;}
+ return false;
+}
+}
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
- QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));discoverNativeTools();discoverSession();refreshApplications();
+ QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));m_qtWaylandPluginAvailable=detectQtWaylandPlugin();discoverNativeTools();discoverSession();refreshApplications();
 }
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
 QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;}
-QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;}
+QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;} bool SystemInfo::qtWaylandPluginAvailable()const{return m_qtWaylandPluginAvailable;}
 QString SystemInfo::previewReadiness()const{
  QStringList blockers;
  if(m_runtimeDirectory==QStringLiteral("Not set")||m_runtimeDirectoryStatus!=QStringLiteral("Directory exists and ownership/permissions look safe"))
@@ -39,6 +49,7 @@ QString SystemInfo::previewReadiness()const{
   if(::lstat(encodedSocket.constData(),&socketInfo)!=0||!S_ISSOCK(socketInfo.st_mode)||socketInfo.st_uid!=getuid())
    blockers.append(QStringLiteral("The configured Wayland socket is missing, is not a Unix socket, or is not owned by the current user: %1").arg(socketPath));
  }
+ if(!m_qtWaylandPluginAvailable)blockers.append(QStringLiteral("Qt Wayland platform plugin is missing; install the distribution's Qt Wayland runtime package (Ubuntu: qt6-wayland)"));
  const bool westonAvailable=!QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty();
  const bool cageAvailable=!QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty();
  if(!westonAvailable&&!cageAvailable)
@@ -60,6 +71,7 @@ QString SystemInfo::standaloneReadiness()const{
  struct stat runtimeInfo{};
  if(runtimeBytes.isEmpty()||::stat(runtimeBytes.constData(),&runtimeInfo)!=0||!S_ISDIR(runtimeInfo.st_mode)||runtimeInfo.st_uid!=getuid()||(runtimeInfo.st_mode&0077)!=0)blockers.append(QStringLiteral("XDG_RUNTIME_DIR is missing or is not a private directory owned by the current user"));
  if(QStandardPaths::findExecutable(QStringLiteral("weston")).isEmpty())blockers.append(QStringLiteral("Weston is not installed"));
+ if(!m_qtWaylandPluginAvailable)blockers.append(QStringLiteral("Qt Wayland platform plugin is missing; install the distribution's Qt Wayland runtime package (Ubuntu: qt6-wayland)"));
  const QString appPath=QCoreApplication::applicationFilePath();
  if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
  QDir drmDirectory(QStringLiteral("/dev/dri"));
@@ -80,7 +92,9 @@ QString SystemInfo::diagnosticReport()const{
   .arg(QString::number(m_availableCompositors.size()));
  QStringList compositorDetails;
  for(const QVariant &entry:m_availableCompositors){const QVariantMap item=entry.toMap();compositorDetails.append(QStringLiteral("%1: %2").arg(item.value(QStringLiteral("name")).toString(),item.value(QStringLiteral("path")).toString()));}
- return report + QStringLiteral("\nCompositor executables:\n%1\nNested preview readiness:\n%2").arg(compositorDetails.isEmpty()?QStringLiteral("None detected"):compositorDetails.join(QLatin1Char('\n')),previewReadiness());
+ return report + QStringLiteral("\nQt Wayland platform plugin: %1\nCompositor executables:\n%2\nNested preview readiness:\n%3")
+  .arg(m_qtWaylandPluginAvailable?QStringLiteral("available"):QStringLiteral("missing"))
+  .arg(compositorDetails.isEmpty()?QStringLiteral("None detected"):compositorDetails.join(QLatin1Char('\n')),previewReadiness());
 }
 void SystemInfo::copyDiagnosticReport()const{QGuiApplication::clipboard()->setText(diagnosticReport());}
 QVariantList SystemInfo::recentNotifications()const{QSettings settings;return settings.value(QStringLiteral("notifications/recent")).toList();}
