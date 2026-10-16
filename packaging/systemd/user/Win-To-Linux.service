@@ -3,13 +3,15 @@ Description=Win-To-Linux desktop shell preview (user session)
 Documentation=https://github.com/pctaha501-create/Win-To-Linux
 After=graphical-session.target
 PartOf=graphical-session.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
 Type=simple
 Environment=WTL_BIN=%h/.local/bin/win-to-linux
 ExecStart=%h/.local/bin/win-to-linux-isolated-preview
 Restart=on-failure
-RestartSec=2
+RestartSec=5
 TimeoutStopSec=5
 KillMode=mixed
 
