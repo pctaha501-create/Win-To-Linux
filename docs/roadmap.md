@@ -47,7 +47,7 @@
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait, child-only cleanup, and a watchdog that terminates the shell if the owned compositor exits (fake-backend CI only; not yet VM-certified)
-- [x] Fake-process regression tests cover Weston failure before socket creation and compositor crash after startup, including private-file cleanup
+- [x] Fake-process regression tests cover standalone and nested Weston failure before socket creation and compositor crash after startup; both supervisors terminate only their owned shell child and clean private runtime artifacts
 - [ ] Production compositor/login session, seat/input lifecycle, crash recovery, and supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Introduce a testable session-backend interface and explicit backend registry plus shared, pure Weston-DRM and nested-preview probes used by CLI/Settings diagnostics; test refusal prerequisites and unknown-backend rejection without opening DRM
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list

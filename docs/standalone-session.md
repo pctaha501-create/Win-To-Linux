@@ -2,7 +2,7 @@
 
 ## Current state
 
-Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isolated-preview.sh` prefers Weston with the nested Wayland backend, a unique socket, software rendering, and a private mode-0600 Weston config that keeps Weston’s native top panel available for window/workspace controls while Win-To-Linux provides its own bottom taskbar; if nested Weston cannot start, it falls back to Cage. Both paths require an existing user-owned Wayland socket and never start a compositor on physical DRM/KMS. This is not an independent compositor or login session.
+Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isolated-preview.sh` prefers Weston with the nested Wayland backend, a unique socket, software rendering, and a private mode-0600 Weston config that keeps Weston’s native top panel available for window/workspace controls while Win-To-Linux provides its own bottom taskbar; if nested Weston cannot start, it falls back to Cage. Both paths require an existing user-owned Wayland socket and never start a compositor on physical DRM/KMS. The Weston path supervises its owned shell child and terminates it if the nested compositor exits, then removes only its own temporary files. This is not an independent compositor or login session.
 
 ## Target architecture
 

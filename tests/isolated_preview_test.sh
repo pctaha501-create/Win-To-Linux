@@ -37,6 +37,7 @@ if [ "${1:-}" = "--preview-check" ]; then
     [ "${WTL_FAIL_PREFLIGHT:-0}" != 1 ] && exit 0
     exit 2
 fi
+if [ "${WTL_APP_HANG:-0}" = 1 ]; then exec sleep 30; fi
 exit 0
 EOF
 chmod +x "$fakebin/cage" "$TMP/fake-app"
@@ -61,6 +62,7 @@ for arg in "$@"; do case "$arg" in --socket=*) socket_name=${arg#--socket=} ;; e
 python3 -c 'import socket,sys,time; s=socket.socket(socket.AF_UNIX); s.bind(sys.argv[1]); print("ready",flush=True); time.sleep(30)' "$XDG_RUNTIME_DIR/$socket_name" &
 socket_pid=$!
 trap 'kill "$socket_pid" >/dev/null 2>&1 || true; wait "$socket_pid" >/dev/null 2>&1 || true; rm -f "$XDG_RUNTIME_DIR/$socket_name"' EXIT HUP INT TERM
+if [ "${WTL_WESTON_CRASH_AFTER_SOCKET:-0}" = 1 ]; then sleep 0.3; exit 0; fi
 wait "$socket_pid"
 EOF
 chmod +x "$fakebin/weston"
@@ -79,6 +81,20 @@ grep -q '^QT_QPA_PLATFORM_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q "^WAYLAND_DISPLAY=win-to-linux-$(id -u)-" "$WTL_APP_LOG"
 test ! -e "$WTL_CAGE_LOG"
+# A compositor crash after socket creation must terminate a hanging shell and clean private files.
+rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
+if timeout 8 env WTL_WESTON_CRASH_AFTER_SOCKET=1 WTL_APP_HANG=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/compositor-crash.log" 2>&1; then
+    echo 'Nested preview did not report a compositor crash.' >&2
+    exit 1
+else
+    crash_status=$?
+    [ "$crash_status" -ne 124 ] || { echo 'Nested compositor crash supervision timed out.' >&2; exit 1; }
+fi
+grep -q 'Nested Weston exited while Win-To-Linux was running' "$TMP/compositor-crash.log"
+if find "$runtime" -maxdepth 1 -name 'win-to-linux-preview-*' -print | grep -q .; then
+    echo 'Nested preview left a watchdog marker behind.' >&2
+    exit 1
+fi
 rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
 # If Weston lacks the nested Wayland backend, clean up and fall back to Cage.
 rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG" "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG"

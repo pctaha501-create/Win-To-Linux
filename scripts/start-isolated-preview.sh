@@ -82,9 +82,38 @@ watch=false
 EOF
     chmod 600 "$weston_config"
     weston_pid=
+    app_pid=
+    watchdog_pid=
+    watchdog_marker="$runtime_dir/win-to-linux-preview-$$.failed"
     cleanup_weston() {
+        if [ -n "$watchdog_pid" ]; then kill "$watchdog_pid" >/dev/null 2>&1 || true; wait "$watchdog_pid" >/dev/null 2>&1 || true; fi
+        if [ -n "$app_pid" ]; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
         if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
-        rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path"
+        rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path" "$watchdog_marker"
+    }
+    child_running() {
+        child_state=$(ps -o stat= -p "$1" 2>/dev/null | tr -d ' ')
+        [ -n "$child_state" ] || return 1
+        case "$child_state" in Z*|X*) return 1 ;; *) return 0 ;; esac
+    }
+    launch_supervised() {
+        "$@" &
+        app_pid=$!
+        (
+            while child_running "$weston_pid"; do sleep 0.2; done
+            if child_running "$app_pid"; then
+                printf '%s\n' 'Nested Weston exited while Win-To-Linux was running.' > "$watchdog_marker"
+                kill -TERM "$app_pid" >/dev/null 2>&1 || true
+            fi
+        ) &
+        watchdog_pid=$!
+        if wait "$app_pid"; then app_status=0; else app_status=$?; fi
+        app_pid=
+        kill "$watchdog_pid" >/dev/null 2>&1 || true
+        wait "$watchdog_pid" >/dev/null 2>&1 || true
+        watchdog_pid=
+        if [ -s "$watchdog_marker" ]; then cat "$watchdog_marker" >&2; return 2; fi
+        return "$app_status"
     }
     trap cleanup_weston EXIT HUP INT TERM
     printf 'Starting a nested Weston desktop with software rendering, a private config and a unique user socket. The host desktop and login manager will not be changed.\n'
@@ -127,20 +156,20 @@ EOF
         printf 'Nested XWayland display: %s\n' "$xwayland_display"
         if [ -n "$xwayland_authority" ]; then
             set +e
-            env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --maximized
+            launch_supervised env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --maximized
             app_status=$?
             set -e
         else
             printf 'Nested XWayland has no exported authority path; exposing only its DISPLAY and explicitly clearing host XAUTHORITY.\n' >&2
             set +e
-            env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --maximized
+            launch_supervised env -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" "$app_bin" --maximized
             app_status=$?
             set -e
         fi
     else
         printf 'Warning: nested XWayland environment was not captured; X11-only applications may not launch.\n' >&2
         set +e
-        env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
+        launch_supervised env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
         app_status=$?
         set -e
     fi
