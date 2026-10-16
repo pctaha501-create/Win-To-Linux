@@ -32,6 +32,9 @@ printf 'DISPLAY=%s\n' "${DISPLAY:-}" >> "$WTL_APP_LOG"
 printf 'XAUTHORITY=%s\n' "${XAUTHORITY:-}" >> "$WTL_APP_LOG"
 printf 'WAYLAND_DISPLAY=%s\n' "${WAYLAND_DISPLAY:-}" >> "$WTL_APP_LOG"
 printf 'XDG_SESSION_TYPE=%s\n' "${XDG_SESSION_TYPE:-}" >> "$WTL_APP_LOG"
+printf 'QT_QPA_PLATFORM=%s\n' "${QT_QPA_PLATFORM:-}" >> "$WTL_APP_LOG"
+printf 'QT_QPA_PLATFORM_PLUGIN_PATH=%s\n' "${QT_QPA_PLATFORM_PLUGIN_PATH:-}" >> "$WTL_APP_LOG"
+printf 'QT_PLUGIN_PATH=%s\n' "${QT_PLUGIN_PATH:-}" >> "$WTL_APP_LOG"
 printf '%s\n' "$*" >> "$WTL_APP_LOG"
 EOF
 chmod +x "$fakebin/tty" "$fakebin/weston" "$TMP/fake-app"
@@ -49,7 +52,7 @@ if env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=t
 grep -q 'accessible to other users' "$TMP/unsafe-runtime.log"
 test ! -e "$WTL_WESTON_LOG"
 chmod 700 "$runtime"
-env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
+env -u DISPLAY -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
 grep -q '^--backend=drm$' "$WTL_WESTON_LOG"
 grep -q '^--tty=9$' "$WTL_WESTON_LOG"
 grep -q '^--xwayland$' "$WTL_WESTON_LOG"
@@ -59,5 +62,8 @@ grep -q '^DISPLAY=:88$' "$WTL_APP_LOG"
 grep -q "^XAUTHORITY=$runtime/Xauthority$" "$WTL_APP_LOG"
 grep -q '^WAYLAND_DISPLAY=win-to-linux-session-' "$WTL_APP_LOG"
 grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM=$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM_PLUGIN_PATH=$' "$WTL_APP_LOG"
+grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q '^--maximized$' "$WTL_APP_LOG"
 printf '%s\n' 'Standalone-session preflight and supervised-launch tests passed.'

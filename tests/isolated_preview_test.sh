@@ -30,6 +30,8 @@ printf 'DISPLAY=%s\n' "${DISPLAY:-}" >> "$WTL_APP_LOG"
 printf 'XAUTHORITY=%s\n' "${XAUTHORITY:-}" >> "$WTL_APP_LOG"
 printf 'QT_QPA_PLATFORM=%s\n' "${QT_QPA_PLATFORM:-}" >> "$WTL_APP_LOG"
 printf 'XDG_SESSION_TYPE=%s\n' "${XDG_SESSION_TYPE:-}" >> "$WTL_APP_LOG"
+printf 'QT_QPA_PLATFORM_PLUGIN_PATH=%s\n' "${QT_QPA_PLATFORM_PLUGIN_PATH:-}" >> "$WTL_APP_LOG"
+printf 'QT_PLUGIN_PATH=%s\n' "${QT_PLUGIN_PATH:-}" >> "$WTL_APP_LOG"
 printf '%s\n' "$*" >> "$WTL_APP_LOG"
 if [ "${1:-}" = "--preview-check" ]; then
     [ "${WTL_FAIL_PREFLIGHT:-0}" != 1 ] && exit 0
@@ -38,7 +40,7 @@ fi
 exit 0
 EOF
 chmod +x "$fakebin/cage" "$TMP/fake-app"
-export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WAYLAND_DISPLAY=wayland-test DISPLAY=:host-display XAUTHORITY=/host/auth QT_QPA_PLATFORM=xcb WTL_BIN="$TMP/fake-app" WTL_CAGE_LOG="$TMP/cage.log" WTL_APP_LOG="$TMP/app.log"
+export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WAYLAND_DISPLAY=wayland-test DISPLAY=:host-display XAUTHORITY=/host/auth QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_BIN="$TMP/fake-app" WTL_CAGE_LOG="$TMP/cage.log" WTL_APP_LOG="$TMP/app.log"
 sh "$ROOT/scripts/start-isolated-preview.sh"
 grep -q '^--preview-check$' "$WTL_APP_LOG"
 grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"
@@ -72,6 +74,9 @@ grep -q '^--renderer=pixman$' "$WTL_WESTON_LOG"
 grep -q '^panel-position=top$' "$WTL_WESTON_CONFIG_LOG"
 grep -q '^shell=desktop$' "$WTL_WESTON_CONFIG_LOG"
 grep -q '^--maximized$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM=$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM_PLUGIN_PATH=$' "$WTL_APP_LOG"
+grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q "^WAYLAND_DISPLAY=win-to-linux-$(id -u)-" "$WTL_APP_LOG"
 test ! -e "$WTL_CAGE_LOG"
 rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
@@ -83,6 +88,9 @@ grep -q "^-- $WTL_BIN --fullscreen$" "$WTL_CAGE_LOG"
 grep -q '^DISPLAY=$' "$WTL_APP_LOG"
 grep -q '^XAUTHORITY=$' "$WTL_APP_LOG"
 grep -q '^XDG_SESSION_TYPE=wayland$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM=$' "$WTL_APP_LOG"
+grep -q '^QT_QPA_PLATFORM_PLUGIN_PATH=$' "$WTL_APP_LOG"
+grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 rm -f "$WTL_CAGE_LOG" "$WTL_APP_LOG" "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG"
 if WTL_FAIL_PREFLIGHT=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/refusal.log" 2>&1; then
     echo "Launcher accepted a failed readiness preflight." >&2
