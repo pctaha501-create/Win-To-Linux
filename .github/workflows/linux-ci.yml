@@ -72,3 +72,16 @@ jobs:
           grep -q '^Runtime check:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Compositor executables:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Nested preview readiness:' "$RUNNER_TEMP/diagnostic-report.txt"
+      - name: Verify preview preflight safely refuses a headless environment
+        shell: bash
+        run: |
+          set +e
+          ./build/src/app/win-to-linux --preview-check > "$RUNNER_TEMP/preview-check.txt" 2>&1
+          rc=$?
+          set -e
+          if [ "$rc" -ne 2 ]; then
+            cat "$RUNNER_TEMP/preview-check.txt"
+            echo "Preview preflight should refuse this headless runner (exit 2), got $rc."
+            exit 1
+          fi
+          grep -q '^Not ready for nested preview:' "$RUNNER_TEMP/preview-check.txt"

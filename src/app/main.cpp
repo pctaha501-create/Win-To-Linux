@@ -34,10 +34,13 @@ void printSystemInfo(const SystemInfo &system){
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")){
+ if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")){
   QCoreApplication app(argc,argv);configureApplication();SystemInfo system;
   if(hasArgument(argc,argv,"--diagnostic-report"))qInfo().noquote()<<system.diagnosticReport();
-  else printSystemInfo(system);
+  else if(hasArgument(argc,argv,"--preview-check")){
+   const QString readiness=system.previewReadiness();qInfo().noquote()<<readiness;
+   return readiness.startsWith(QStringLiteral("Ready for nested preview"))?0:2;
+  }else printSystemInfo(system);
   return 0;
  }
  QGuiApplication app(argc,argv);configureApplication();
