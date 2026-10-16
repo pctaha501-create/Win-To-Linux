@@ -10,7 +10,7 @@
 - [x] Host system details and headless system diagnostics
 - [x] XDG app discovery/search and launch using a tested desktop-entry parser, TryExec/working-directory handling, safe Exec field-code expansion, and canonical-path allowlisting
 - [x] Native-tool discovery based on executables actually present on PATH
-- [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links
+- [x] File and directory browser with create, rename, confirmed delete, copy and move operations; copy/move reject overwrites and symbolic links; cross-filesystem move uses copy-then-remove with rollback and has a conditional separate-filesystem regression test
 - [x] Persistent appearance setting
 - [x] Parent-first procfs process tree with PID/PPID, search/refresh controls, and confirmation-gated same-user SIGTERM
 - [x] Task Manager CPU/RAM summaries, process sorting, and transient toast feedback for refresh/stop actions
