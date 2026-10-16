@@ -28,7 +28,7 @@ Do not copy commands for one distribution into another. Win-To-Linux reports the
 
 ## Current XWayland/session status
 
-CI starts a disposable headless Weston parent and nested Weston, connects a real Wayland client, captures the nested XWayland environment, and connects `xdpyinfo` without host credentials. The experimental standalone launcher uses a private session socket and a child-only compositor watchdog. These tests validate the display bridge and failure cleanup; **they do not prove that a real Wine GUI application works**.
+CI starts a disposable headless Weston parent and nested Weston, connects a real Wayland client, captures the nested XWayland environment, and connects `xdpyinfo` without host credentials. A separate Ubuntu 24.04 workflow initializes a disposable Wine prefix and verifies that Wine's built-in Notepad stays open under nested XWayland ([run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38886382702)). This validates one basic real Wine GUI path only; it does not certify third-party Windows applications, installation workflows, audio, clipboard, or a physical VM session. The experimental standalone launcher uses a private session socket and a child-only compositor watchdog; it remains unvalidated on physical VM hardware.
 
 ## App-specific validation record
 
