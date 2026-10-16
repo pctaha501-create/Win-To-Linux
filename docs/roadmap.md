@@ -27,7 +27,8 @@
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
-- [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE (full application build remains Ubuntu CI only)
+- [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
+- [ ] Full application build/test matrix across Ubuntu, Fedora, Arch, and openSUSE (workflow added; first run pending)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [ ] Full compositor/session launcher with recovery and a supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
