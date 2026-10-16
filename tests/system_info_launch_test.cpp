@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QClipboard>
 #include <QTemporaryDir>
 #include <QElapsedTimer>
 #include <QThread>
