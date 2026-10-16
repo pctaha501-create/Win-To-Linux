@@ -40,7 +40,7 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Verify Qt Wayland plugin is detected by diagnostics
         run: |
-          QT_QPA_PLATFORM=offscreen ./build/src/app/win-to-linux --diagnostic-report >"$RUNNER_TEMP/system-diagnostics.txt"
+          QT_QPA_PLATFORM=offscreen ./build/src/app/win-to-linux --diagnostic-report >"$RUNNER_TEMP/system-diagnostics.txt" 2>&1
           grep -q '^Qt Wayland platform plugin: available$' "$RUNNER_TEMP/system-diagnostics.txt"
       - name: Smoke-test the actual Qt shell inside nested Wayland
         run: WTL_APP_BIN="$PWD/build/src/app/win-to-linux" sh tests/weston_nested_smoke.sh
