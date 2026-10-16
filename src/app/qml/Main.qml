@@ -88,6 +88,7 @@ ApplicationWindow {
   contentItem: ColumnLayout {
    anchors.fill: parent; anchors.margins: 24; spacing: 13
    TextField {
+    id: startSearchField
     placeholderText: "Search for apps, settings, and documents"
     text: win.startSearch; onTextChanged: win.startSearch=text
     Layout.fillWidth: true; implicitHeight: 42
@@ -100,6 +101,7 @@ ApplicationWindow {
     Button { text: "All apps  ›"; onClicked: { win.page=1; startMenu.close(); systemInfo.refreshApplications() } }
    }
    GridLayout {
+    visible: win.startSearch.length === 0
     Layout.fillWidth: true; columns: 4; columnSpacing: 8; rowSpacing: 6
     Repeater {
      model: [{label:"Explorer",glyph:"📁",page:7},{label:"Settings",glyph:"⚙",page:4},{label:"Terminal",glyph:"›_",page:2},{label:"Applications",glyph:"▦",page:1},{label:"Processes",glyph:"▥",page:5},{label:"Packages",glyph:"▤",page:3},{label:"Windows apps",glyph:"▣",page:6},{label:"Overview",glyph:"⌂",page:0}].filter(function(item){return item.label.toLowerCase().indexOf(win.startSearch.toLowerCase())>=0})
@@ -119,14 +121,17 @@ ApplicationWindow {
    Rectangle { Layout.fillWidth: true; height: 1; color: win.borderColor }
    RowLayout {
     Layout.fillWidth: true
-    Label { text: "Recommended"; color: win.fg; font.pixelSize: 16; font.bold: true }
+    Label { text: win.startSearch.length ? "Installed app results" : "Recommended"; color: win.fg; font.pixelSize: 16; font.bold: true }
     Item { Layout.fillWidth: true }
-    Button { text: "More"; onClicked: { win.page=1; startMenu.close(); systemInfo.refreshApplications() } }
+    Button { visible: win.startSearch.length === 0; text: "More"; onClicked: { win.page=1; startMenu.close(); systemInfo.refreshApplications() } }
    }
    ColumnLayout {
     Layout.fillWidth: true; spacing: 2
     Repeater {
-     model: systemInfo.applications.slice(0, 3)
+     model: systemInfo.applications.filter(function(app) {
+      var query = win.startSearch.trim().toLowerCase()
+      return query.length === 0 || app.name.toLowerCase().indexOf(query) !== -1 || app.comment.toLowerCase().indexOf(query) !== -1
+     }).slice(0, win.startSearch.length ? 5 : 3)
      delegate: Button {
       required property var modelData
       Layout.fillWidth: true; implicitHeight: 43; flat: true
@@ -144,6 +149,14 @@ ApplicationWindow {
      }
     }
    }
+   Label {
+    visible: win.startSearch.trim().length > 0 && systemInfo.applications.filter(function(app) {
+     var query = win.startSearch.trim().toLowerCase()
+     return app.name.toLowerCase().indexOf(query) !== -1 || app.comment.toLowerCase().indexOf(query) !== -1
+    }).length === 0
+    text: "No installed apps matched. Try another search or open All apps."
+    color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true
+   }
    Item { Layout.fillHeight: true }
    Rectangle {
     Layout.fillWidth: true; height: 46; radius: 9; color: win.light ? "#e9edf5" : "#292d36"
@@ -156,7 +169,7 @@ ApplicationWindow {
    }
   }
  }
- Shortcut { sequence: "Ctrl+Space"; onActivated: startMenu.open() }
+ Shortcut { sequence: "Ctrl+Space"; onActivated: { startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } }
  RowLayout {
   anchors.fill: parent; spacing: 0
   Rectangle {
@@ -328,7 +341,7 @@ ApplicationWindow {
      RowLayout {
       spacing: 5
       Button { text: "⊞"; ToolTip.visible: hovered; ToolTip.text: "Start"; onClicked: startMenu.open() }
-      Button { text: "⌕"; ToolTip.visible: hovered; ToolTip.text: "Search apps"; onClicked: { win.page=1; systemInfo.refreshApplications() } }
+      Button { text: "⌕"; ToolTip.visible: hovered; ToolTip.text: "Search apps"; onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } }
       Button { text: "▦"; ToolTip.visible: hovered; ToolTip.text: "Linux"; onClicked: win.page=2 }
       Button { text: "▤"; ToolTip.visible: hovered; ToolTip.text: "Packages"; onClicked: win.page=3 }
       Button { text: "📁"; ToolTip.visible: hovered; ToolTip.text: "File Explorer"; onClicked: win.page=7 }
