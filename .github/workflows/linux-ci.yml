@@ -13,7 +13,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate shell scripts
         run: |
-          for script in scripts/*.sh; do sh -n "$script"; done
+          for script in scripts/*.sh tests/*.sh; do sh -n "$script"; done
+      - name: Test standalone-session preflight and supervisor without DRM access
+        run: sh tests/standalone_session_test.sh
       - name: Verify isolated launcher refuses unsafe direct-session start
         run: |
           if env -u WAYLAND_DISPLAY XDG_RUNTIME_DIR="$RUNNER_TEMP" sh scripts/start-isolated-preview.sh >"$RUNNER_TEMP/isolated-preview.log" 2>&1; then
@@ -72,6 +74,7 @@ jobs:
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
+          test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
           test -x "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
           test -f "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
           grep -q '^Exec=win-to-linux$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
@@ -80,6 +83,7 @@ jobs:
           PREFIX="$RUNNER_TEMP/wtl-install" sh scripts/uninstall-user.sh
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
+          test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
           test ! -e "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: System diagnostic

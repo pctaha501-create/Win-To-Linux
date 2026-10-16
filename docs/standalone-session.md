@@ -25,3 +25,10 @@ Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isol
 ## Safety constraints
 
 Do not run a new compositor directly against physical DRM/KMS in CI or on the user's current VM. Do not disable the host display manager, change the default session, or modify system package state automatically. If the compositor backend is missing or fails health checks, exit cleanly and leave the existing desktop intact.
+
+
+## Experimental direct-DRM launcher
+
+`win-to-linux-standalone-session` is an opt-in experimental path for a local Linux virtual terminal. It refuses to run if `DISPLAY` or `WAYLAND_DISPLAY` is set, requires a real `/dev/ttyN`, validates the current user's runtime directory, and requires `WTL_ENABLE_DRM_SESSION=1`. It starts Weston on that VT with the DRM backend and pixman, then launches the shell as a Wayland client; on exit it stops only the Weston child it started and removes only its private runtime files. It does not install a login-manager session entry or change GDM/SDDM.
+
+This path is not yet a production-ready login session: the CI test uses fake Weston/TTY executables and never opens DRM. Before daily use, validate it in a disposable VM with working DRM/seat access, input, suspend/resume, crash recovery, multi-window behavior and Wine GUI applications. If Weston fails, return to another virtual terminal (commonly Ctrl+Alt+F2) and log in normally; do not enable it automatically at boot.
