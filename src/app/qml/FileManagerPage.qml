@@ -18,6 +18,7 @@ Item {
   RowLayout {
    Layout.fillWidth: true; spacing: 8
    Button { text: "Up"; enabled: root.controller.canGoUp; onClicked: root.controller.goUp() }
+   Button { objectName: "fileManagerHomeButton"; text: "Home"; onClicked: root.controller.goHome() }
    TextField { id: pathField; Layout.fillWidth: true; text: root.controller.currentPath; onAccepted: root.controller.navigate(text); selectByMouse: true }
    Button { text: "Go"; onClicked: root.controller.navigate(pathField.text) }
    Button { text: "Refresh"; onClicked: root.controller.refresh() }

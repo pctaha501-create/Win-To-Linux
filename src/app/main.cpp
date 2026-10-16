@@ -129,6 +129,9 @@ int main(int argc,char**argv){
     for(const QQmlError &error:component.errors())qCritical().noquote()<<error.toString();
     return 1;
    }
+   if(url.endsWith(QStringLiteral("FileManagerPage.qml"))&&!page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"))){
+    qCritical()<<"File Manager Home control was not instantiated.";delete page;return 1;
+   }
    delete page;
   }
   qInfo()<<"QML shell and dynamic pages loaded successfully.";return 0;
