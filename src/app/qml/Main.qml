@@ -11,6 +11,7 @@ ApplicationWindow {
  property var selectedProcess: ({})
  property string pendingWindowsFile: ""
  property string startSearch: ""
+ property string clockText: Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm")
  readonly property color fg: light ? "#1a2432" : "#f4f6fb"
  readonly property color muted: light ? "#647084" : "#aab4c4"
  readonly property color panel: light ? "#ffffff" : "#191f29"
@@ -24,6 +25,7 @@ ApplicationWindow {
    Label { text: systemInfo.distribution; color: win.muted }
   }
  }
+ Timer { interval: 30000; running: true; repeat: true; onTriggered: win.clockText = Qt.formatDateTime(new Date(), "ddd d MMM · hh:mm") }
  Dialog {
   id: stopDialog; modal: true; title: "Stop process?"; standardButtons: Dialog.Ok | Dialog.Cancel; anchors.centerIn: parent
   Label { text: "Send SIGTERM to " + (win.selectedProcess.name || "process") + " (PID " + (win.selectedProcess.pid || "—") + ")? Unsaved work in that process may be lost."; wrapMode: Text.WordWrap; width: 330 }
@@ -38,6 +40,43 @@ ApplicationWindow {
   id: windowsFileDialog; title: "Select a Windows installer or program"; fileMode: FileDialog.OpenFile
   nameFilters: ["Windows programs (*.exe *.msi)", "All files (*)"]
   onAccepted: { win.pendingWindowsFile = selectedFile.toLocalFile(); windowsDialog.open() }
+ }
+ Popup {
+  id: quickSettings
+  width: 340; height: 350; modal: false; focus: true
+  x: Math.max(8, win.width-width-12)
+  y: Math.max(8, win.height-height-82)
+  closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+  background: Rectangle { radius: 16; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
+  contentItem: ColumnLayout {
+   anchors.fill: parent; anchors.margins: 18; spacing: 12
+   Label { text: "Quick settings"; color: win.fg; font.pixelSize: 18; font.bold: true }
+   Rectangle {
+    Layout.fillWidth: true; height: 74; radius: 11; color: win.panel; border.color: win.borderColor
+    RowLayout {
+     anchors.fill: parent; anchors.margins: 12; spacing: 10
+     Rectangle { width: 38; height: 38; radius: 10; color: "#3978d4"; Label { anchors.centerIn: parent; text: win.light ? "☀" : "☾"; color: "white"; font.pixelSize: 20 } }
+     ColumnLayout { Layout.fillWidth: true; spacing: 2; Label { text: "Light appearance"; color: win.fg; font.bold: true } Label { text: win.light ? "Light mode enabled" : "Dark mode enabled"; color: win.muted; font.pixelSize: 10 } }
+     Switch { checked: systemInfo.lightAppearance; onToggled: systemInfo.lightAppearance = checked }
+    }
+   }
+   Label { text: "Device information"; color: win.fg; font.bold: true }
+   Rectangle {
+    Layout.fillWidth: true; height: 82; radius: 10; color: win.panel; border.color: win.borderColor
+    ColumnLayout { anchors.fill: parent; anchors.margins: 11; spacing: 4
+     Label { text: systemInfo.distribution + " " + systemInfo.version; color: win.fg; font.pixelSize: 12; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
+     Label { text: systemInfo.desktopEnvironment + " · " + systemInfo.sessionType; color: win.muted; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true }
+     Label { text: systemInfo.kernel; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true }
+    }
+   }
+   RowLayout {
+    Layout.fillWidth: true; spacing: 8
+    Button { text: "Settings"; Layout.fillWidth: true; onClicked: { win.page=4; quickSettings.close() } }
+    Button { text: "Applications"; Layout.fillWidth: true; onClicked: { win.page=1; systemInfo.refreshApplications(); quickSettings.close() } }
+   }
+   Item { Layout.fillHeight: true }
+   Label { text: win.clockText; color: win.muted; font.pixelSize: 11; Layout.alignment: Qt.AlignRight }
+  }
  }
  Popup {
   id: startMenu
@@ -296,7 +335,8 @@ ApplicationWindow {
       Button { text: "⚙"; ToolTip.visible: hovered; ToolTip.text: "Settings"; onClicked: win.page=4 }
      }
      Item { Layout.fillWidth: true }
-     Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 180 }
+     Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
+     Button { text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
    Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
