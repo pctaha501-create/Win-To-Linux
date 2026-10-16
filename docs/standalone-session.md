@@ -17,6 +17,7 @@ Win-To-Linux is a Qt Quick shell running inside an existing desktop. `start-isol
 ## Release gates
 
 - Unit-test backend selection, environment construction, path ownership, timeout handling, cleanup boundaries, and restart limits.
+- [x] CI regression test simulates Weston exiting before socket creation and verifies prompt refusal plus cleanup of private session files; this test uses fake executables and never opens DRM.
 - CI builds the shell and supervisor independently; missing optional compositor dependencies must produce a clear configure-time message rather than breaking the preview build.
 - Integration test starts a nested compositor only in a disposable headless/virtualized environment and verifies a real Wayland client connection.
 - VM test validates keyboard, pointer, resize, close, focus, multi-window stacking, clipboard, DPI, suspend/resume, and recovery after a compositor crash.

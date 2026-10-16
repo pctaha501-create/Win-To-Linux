@@ -13,6 +13,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate shell scripts and service packaging
         run: sh tests/session_service_test.sh
+      - name: Test standalone session early compositor failure cleanup
+        run: sh tests/standalone_session_failure_test.sh
       - name: Validate systemd unit syntax
         run: |
           tmpdir=$(mktemp -d)
