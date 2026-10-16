@@ -1,6 +1,7 @@
 #include "system_info.h"
 #include "distro_detector.h"
 #include "desktop_entry_parser.h"
+#include <QCoreApplication>
 #include <QDir>
 #include <QGuiApplication>
 #include <QClipboard>
