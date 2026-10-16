@@ -77,5 +77,11 @@ int main(int argc,char **argv){
  ok &= expect(wineOutput.contains(QStringLiteral("arg=<msiexec>\narg=</i>\narg=<%1>").arg(QFileInfo(msiPath).canonicalFilePath())),"launch MSI through wine msiexec /i with a canonical path");
  ok &= expect(!system.launchWindowsFile(invalidPath),"reject non-EXE/MSI files before invoking Wine");
  if(!ok)return 1;
- qInfo()<<"Desktop-entry launch integration checks passed.";return 0;
+ qunsetenv("WAYLAND_DISPLAY");qunsetenv("DISPLAY");qunsetenv("XDG_RUNTIME_DIR");
+ SystemInfo headlessSystem;
+ ok &= expect(!headlessSystem.launchNestedPreview(),"refuse to launch isolated preview without an active Wayland session");
+ ok &= expect(!headlessSystem.previewRunning(),"headless preview refusal must not start a child process");
+ ok &= expect(headlessSystem.status().contains(QStringLiteral("Not ready for nested preview")),"preview refusal explains readiness blockers");
+ if(!ok)return 1;
+ qInfo()<<"Desktop-entry launch and nested-preview safety checks passed.";return 0;
 }

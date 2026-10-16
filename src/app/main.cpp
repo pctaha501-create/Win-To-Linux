@@ -70,7 +70,7 @@ int main(int argc,char**argv){
    QStringLiteral("startMenuPopup"),QStringLiteral("notificationCenterPopup"),QStringLiteral("quickSettingsPopup"),
    QStringLiteral("taskbarStartButton"),QStringLiteral("taskbarSearchButton"),QStringLiteral("taskbarLinuxButton"),
    QStringLiteral("taskbarPackagesButton"),QStringLiteral("taskbarFilesButton"),QStringLiteral("taskbarSettingsButton"),
-   QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton")};
+   QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton"),QStringLiteral("launchNestedPreviewButton")};
   for(const QString &name:requiredControls){
    if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }
