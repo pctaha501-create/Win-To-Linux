@@ -11,6 +11,9 @@
 #include <QWindow>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QTemporaryDir>
+#include <QDir>
+#include <QFileInfo>
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
@@ -129,8 +132,14 @@ int main(int argc,char**argv){
     for(const QQmlError &error:component.errors())qCritical().noquote()<<error.toString();
     return 1;
    }
-   if(url.endsWith(QStringLiteral("FileManagerPage.qml"))&&!page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"))){
-    qCritical()<<"File Manager Home control was not instantiated.";delete page;return 1;
+   if(url.endsWith(QStringLiteral("FileManagerPage.qml"))){
+    QObject *homeButton=page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"));
+    QTemporaryDir homeFixture;
+    if(!homeButton||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager Home action fixture could not be prepared.";delete page;return 1;}
+    if(!QMetaObject::invokeMethod(homeButton,"clicked",Qt::DirectConnection)){qCritical()<<"File Manager Home button could not be triggered.";delete page;return 1;}
+    QCoreApplication::processEvents();
+    const QString expectedHome=QFileInfo(QDir::homePath()).canonicalFilePath();
+    if(fileManager.currentPath()!=expectedHome){qCritical()<<"File Manager Home button did not navigate to the canonical home directory.";delete page;return 1;}
    }
    delete page;
   }
