@@ -31,7 +31,7 @@ int main(int argc,char **argv){
  const QByteArray oldPath=qgetenv("PATH");qputenv("PATH",QFile::encodeName(bin)+QByteArray(":")+oldPath);qputenv("WTL_LAUNCH_LOG",log.toLocal8Bit());
  QGuiApplication app(argc,argv);QCoreApplication::setApplicationName(QStringLiteral("Win-To-Linux-launch-test"));QCoreApplication::setOrganizationName(QStringLiteral("Win-To-Linux-tests"));
  const QString fake=bin+QStringLiteral("/wtl-launch-fixture");
- const QByteArray fakeScript="#!/bin/sh\nprintf 'cwd=%s\\n' \"$PWD\" > \"$WTL_LAUNCH_LOG\"\nfor arg in \"$@\"; do printf 'arg=<%s>\\n' \"$arg\" >> \"$WTL_LAUNCH_LOG\"; done\n";
+ const QByteArray fakeScript="#!/bin/sh\nprintf 'cwd=%s\n' \"$PWD\" > \"$WTL_LAUNCH_LOG\"\nfor arg in \"$@\"; do printf 'arg=<%s>\n' \"$arg\" >> \"$WTL_LAUNCH_LOG\"; done\n";
  if(!writeFile(fake,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake executable.";return 1;}
  const QString desktop=apps+QStringLiteral("/fixture.desktop");
  const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
@@ -41,10 +41,10 @@ int main(int argc,char **argv){
  QElapsedTimer timer;timer.start();while(!QFileInfo::exists(log)&&timer.elapsed()<2500)QThread::msleep(10);
  ok &= expect(QFileInfo::exists(log),"fake desktop executable was started");
  const QString output=readText(log);
- ok &= expect(output.contains(QStringLiteral("cwd=%1\\n").arg(QFileInfo(work).canonicalFilePath())),"honor desktop-entry working directory");
+ ok &= expect(output.contains(QStringLiteral("cwd=%1\n").arg(QFileInfo(work).canonicalFilePath())),"honor desktop-entry working directory");
  ok &= expect(output.contains(QStringLiteral("arg=<--name=Fixture App>")),"expand application name without splitting the argument");
  ok &= expect(output.contains(QStringLiteral("arg=<--desktop=%1>").arg(QFileInfo(desktop).canonicalFilePath())),"expand canonical desktop file path");
- ok &= expect(output.contains(QStringLiteral("arg=<--icon>\\narg=<fixture-icon>")),"expand icon field into two arguments");
+ ok &= expect(output.contains(QStringLiteral("arg=<--icon>\narg=<fixture-icon>")),"expand icon field into two arguments");
  ok &= expect(output.contains(QStringLiteral("arg=<--literal=$HOME;touch>")),"pass shell metacharacters literally without shell evaluation");
  ok &= expect(output.contains(QStringLiteral("arg=<%>")),"expand literal percent field code");
  ok &= expect(!output.contains(QStringLiteral("arg=<%f>")),"omit file placeholder when no activation target is provided");
