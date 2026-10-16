@@ -22,7 +22,7 @@
 - [x] Keyboard shortcut reference in Settings
 - [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
-- [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
+- [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status; preflight reports missing `pkexec`/PolicyKit before starting
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
 - [x] Desktop-entry launch integration test uses an isolated HOME and fake executable to verify TryExec, working directory, Exec field-code arguments, literal shell metacharacters, and refusal of missing executables/out-of-root entries
@@ -34,8 +34,8 @@
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
-- [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
-- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed again on commit `b0f991176c5ca7d1b2001fb670b715b2964388a8`
+- [x] Distro-detector CI matrix across Ubuntu, Kali, Fedora/Rocky, Arch, and openSUSE
+- [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all six jobs passed on [verified run 38887168320](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38887168320)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait, child-only cleanup, and a watchdog that terminates the shell if the owned compositor exits (fake-backend CI only; not yet VM-certified)

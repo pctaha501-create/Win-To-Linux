@@ -15,16 +15,16 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - XDG desktop-entry parsing with dedicated unit tests, hidden/NoDisplay filtering, canonical-path allowlisting, and launch via QProcess argument lists.
 - Host-native tool inventory based only on executables actually found on PATH, with extra checks for common Kali security tools.
 - Persistent light/dark preference, workspace switcher (Alt+Tab / Ctrl+Alt+Tab), and same-user process inspection/confirmed SIGTERM.
-- Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, and explicit install/remove confirmation.
+- Asynchronous package operations with bounded output, timeout/cancellation, PolicyKit through pkexec, explicit install/remove confirmation, and a clear preflight message when pkexec is missing.
 - Wine/Bottles detection and confirmed launch of selected .exe/.msi files through Wine if installed.
 - Wine/XWayland compatibility scope and per-app validation checklist ([guide](docs/wine-compatibility.md)); CI verifies Wine's built-in Notepad remains open under nested XWayland, but third-party Windows apps are not certified.
 - A dedicated desktop-entry launch integration test exercises real `QProcess` launching against a fake executable and verifies that shell metacharacters are passed literally.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
 - CI launches the actual Qt shell in a disposable nested Weston Wayland session (software rendering) and uses a bounded gdb-backed startup smoke to detect crashes; taskbar icon controls include accessible names, and the headless functional test checks taskbar actions plus common keyboard shortcuts.
-- Full-app build/test matrix for Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`).
+- Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all six jobs passed on [the verified run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38887168320).
 
 ## Build and test on Ubuntu 24.04
-Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
+Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-wayland, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
 
 ## Install for the current user
     sh scripts/install-user.sh
