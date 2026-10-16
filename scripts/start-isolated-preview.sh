@@ -85,10 +85,23 @@ EOF
     app_pid=
     watchdog_pid=
     watchdog_marker="$runtime_dir/win-to-linux-preview-$$.failed"
+    terminate_owned_process() {
+        target_pid=$1
+        [ -n "$target_pid" ] || return 0
+        kill -TERM "$target_pid" >/dev/null 2>&1 || true
+        i=0
+        while kill -0 "$target_pid" >/dev/null 2>&1 && [ "$i" -lt 15 ]; do
+            sleep 0.1
+            i=$((i+1))
+        done
+        if kill -0 "$target_pid" >/dev/null 2>&1; then
+            kill -KILL "$target_pid" >/dev/null 2>&1 || true
+        fi
+    }
     cleanup_weston() {
-        if [ -n "$watchdog_pid" ]; then kill "$watchdog_pid" >/dev/null 2>&1 || true; wait "$watchdog_pid" >/dev/null 2>&1 || true; fi
-        if [ -n "$app_pid" ]; then kill "$app_pid" >/dev/null 2>&1 || true; wait "$app_pid" >/dev/null 2>&1 || true; fi
-        if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
+        if [ -n "$watchdog_pid" ]; then terminate_owned_process "$watchdog_pid"; wait "$watchdog_pid" >/dev/null 2>&1 || true; fi
+        if [ -n "$app_pid" ]; then terminate_owned_process "$app_pid"; wait "$app_pid" >/dev/null 2>&1 || true; fi
+        if [ -n "$weston_pid" ]; then terminate_owned_process "$weston_pid"; wait "$weston_pid" >/dev/null 2>&1 || true; fi
         rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$xwayland_wrapper" "$socket_path" "$watchdog_marker"
     }
     child_running() {
@@ -103,7 +116,7 @@ EOF
             while child_running "$weston_pid"; do sleep 0.2; done
             if child_running "$app_pid"; then
                 printf '%s\n' 'Nested Weston exited while Win-To-Linux was running.' > "$watchdog_marker"
-                kill -TERM "$app_pid" >/dev/null 2>&1 || true
+                terminate_owned_process "$app_pid"
             fi
         ) &
         watchdog_pid=$!

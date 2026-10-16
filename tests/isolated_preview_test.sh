@@ -37,6 +37,7 @@ if [ "${1:-}" = "--preview-check" ]; then
     [ "${WTL_FAIL_PREFLIGHT:-0}" != 1 ] && exit 0
     exit 2
 fi
+if [ "${WTL_APP_IGNORE_TERM:-0}" = 1 ]; then trap "" TERM; exec sleep 30; fi
 if [ "${WTL_APP_HANG:-0}" = 1 ]; then exec sleep 30; fi
 exit 0
 EOF
@@ -81,9 +82,9 @@ grep -q '^QT_QPA_PLATFORM_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q "^WAYLAND_DISPLAY=win-to-linux-$(id -u)-" "$WTL_APP_LOG"
 test ! -e "$WTL_CAGE_LOG"
-# A compositor crash after socket creation must terminate a hanging shell and clean private files.
+# A compositor crash must forcibly stop a child that ignores SIGTERM and clean private files.
 rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
-if timeout 8 env WTL_WESTON_CRASH_AFTER_SOCKET=1 WTL_APP_HANG=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/compositor-crash.log" 2>&1; then
+if timeout 8 env WTL_WESTON_CRASH_AFTER_SOCKET=1 WTL_APP_IGNORE_TERM=1 sh "$ROOT/scripts/start-isolated-preview.sh" >"$TMP/compositor-crash.log" 2>&1; then
     echo 'Nested preview did not report a compositor crash.' >&2
     exit 1
 else
