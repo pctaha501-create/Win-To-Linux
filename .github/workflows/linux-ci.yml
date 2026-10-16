@@ -38,6 +38,10 @@ jobs:
         run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Build
         run: cmake --build build --parallel 2
+      - name: Verify CLI version metadata
+        run: |
+          ./build/src/app/win-to-linux --version >"$RUNNER_TEMP/version.txt" 2>&1
+          grep -q '^Win-To-Linux 0.2.0$' "$RUNNER_TEMP/version.txt"
       - name: Verify Qt Wayland plugin is detected by diagnostics
         run: |
           QT_QPA_PLATFORM=offscreen ./build/src/app/win-to-linux --diagnostic-report >"$RUNNER_TEMP/system-diagnostics.txt" 2>&1

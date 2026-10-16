@@ -14,7 +14,7 @@
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
-void configureApplication(){QCoreApplication::setApplicationName("Win-To-Linux");QCoreApplication::setApplicationVersion("0.2.0");QCoreApplication::setOrganizationName("Win-To-Linux");}
+void configureApplication(){QCoreApplication::setApplicationName("Win-To-Linux");QCoreApplication::setApplicationVersion(QStringLiteral(WTL_VERSION));QCoreApplication::setOrganizationName("Win-To-Linux");}
 void printSystemInfo(const SystemInfo &system){
  qInfo().noquote()<<"Distribution:"<<system.distribution();
  qInfo().noquote()<<"ID:"<<system.distroId();
@@ -36,8 +36,10 @@ void printSystemInfo(const SystemInfo &system){
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")||hasArgument(argc,argv,"--standalone-check")){
-  QCoreApplication app(argc,argv);configureApplication();SystemInfo system;
+ if(hasArgument(argc,argv,"--version")||hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")||hasArgument(argc,argv,"--standalone-check")){
+  QCoreApplication app(argc,argv);configureApplication();
+  if(hasArgument(argc,argv,"--version")){qInfo().noquote()<<QCoreApplication::applicationName()<<QCoreApplication::applicationVersion();return 0;}
+  SystemInfo system;
   if(hasArgument(argc,argv,"--diagnostic-report"))qInfo().noquote()<<system.diagnosticReport();
   else if(hasArgument(argc,argv,"--standalone-check")){const QString readiness=system.standaloneReadiness();qInfo().noquote()<<readiness;return readiness.startsWith(QStringLiteral("Ready for experimental standalone session"))?0:2;}
   else if(hasArgument(argc,argv,"--preview-check")){
