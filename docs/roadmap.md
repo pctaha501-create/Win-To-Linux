@@ -25,6 +25,7 @@
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status
 - [x] Per-user install/uninstall scripts and desktop entry
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
+- [x] Desktop-entry launch integration test uses an isolated HOME and fake executable to verify TryExec, working directory, Exec field-code arguments, literal shell metacharacters, and refusal of missing executables/out-of-root entries
 - [x] Headless QML smoke test instantiates the file-manager and package-manager pages, with shell-script syntax and install-staging checks
 - [x] CI starts the actual Qt shell as a Wayland client inside nested Weston with software rendering; a bounded gdb-backed startup smoke checks for crashes and QML/platform errors
 - [x] Icon-only taskbar controls have explicit accessible names and stable object names; the application smoke test asserts the Start/search/system/packages/files/settings/notifications/quick-settings controls exist
