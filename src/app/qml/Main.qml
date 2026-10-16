@@ -334,7 +334,7 @@ ApplicationWindow {
      RowLayout {
       Layout.fillWidth: true; spacing: 8
       TextField { id: processSearch; Layout.fillWidth: true; placeholderText: "Search process name, PID, or PPID"; selectByMouse: true }
-      ComboBox { id: processSort; model: ["Name", "CPU", "RAM"]; implicitWidth: 105; accessibleName: "Sort processes" }
+      ComboBox { id: processSort; model: ["Name", "CPU", "RAM"]; implicitWidth: 105 }
       Button { text: "Refresh"; onClicked: processMonitor.refreshProcesses() }
      }
      ListView {
