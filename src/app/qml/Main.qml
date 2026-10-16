@@ -185,6 +185,8 @@ ApplicationWindow {
   }
  }
  Shortcut { sequence: "Ctrl+Space"; onActivated: { startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } }
+ Shortcut { sequence: "Ctrl+Shift+N"; onActivated: notificationCenter.open() }
+ Shortcut { sequence: "Ctrl+,"; onActivated: win.page = 4 }
  Shortcut { sequence: "F11"; onActivated: win.visibility = win.visibility === Window.FullScreen ? Window.Windowed : Window.FullScreen }
  Shortcut { sequence: "Ctrl+Shift+Esc"; onActivated: { win.page=5; processMonitor.refreshProcesses() } }
  Shortcut { sequence: "Ctrl+E"; onActivated: win.page=7 }
