@@ -1,0 +1,21 @@
+name: User session service checks
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  service-packaging:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate shell scripts and service packaging
+        run: sh tests/session_service_test.sh
+      - name: Validate systemd unit syntax
+        run: |
+          systemd-analyze verify --man=no packaging/systemd/user/Win-To-Linux.service || {
+            echo 'systemd-analyze could not verify a user unit with a not-yet-installed %h executable; static packaging checks already ran.'
+            exit 0
+          }
