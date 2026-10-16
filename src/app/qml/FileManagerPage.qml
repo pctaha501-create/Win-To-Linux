@@ -19,11 +19,12 @@ Item {
    Layout.fillWidth: true; spacing: 8
    Button { text: "Up"; enabled: root.controller.canGoUp; onClicked: root.controller.goUp() }
    Button { objectName: "fileManagerHomeButton"; text: "Home"; onClicked: root.controller.goHome() }
-   TextField { id: pathField; Layout.fillWidth: true; text: root.controller.currentPath; onAccepted: root.controller.navigate(text); selectByMouse: true }
+   TextField { id: pathField; objectName: "fileManagerPathField"; Layout.fillWidth: true; text: root.controller.currentPath; onAccepted: root.controller.navigate(text); selectByMouse: true }
    Button { text: "Go"; onClicked: root.controller.navigate(pathField.text) }
    Button { text: "Refresh"; onClicked: root.controller.refresh() }
    Button { text: "New folder"; onClicked: { folderNameField.text = ""; createDialog.open() } }
   }
+  Shortcut { objectName: "fileManagerFocusPathShortcut"; sequence: "Ctrl+L"; enabled: root.visible; onActivated: { pathField.forceActiveFocus(); pathField.selectAll() } }
   Connections {
    target: root.controller
    function onCurrentPathChanged() { pathField.text = root.controller.currentPath }

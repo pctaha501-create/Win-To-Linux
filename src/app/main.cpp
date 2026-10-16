@@ -133,6 +133,7 @@ int main(int argc,char**argv){
     return 1;
    }
    if(url.endsWith(QStringLiteral("FileManagerPage.qml"))){
+    if(!page->findChild<QObject *>(QStringLiteral("fileManagerPathField"))||!page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"))){qCritical()<<"File Manager path field or Ctrl+L shortcut was not instantiated.";delete page;return 1;}
     QObject *homeButton=page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"));
     QTemporaryDir homeFixture;
     if(!homeButton||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager Home action fixture could not be prepared.";delete page;return 1;}
