@@ -17,6 +17,7 @@
 - [x] Persistent notification center and keyboard shortcuts for common shell actions
 - [x] Settings diagnostics export to clipboard, including runtime safety and detected compositor executable paths
 - [x] Read-only `--preview-check` CLI reports all nested-preview blockers and exits 2 on an unsafe/headless environment; CI asserts the refusal path
+- [x] Isolated-preview integration test uses a fake owned Wayland socket/Cage to verify preflight runs first and refuses unsafe launch (Linux CI passed on `8f83e02449d3e74e58ffc1069b81a2c8675dc005`)
 - [x] Keyboard shortcut reference in Settings
 - [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
@@ -29,7 +30,7 @@
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
-- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed on commit `312b0611976f3117628076e9e2971cb06ca4fbf8`
+- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed again on commit `8f83e02449d3e74e58ffc1069b81a2c8675dc005`
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [ ] Full compositor/session launcher with recovery and a supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
