@@ -200,7 +200,7 @@ ApplicationWindow {
    RowLayout {
     Layout.fillWidth: true
     Label { text: "Notifications"; color: win.fg; font.pixelSize: 18; font.bold: true; Layout.fillWidth: true }
-    Button { text: "Clear all"; enabled: win.notifications.length > 0; onClicked: { win.notifications = []; systemInfo.saveRecentNotifications([]); win.showToast("Notification history cleared") } }
+    Button { text: "Clear all"; enabled: win.notifications.length > 0; onClicked: { win.notifications = []; systemInfo.saveRecentNotifications([]); win.toastMessage = ""; toastTimer.stop() } }
    }
    Label { visible: win.notifications.length === 0; Layout.fillWidth: true; Layout.fillHeight: true; horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter; text: "You're all caught up"; color: win.muted }
    ListView {
