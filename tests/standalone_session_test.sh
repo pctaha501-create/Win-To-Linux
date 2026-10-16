@@ -44,6 +44,11 @@ test ! -e "$WTL_WESTON_LOG"
 if env -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 DISPLAY=:host XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/host-display.log" 2>&1; then echo 'Standalone session accepted an active host display.' >&2; exit 1; fi
 grep -q 'X11 display is active' "$TMP/host-display.log"
 test ! -e "$WTL_WESTON_LOG"
+chmod 755 "$runtime"
+if env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/unsafe-runtime.log" 2>&1; then echo 'Standalone session accepted a runtime directory accessible to other users.' >&2; exit 1; fi
+grep -q 'accessible to other users' "$TMP/unsafe-runtime.log"
+test ! -e "$WTL_WESTON_LOG"
+chmod 700 "$runtime"
 env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
 grep -q '^--backend=drm$' "$WTL_WESTON_LOG"
 grep -q '^--tty=9$' "$WTL_WESTON_LOG"

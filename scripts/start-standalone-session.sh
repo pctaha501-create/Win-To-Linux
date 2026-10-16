@@ -14,7 +14,11 @@ esac
 runtime_dir=${XDG_RUNTIME_DIR:-}
 [ -n "$runtime_dir" ] || fail "XDG_RUNTIME_DIR is not set; log in on a local text virtual terminal first."
 [ -d "$runtime_dir" ] && [ -w "$runtime_dir" ] || fail "XDG_RUNTIME_DIR is missing or not writable."
-[ "$(stat -c '%u' -- "$runtime_dir" 2>/dev/null || true)" = "$(id -u)" ] || fail "XDG_RUNTIME_DIR is not owned by the current user."
+runtime_owner=$(stat -c '%u' -- "$runtime_dir" 2>/dev/null || true)
+runtime_mode=$(stat -c '%a' -- "$runtime_dir" 2>/dev/null || true)
+[ "$runtime_owner" = "$(id -u)" ] || fail "XDG_RUNTIME_DIR is not owned by the current user."
+case "$runtime_mode" in *[!0-7]*|'') fail "could not verify XDG_RUNTIME_DIR permissions." ;; esac
+[ $((0$runtime_mode & 077)) -eq 0 ] || fail "XDG_RUNTIME_DIR is accessible to other users; use a private mode-0700 runtime directory."
 weston_bin=$(command -v weston 2>/dev/null || true)
 [ -n "$weston_bin" ] || fail "Weston is not installed; install it using your distribution's package manager."
 app_bin=${WTL_BIN:-}
