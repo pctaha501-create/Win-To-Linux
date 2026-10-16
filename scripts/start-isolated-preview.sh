@@ -53,7 +53,10 @@ if [ -n "$weston_bin" ]; then
     [ ! -e "$socket_path" ] || fail "the nested Weston socket path already exists: $socket_path"
     weston_log=$(mktemp "$runtime_dir/win-to-linux-weston.log.XXXXXX") || fail "could not create a private Weston log file."
     weston_config=$(mktemp "$runtime_dir/win-to-linux-weston.ini.XXXXXX") || { rm -f -- "$weston_log"; fail "could not create a private Weston config."; }
-    cat > "$weston_config" <<'EOF'
+    xwayland_env_file=$(mktemp "$runtime_dir/win-to-linux-xwayland-env.XXXXXX") || { rm -f -- "$weston_log" "$weston_config"; fail "could not create a private XWayland environment file."; }
+    xwayland_capture=$script_dir/capture-xwayland-env.sh
+    [ -x "$xwayland_capture" ] || { rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file"; fail "the XWayland environment helper is missing; reinstall Win-To-Linux."; }
+    cat > "$weston_config" <<EOF
 [core]
 shell=desktop
 xwayland=true
@@ -64,16 +67,19 @@ animation=none
 close-animation=none
 startup-animation=none
 focus-animation=none
+[autolaunch]
+path=$xwayland_capture
+watch=false
 EOF
     chmod 600 "$weston_config"
     weston_pid=
     cleanup_weston() {
         if [ -n "$weston_pid" ]; then kill "$weston_pid" >/dev/null 2>&1 || true; wait "$weston_pid" >/dev/null 2>&1 || true; fi
-        rm -f -- "$weston_log" "$weston_config" "$socket_path"
+        rm -f -- "$weston_log" "$weston_config" "$xwayland_env_file" "$xwayland_env_file.tmp."* "$socket_path"
     }
     trap cleanup_weston EXIT HUP INT TERM
     printf 'Starting a nested Weston desktop with software rendering, a private config and a unique user socket. The host desktop and login manager will not be changed.\n'
-    "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
+    WTL_XWAYLAND_ENV_FILE="$xwayland_env_file" "$weston_bin" --backend=wayland --display="$wayland_display" --socket="$socket_name" --renderer=pixman --xwayland --config="$weston_config" >"$weston_log" 2>&1 &
     weston_pid=$!
     i=0
     while [ ! -S "$socket_path" ] && [ "$i" -lt 100 ]; do
@@ -92,9 +98,43 @@ EOF
         fi
         fail "nested Weston did not create its Wayland socket and Cage is unavailable."
     fi
-    set +e
-    env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
-    app_status=$?
+    xwayland_display=
+    xwayland_authority=
+    i=0
+    while [ ! -s "$xwayland_env_file" ] && [ "$i" -lt 50 ]; do
+        kill -0 "$weston_pid" 2>/dev/null || break
+        sleep 0.1
+        i=$((i+1))
+    done
+    if [ -s "$xwayland_env_file" ]; then
+        xwayland_display=$(sed -n '1p' "$xwayland_env_file")
+        xwayland_authority=$(sed -n '2p' "$xwayland_env_file")
+        if ! printf '%s' "$xwayland_display" | grep -Eq '^:[0-9]+(\.[0-9]+)?$'; then xwayland_display=; xwayland_authority=; fi
+        if [ -n "$xwayland_authority" ]; then
+            [ -f "$xwayland_authority" ] && [ "$(stat -c '%u' -- "$xwayland_authority" 2>/dev/null || true)" = "$(id -u)" ] || xwayland_authority=
+        fi
+    fi
+    if [ -n "$xwayland_display" ]; then
+        printf 'Nested XWayland display: %s\n' "$xwayland_display"
+        if [ -n "$xwayland_authority" ]; then
+            set +e
+            env -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" DISPLAY="$xwayland_display" XAUTHORITY="$xwayland_authority" "$app_bin" --maximized
+            app_status=$?
+            set -e
+        else
+            printf 'Warning: nested XWayland authority file was not available; X11-only applications may not launch.\n' >&2
+            set +e
+            env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
+            app_status=$?
+            set -e
+        fi
+    else
+        printf 'Warning: nested XWayland environment was not captured; X11-only applications may not launch.\n' >&2
+        set +e
+        env -u DISPLAY -u XAUTHORITY -u QT_QPA_PLATFORM -u QT_QPA_PLATFORM_PLUGIN_PATH -u QT_PLUGIN_PATH XDG_SESSION_TYPE=wayland WAYLAND_DISPLAY="$socket_name" "$app_bin" --maximized
+        app_status=$?
+        set -e
+    fi
     set -e
     cleanup_weston
     weston_pid=

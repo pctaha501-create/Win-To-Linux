@@ -23,6 +23,9 @@ animation=none
 close-animation=none
 startup-animation=none
 focus-animation=none
+[autolaunch]
+path=$ROOT/scripts/capture-xwayland-env.sh
+watch=false
 EOF
 unset WAYLAND_DISPLAY || true
 weston_bin=$(command -v weston 2>/dev/null || true)
@@ -46,7 +49,7 @@ if [ ! -S "$runtime/wayland-parent" ]; then
     echo "Headless Weston parent did not create its Wayland socket." >&2
     exit 1
 fi
-WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --xwayland --config="$TMP/weston.ini" >"$TMP/nested.log" 2>&1 &
+WTL_XWAYLAND_ENV_FILE="$TMP/runtime/win-to-linux-xwayland-env.test" WAYLAND_DISPLAY=wayland-parent "$weston_bin" --backend=wayland --display=wayland-parent --socket=wayland-nested --renderer=pixman --xwayland --config="$TMP/weston.ini" >"$TMP/nested.log" 2>&1 &
 nested_pid=$!
 i=0
 while [ ! -S "$runtime/wayland-nested" ] && [ "$i" -lt 100 ]; do
@@ -72,20 +75,24 @@ while ! grep -q 'xserver listening on display :' "$TMP/nested.log" && [ "$i" -lt
     sleep 0.1
     i=$((i+1))
 done
-xdisplay=$(sed -n 's/.*xserver listening on display \(:[0-9][0-9]*\).*/\1/p' "$TMP/nested.log" | head -n 1)
-if [ -z "$xdisplay" ]; then
+i=0
+while [ ! -s "$runtime/win-to-linux-xwayland-env.test" ] && [ "$i" -lt 100 ]; do
+    kill -0 "$nested_pid" 2>/dev/null || break
+    sleep 0.1
+    i=$((i+1))
+done
+if [ ! -s "$runtime/win-to-linux-xwayland-env.test" ]; then
     cat "$TMP/nested.log" >&2
-    echo "Nested Weston did not expose an XWayland display." >&2
+    echo "Weston autolaunch helper did not capture the nested XWayland environment." >&2
     exit 1
 fi
-# Weston may keep its cookie in a runtime file. Try only private files under this test's disposable directories.
-xclient_ok=0
-for auth_file in $(find "$TMP" "$runtime" -type f \( -iname '*auth*' -o -name 'Xauthority' \) -print 2>/dev/null); do
-    if DISPLAY="$xdisplay" XAUTHORITY="$auth_file" "$xdpyinfo_bin" >"$TMP/x11-client.log" 2>&1; then xclient_ok=1; break; fi
-done
-if [ "$xclient_ok" -ne 1 ]; then
+xdisplay=$(sed -n '1p' "$runtime/win-to-linux-xwayland-env.test")
+xauthority=$(sed -n '2p' "$runtime/win-to-linux-xwayland-env.test")
+case "$xdisplay" in :[0-9]*) ;; *) cat "$TMP/nested.log" >&2; echo "Invalid nested XWayland DISPLAY: $xdisplay" >&2; exit 1 ;; esac
+[ -n "$xauthority" ] && [ -f "$xauthority" ] || { cat "$TMP/nested.log" >&2; echo "Nested XWayland authority file is missing." >&2; exit 1; }
+if ! DISPLAY="$xdisplay" XAUTHORITY="$xauthority" "$xdpyinfo_bin" >"$TMP/x11-client.log" 2>&1; then
     cat "$TMP/nested.log" "$TMP/x11-client.log" >&2
-    echo "XWayland published $xdisplay but an X11 client could not authenticate using the nested session's private authority files." >&2
+    echo "An X11 client could not authenticate to the nested XWayland display." >&2
     exit 1
 fi
 grep -q 'name of display' "$TMP/x11-client.log" || { cat "$TMP/x11-client.log" >&2; exit 1; }

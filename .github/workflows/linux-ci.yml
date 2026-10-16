@@ -72,6 +72,7 @@ jobs:
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
+          test -x "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
           test -f "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
           grep -q '^Exec=win-to-linux$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: Verify uninstall staging
@@ -79,6 +80,7 @@ jobs:
           PREFIX="$RUNNER_TEMP/wtl-install" sh scripts/uninstall-user.sh
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
+          test ! -e "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
           test ! -e "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: System diagnostic
         run: ./build/src/app/win-to-linux --system
