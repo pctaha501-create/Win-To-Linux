@@ -215,21 +215,40 @@ ApplicationWindow {
      Rectangle { x: parent.width*0.37; y: parent.height*0.04; width: parent.width*0.62; height: parent.height*0.88; radius: width/2; rotation: -24; opacity: 0.9; gradient: Gradient { GradientStop { position: 0; color: "#6bb8ff" } GradientStop { position: 0.55; color: "#2469d2" } GradientStop { position: 1; color: "#143b91" } } }
      Rectangle { x: parent.width*0.52; y: parent.height*0.23; width: parent.width*0.49; height: parent.height*0.68; radius: width/2; rotation: 20; opacity: 0.88; gradient: Gradient { GradientStop { position: 0; color: "#d0e7ff" } GradientStop { position: 0.28; color: "#5799f5" } GradientStop { position: 1; color: "#2049ae" } } }
      Rectangle { x: parent.width*0.48; y: parent.height*0.36; width: parent.width*0.45; height: parent.height*0.50; radius: width/2; rotation: -12; opacity: 0.72; gradient: Gradient { GradientStop { position: 0; color: "#76c6ff" } GradientStop { position: 1; color: "#17428f" } } }
-     GridLayout {
-      anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 14
-      columns: 1; rowSpacing: 8
-      Repeater {
-       model: [{label:"This PC",glyph:"▣",page:7},{label:"Home",glyph:"⌂",page:7},{label:"Applications",glyph:"▦",page:1},{label:"Packages",glyph:"▤",page:3},{label:"Settings",glyph:"⚙",page:4},{label:"Task Manager",glyph:"▥",page:5},{label:"Windows apps",glyph:"▣",page:6}]
-       delegate: Button {
-        required property var modelData
-        Layout.preferredWidth: 82; Layout.preferredHeight: 78; padding: 4
-        background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
-        contentItem: ColumnLayout {
-         spacing: 4
-         Label { text: modelData.glyph; color: "white"; font.pixelSize: 27; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
-         Label { text: modelData.label; color: "white"; font.pixelSize: 10; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; Layout.fillWidth: true }
+     RowLayout {
+      anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 12; spacing: 7
+      ColumnLayout {
+       spacing: 5
+       Repeater {
+        model: [{label:"This PC",glyph:"▣",page:7},{label:"Home",glyph:"⌂",page:7},{label:"Applications",glyph:"▦",page:1},{label:"Packages",glyph:"▤",page:3},{label:"Settings",glyph:"⚙",page:4},{label:"Task Manager",glyph:"▥",page:5},{label:"Windows apps",glyph:"▣",page:6}]
+        delegate: Button {
+         required property var modelData
+         Layout.preferredWidth: 82; Layout.preferredHeight: 64; padding: 3
+         background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
+         contentItem: ColumnLayout {
+          spacing: 2
+          Label { text: modelData.glyph; color: "white"; font.pixelSize: 23; horizontalAlignment: Text.AlignHCenter; Layout.fillWidth: true }
+          Label { text: modelData.label; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; Layout.fillWidth: true }
+         }
+         onClicked: { win.page=modelData.page; if(modelData.label==="This PC")fileManager.navigate("/"); if(modelData.label==="Home")fileManager.refresh(); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
         }
-        onClicked: { win.page=modelData.page; if(modelData.label==="This PC")fileManager.navigate("/"); if(win.page===1)systemInfo.refreshApplications(); if(win.page===5)processMonitor.refreshProcesses() }
+       }
+      }
+      ColumnLayout {
+       spacing: 5
+       Repeater {
+        model: systemInfo.applications.slice(0, 6)
+        delegate: Button {
+         required property var modelData
+         Layout.preferredWidth: 82; Layout.preferredHeight: 64; padding: 3
+         background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
+         contentItem: ColumnLayout {
+          spacing: 2
+          Rectangle { Layout.alignment: Qt.AlignHCenter; width: 27; height: 27; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true; font.pixelSize: 15 } }
+          Label { text: modelData.name; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; Layout.fillWidth: true }
+         }
+         onClicked: systemInfo.launchDesktopFile(modelData.desktopFile)
+        }
        }
       }
      }
