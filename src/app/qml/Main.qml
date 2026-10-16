@@ -360,12 +360,54 @@ ApplicationWindow {
      Item { Layout.fillWidth: true }
      RowLayout {
       spacing: 5
-      Button { text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "Start"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; }; onClicked: startMenu.open() } }
-      Button { text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "Search apps"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; }; onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) } } }
-      Button { text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "Linux"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; Rectangle { visible: win.page === 2; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom } }; onClicked: win.page=2 } }
-      Button { text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "Packages"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; Rectangle { visible: win.page === 3; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom } }; onClicked: win.page=3 } }
-      Button { text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "File Explorer"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; Rectangle { visible: win.page === 7; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom } }; onClicked: win.page=7 } }
-      Button { text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0; ToolTip.visible: hovered; ToolTip.text: "Settings"; background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"; Rectangle { visible: win.page === 4; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom } }; onClicked: win.page=4 } }
+      Button {
+       text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "Start"
+       background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
+       onClicked: startMenu.open()
+      }
+      Button {
+       text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "Search apps"
+       background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
+       onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) }
+      }
+      Button {
+       text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "Linux"
+       background: Rectangle {
+        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        Rectangle { visible: win.page === 2; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
+       }
+       onClicked: win.page=2
+      }
+      Button {
+       text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "Packages"
+       background: Rectangle {
+        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        Rectangle { visible: win.page === 3; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
+       }
+       onClicked: win.page=3
+      }
+      Button {
+       text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "File Explorer"
+       background: Rectangle {
+        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        Rectangle { visible: win.page === 7; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
+       }
+       onClicked: win.page=7
+      }
+      Button {
+       text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       ToolTip.visible: hovered; ToolTip.text: "Settings"
+       background: Rectangle {
+        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        Rectangle { visible: win.page === 4; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
+       }
+       onClicked: win.page=4
+      }
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
