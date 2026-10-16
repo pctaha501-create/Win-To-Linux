@@ -102,7 +102,8 @@ int main(int argc,char**argv){
   if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for section search test.";return 1;}
   QObject *startSearchField=root->findChild<QObject *>(QStringLiteral("startSearchField"));
   if(!startSearchField){qCritical()<<"Start search field is missing.";return 1;}
-  startSearchField->setProperty("text",QStringLiteral("settings"));QCoreApplication::processEvents();
+  root->setProperty("startSearch",QStringLiteral("settings"));QCoreApplication::processEvents();
+  if(startSearchField->property("text").toString()!=QStringLiteral("settings")){qCritical()<<"Start search field did not follow the shared search state.";return 1;}
   if(!root->findChild<QObject *>(QStringLiteral("startSearchSection_4"))){qCritical()<<"Start search did not return the Settings section shortcut.";return 1;}
   if(!clickButton(QStringLiteral("startSearchSection_4"))||root->property("page").toInt()!=4||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting Settings from Start search failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarNotificationsButton"))||!popupVisible(QStringLiteral("notificationCenterPopup"))||!popupFitsWindow(QStringLiteral("notificationCenterPopup"))||!closePopup(QStringLiteral("notificationCenterPopup"))){qCritical()<<"Notifications button interaction or responsive sizing failed.";return 1;}
