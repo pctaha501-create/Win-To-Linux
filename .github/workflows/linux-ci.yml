@@ -71,3 +71,4 @@ jobs:
           grep -q '^Win-To-Linux diagnostic report' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Runtime check:' "$RUNNER_TEMP/diagnostic-report.txt"
           grep -q '^Compositor executables:' "$RUNNER_TEMP/diagnostic-report.txt"
+          grep -q '^Nested preview readiness:' "$RUNNER_TEMP/diagnostic-report.txt"

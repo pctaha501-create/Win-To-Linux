@@ -23,6 +23,23 @@ SystemInfo::SystemInfo(QObject *p):QObject(p){
 QString SystemInfo::distribution()const{return m_distribution;} QString SystemInfo::distroId()const{return m_id;} QString SystemInfo::family()const{return m_family;} QString SystemInfo::version()const{return m_version;}
 QString SystemInfo::packageManager()const{return m_manager;} bool SystemInfo::managerAvailable()const{return m_managerAvailable;} QString SystemInfo::kernel()const{return m_kernel;} QString SystemInfo::architecture()const{return m_arch;} QString SystemInfo::hostName()const{return m_host;} QVariantList SystemInfo::applications()const{return m_apps;} QVariantList SystemInfo::nativeTools()const{return m_nativeTools;} QString SystemInfo::status()const{return m_status;}
 QString SystemInfo::sessionType()const{return m_sessionType;} QString SystemInfo::desktopEnvironment()const{return m_desktopEnvironment;} QString SystemInfo::waylandDisplay()const{return m_waylandDisplay;} QString SystemInfo::xDisplay()const{return m_xDisplay;} QString SystemInfo::runtimeDirectory()const{return m_runtimeDirectory;} QString SystemInfo::runtimeDirectoryStatus()const{return m_runtimeDirectoryStatus;} QVariantList SystemInfo::availableCompositors()const{return m_availableCompositors;}
+QString SystemInfo::previewReadiness()const{
+ QStringList blockers;
+ if(m_runtimeDirectory==QStringLiteral("Not set")||m_runtimeDirectoryStatus!=QStringLiteral("Directory exists and ownership/permissions look safe"))
+  blockers.append(QStringLiteral("XDG_RUNTIME_DIR is missing or fails ownership/permission checks"));
+ if(m_waylandDisplay==QStringLiteral("Not set")||m_waylandDisplay.isEmpty())
+  blockers.append(QStringLiteral("No active Wayland display socket is configured; this launcher does not start a physical-display compositor"));
+ else if(m_runtimeDirectory!=QStringLiteral("Not set")){
+  const QString socketPath=m_waylandDisplay.startsWith(QLatin1Char('/'))?m_waylandDisplay:QDir(m_runtimeDirectory).filePath(m_waylandDisplay);
+  if(!QFileInfo(socketPath).isSocket())blockers.append(QStringLiteral("The configured Wayland socket does not exist or is not a Unix socket: %1").arg(socketPath));
+ }
+ if(QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty())
+  blockers.append(QStringLiteral("Cage is not installed"));
+ const QString appPath=QCoreApplication::applicationFilePath();
+ if(appPath.isEmpty()||!QFileInfo(appPath).isExecutable())blockers.append(QStringLiteral("The Win-To-Linux executable path could not be verified"));
+ if(blockers.isEmpty())return QStringLiteral("Ready for nested preview only. This is not an independent desktop session.");
+ return QStringLiteral("Not ready for nested preview:\n• %1\n\nThis checker is read-only; it will not install packages or alter your login manager.").arg(blockers.join(QStringLiteral("\n• ")));
+}
 QString SystemInfo::diagnosticReport()const{
  const QString report=QStringLiteral("Win-To-Linux diagnostic report\nDistribution: %1 (%2)\nVersion: %3\nFamily: %4\nKernel: %5\nArchitecture: %6\nHost: %7\nDesktop environment: %8\nSession type: %9\nWayland display: %10\nX11 display: %11\nRuntime directory: %12\nRuntime check: %13\nPackage manager: %14\nPackage manager available: %15\nWine available: %16\nBottles available: %17\nDetected compositors: %18")
   .arg(m_distribution).arg(m_id).arg(m_version).arg(m_family).arg(m_kernel).arg(m_arch).arg(m_host).arg(m_desktopEnvironment).arg(m_sessionType)
@@ -33,7 +50,7 @@ QString SystemInfo::diagnosticReport()const{
   .arg(QString::number(m_availableCompositors.size()));
  QStringList compositorDetails;
  for(const QVariant &entry:m_availableCompositors){const QVariantMap item=entry.toMap();compositorDetails.append(QStringLiteral("%1: %2").arg(item.value(QStringLiteral("name")).toString(),item.value(QStringLiteral("path")).toString()));}
- return report + QStringLiteral("\nCompositor executables:\n%1").arg(compositorDetails.isEmpty()?QStringLiteral("None detected"):compositorDetails.join(QLatin1Char('\n')));
+ return report + QStringLiteral("\nCompositor executables:\n%1\nNested preview readiness:\n%2").arg(compositorDetails.isEmpty()?QStringLiteral("None detected"):compositorDetails.join(QLatin1Char('\n')),previewReadiness());
 }
 void SystemInfo::copyDiagnosticReport()const{QGuiApplication::clipboard()->setText(diagnosticReport());}
 QVariantList SystemInfo::recentNotifications()const{QSettings settings;return settings.value(QStringLiteral("notifications/recent")).toList();}
