@@ -25,6 +25,7 @@ Item {
    Button { text: "New folder"; onClicked: { folderNameField.text = ""; createDialog.open() } }
   }
   Shortcut { objectName: "fileManagerFocusPathShortcut"; sequence: "Ctrl+L"; enabled: root.visible; onActivated: { pathField.forceActiveFocus(); pathField.selectAll() } }
+  Shortcut { objectName: "fileManagerRefreshShortcut"; sequence: "F5"; enabled: root.visible; onActivated: root.controller.refresh() }
   Connections {
    target: root.controller
    function onCurrentPathChanged() { pathField.text = root.controller.currentPath }

@@ -14,6 +14,7 @@
 #include <QTemporaryDir>
 #include <QDir>
 #include <QFileInfo>
+#include <QFile>
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
@@ -133,12 +134,20 @@ int main(int argc,char**argv){
     return 1;
    }
    if(url.endsWith(QStringLiteral("FileManagerPage.qml"))){
-    if(!page->findChild<QObject *>(QStringLiteral("fileManagerPathField"))||!page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"))){qCritical()<<"File Manager path field or Ctrl+L shortcut was not instantiated.";delete page;return 1;}
+    if(!page->findChild<QObject *>(QStringLiteral("fileManagerPathField"))||!page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"))||!page->findChild<QObject *>(QStringLiteral("fileManagerRefreshShortcut"))){qCritical()<<"File Manager path field or Ctrl+L shortcut was not instantiated.";delete page;return 1;}
     QObject *homeButton=page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"));
     QObject *pathField=page->findChild<QObject *>(QStringLiteral("fileManagerPathField"));
     QObject *pathShortcut=page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"));
+    QObject *refreshShortcut=page->findChild<QObject *>(QStringLiteral("fileManagerRefreshShortcut"));
     QTemporaryDir homeFixture;
-    if(!homeButton||!pathField||!pathShortcut||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager navigation fixture could not be prepared.";delete page;return 1;}
+    if(!homeButton||!pathField||!pathShortcut||!refreshShortcut||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager navigation fixture could not be prepared.";delete page;return 1;}
+    QFile newlyCreated(homeFixture.filePath(QStringLiteral("refreshed.txt")));
+    if(!newlyCreated.open(QIODevice::WriteOnly)){qCritical()<<"Could not create File Manager refresh fixture.";delete page;return 1;}
+    newlyCreated.write("refresh");newlyCreated.close();
+    if(!QMetaObject::invokeMethod(refreshShortcut,"activated",Qt::DirectConnection)){qCritical()<<"File Manager F5 shortcut could not be triggered.";delete page;return 1;}
+    QCoreApplication::processEvents();
+    bool refreshFound=false;for(const QVariant &entry:fileManager.entries())if(entry.toMap().value(QStringLiteral("name")).toString()==QStringLiteral("refreshed.txt"))refreshFound=true;
+    if(!refreshFound){qCritical()<<"F5 did not refresh the File Manager directory listing.";delete page;return 1;}
     if(!QMetaObject::invokeMethod(pathShortcut,"activated",Qt::DirectConnection)){qCritical()<<"File Manager Ctrl+L shortcut could not be triggered.";delete page;return 1;}
     QCoreApplication::processEvents();
     if(pathField->property("selectedText").toString()!=pathField->property("text").toString()){qCritical()<<"Ctrl+L did not select the full path in File Manager.";delete page;return 1;}
