@@ -17,6 +17,7 @@
 #include <QSet>
 #include <algorithm>
 #include <unistd.h>
+#include <sys/stat.h>
 SystemInfo::SystemInfo(QObject *p):QObject(p){
  auto d=wtl::DistroDetector::detect();m_distribution=d.name.isEmpty()?QStringLiteral("Unknown Linux"):d.name;m_id=d.id.isEmpty()?QStringLiteral("unknown"):d.id;m_family=d.familyName;m_version=d.versionId.isEmpty()?QStringLiteral("Unknown"):d.versionId;m_manager=d.packageManager.isEmpty()?QStringLiteral("Not detected"):d.packageManager;m_managerAvailable=d.packageManagerAvailable;m_kernel=QSysInfo::kernelVersion();m_arch=QSysInfo::currentCpuArchitecture();m_host=QSysInfo::machineHostName();
  QSettings settings;m_lightAppearance=settings.value(QStringLiteral("appearance/light"),false).toBool();m_winePath=QStandardPaths::findExecutable(QStringLiteral("wine"));m_bottlesPath=QStandardPaths::findExecutable(QStringLiteral("bottles"));discoverNativeTools();discoverSession();refreshApplications();
@@ -32,7 +33,10 @@ QString SystemInfo::previewReadiness()const{
   blockers.append(QStringLiteral("No active Wayland display socket is configured; this launcher does not start a physical-display compositor"));
  else if(m_runtimeDirectory!=QStringLiteral("Not set")){
   const QString socketPath=m_waylandDisplay.startsWith(QLatin1Char('/'))?m_waylandDisplay:QDir(m_runtimeDirectory).filePath(m_waylandDisplay);
-  if(!QFileInfo(socketPath).exists()||!QFileInfo(socketPath).isOther())blockers.append(QStringLiteral("The configured Wayland socket does not exist or is not a Unix socket: %1").arg(socketPath));
+  struct stat socketInfo{};
+  const QByteArray encodedSocket=QFile::encodeName(socketPath);
+  if(::lstat(encodedSocket.constData(),&socketInfo)!=0||!S_ISSOCK(socketInfo.st_mode)||socketInfo.st_uid!=getuid())
+   blockers.append(QStringLiteral("The configured Wayland socket is missing, is not a Unix socket, or is not owned by the current user: %1").arg(socketPath));
  }
  if(QStandardPaths::findExecutable(QStringLiteral("cage")).isEmpty())
   blockers.append(QStringLiteral("Cage is not installed"));
