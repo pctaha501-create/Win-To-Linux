@@ -135,8 +135,13 @@ int main(int argc,char**argv){
    if(url.endsWith(QStringLiteral("FileManagerPage.qml"))){
     if(!page->findChild<QObject *>(QStringLiteral("fileManagerPathField"))||!page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"))){qCritical()<<"File Manager path field or Ctrl+L shortcut was not instantiated.";delete page;return 1;}
     QObject *homeButton=page->findChild<QObject *>(QStringLiteral("fileManagerHomeButton"));
+    QObject *pathField=page->findChild<QObject *>(QStringLiteral("fileManagerPathField"));
+    QObject *pathShortcut=page->findChild<QObject *>(QStringLiteral("fileManagerFocusPathShortcut"));
     QTemporaryDir homeFixture;
-    if(!homeButton||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager Home action fixture could not be prepared.";delete page;return 1;}
+    if(!homeButton||!pathField||!pathShortcut||!homeFixture.isValid()||!fileManager.navigate(homeFixture.path())){qCritical()<<"File Manager navigation fixture could not be prepared.";delete page;return 1;}
+    if(!QMetaObject::invokeMethod(pathShortcut,"activated",Qt::DirectConnection)){qCritical()<<"File Manager Ctrl+L shortcut could not be triggered.";delete page;return 1;}
+    QCoreApplication::processEvents();
+    if(pathField->property("selectedText").toString()!=pathField->property("text").toString()){qCritical()<<"Ctrl+L did not select the full path in File Manager.";delete page;return 1;}
     if(!QMetaObject::invokeMethod(homeButton,"clicked",Qt::DirectConnection)){qCritical()<<"File Manager Home button could not be triggered.";delete page;return 1;}
     QCoreApplication::processEvents();
     const QString expectedHome=QFileInfo(QDir::homePath()).canonicalFilePath();
