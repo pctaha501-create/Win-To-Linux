@@ -18,7 +18,7 @@
 - [x] Settings diagnostics export to clipboard, including runtime safety and detected compositor executable paths
 - [x] Read-only `--preview-check` CLI reports all nested-preview blockers and exits 2 on an unsafe/headless environment; CI asserts the refusal path
 - [x] Isolated-preview integration test uses a fake owned Wayland socket/Cage to verify preflight runs first and refuses unsafe launch (Linux CI passed on `8f83e02449d3e74e58ffc1069b81a2c8675dc005`)
-- [x] Weston-first nested desktop backend: unique per-user socket, nested Wayland backend, pixman renderer, no user config, supervised cleanup, and Cage fallback; headless Weston plus real `wayland-info` client smoke test passed on commit `d2fc50b7dd55df3ca981df0069de0684e2fa4bbc`
+- [x] Weston-first nested desktop backend: unique per-user socket, nested Wayland backend, pixman renderer, no user config, supervised cleanup, and Cage fallback; headless Weston plus real `wayland-info` client smoke test passed; private `panel-position=none` config and `--maximized` shell startup also passed CI on commit `e05a2f7762d0452d2401e0349be6039ba6ea35c2`
 - [x] Keyboard shortcut reference in Settings
 - [x] Workspace switcher with Alt+Tab previous-workspace navigation and Ctrl+Alt+Tab overview; headless smoke test asserts its QML controls
 - [x] Wine/Bottles detection and confirmation-gated .exe/.msi launch via Wine
@@ -31,7 +31,7 @@
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Fedora, Arch, and openSUSE
-- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed again on commit `d2fc50b7dd55df3ca981df0069de0684e2fa4bbc`
+- [x] Full application build/test matrix across Ubuntu 24.04, Fedora, Arch Linux, and openSUSE Tumbleweed; all four jobs passed again on commit `b0f991176c5ca7d1b2001fb670b715b2964388a8`
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [ ] Full compositor/session launcher with recovery and a supported independent desktop session (implementation gates: docs/standalone-session.md)
 - [x] Persistent notifications, richer settings, copyable diagnostics, and nested-preview readiness blocker list
