@@ -611,6 +611,7 @@ ApplicationWindow {
       Button { text: "Refresh"; onClicked: { processMonitor.refreshProcesses(); win.showToast("Process list refreshed") } }
      }
      ListView {
+      objectName: "processListView"
       Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 4
       model: processMonitor.processes.filter(function(process) {
        var query = processSearch.text.toLowerCase()

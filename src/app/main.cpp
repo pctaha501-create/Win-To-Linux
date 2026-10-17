@@ -163,6 +163,16 @@ int main(int argc,char**argv){
   if(!sendShortcut(Qt::Key_Comma,Qt::ControlModifier)||root->property("page").toInt()!=4){qCritical()<<"Ctrl+, Settings shortcut failed.";return 1;}
   if(!sendShortcut(Qt::Key_E,Qt::ControlModifier)||root->property("page").toInt()!=7){qCritical()<<"Ctrl+E File Explorer shortcut failed.";return 1;}
   if(!sendShortcut(Qt::Key_Escape,Qt::ControlModifier|Qt::ShiftModifier)||root->property("page").toInt()!=5){qCritical()<<"Ctrl+Shift+Esc Task Manager shortcut failed.";return 1;}
+  QObject *processSearchField=root->findChild<QObject *>(QStringLiteral("processSearchField"));
+  QObject *processSortCombo=root->findChild<QObject *>(QStringLiteral("processSortComboBox"));
+  QObject *processList=root->findChild<QObject *>(QStringLiteral("processListView"));
+  processMonitor.refreshProcesses();QCoreApplication::processEvents();
+  if(!processSearchField||!processSortCombo||!processList||processList->property("count").toInt()<=0){qCritical()<<"Task Manager process list/search/sort controls are not ready.";return 1;}
+  processSearchField->setProperty("text",QStringLiteral("__wtl_no_process_should_match_73a91__"));QCoreApplication::processEvents();
+  if(processList->property("count").toInt()!=0){qCritical()<<"Task Manager search did not filter unmatched process names/PIDs.";return 1;}
+  processSearchField->setProperty("text",QString());QCoreApplication::processEvents();
+  if(processList->property("count").toInt()<=0){qCritical()<<"Clearing Task Manager search did not restore the process list.";return 1;}
+  for(int sortIndex:{1,2,0}){processSortCombo->setProperty("currentIndex",sortIndex);QCoreApplication::processEvents();if(processSortCombo->property("currentIndex").toInt()!=sortIndex){qCritical()<<"Task Manager sort selection did not update:"<<sortIndex;return 1;}}
   if(!sendShortcut(Qt::Key_Tab,Qt::ControlModifier|Qt::AltModifier)||!popupVisible(QStringLiteral("workspaceSwitcher"))||!closePopup(QStringLiteral("workspaceSwitcher"))){qCritical()<<"Ctrl+Alt+Tab workspace switcher shortcut failed.";return 1;}
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
