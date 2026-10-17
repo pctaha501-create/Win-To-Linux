@@ -23,6 +23,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 namespace {
+QStringList applicationRoots(){
+ const QString dataHome=QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+ return {QDir(dataHome).filePath(QStringLiteral("applications")),QDir(dataHome).filePath(QStringLiteral("flatpak/exports/share/applications")),QStringLiteral("/var/lib/flatpak/exports/share/applications"),QStringLiteral("/var/lib/snapd/desktop/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
+}
 bool detectQtWaylandPlugin(){
  QStringList roots=QCoreApplication::libraryPaths();roots.append(QLibraryInfo::path(QLibraryInfo::PluginsPath));
  const QStringList names{QStringLiteral("libqwayland-generic.so"),QStringLiteral("libqwayland-egl.so")};
@@ -226,7 +230,7 @@ void SystemInfo::discoverNativeTools(){
  }
 }
 void SystemInfo::refreshApplications(){
- const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
+ const QStringList roots=applicationRoots();
  QSet<QString> seen;QVariantList list;
  for(const QString &root:roots){
   QDir dir(root);
@@ -247,7 +251,7 @@ void SystemInfo::refreshApplications(){
 }
 bool SystemInfo::launchDesktopFile(const QString &desktopFile){
  QFileInfo fi(desktopFile);const QString path=fi.canonicalFilePath();bool allowed=false;
- const QStringList roots={QDir::homePath()+QStringLiteral("/.local/share/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
+ const QStringList roots=applicationRoots();
  for(const QString &root:roots){const QString canonicalRoot=QFileInfo(root).canonicalFilePath();if(!canonicalRoot.isEmpty()&&path.startsWith(canonicalRoot+QLatin1Char('/'))){allowed=true;break;}}
  if(path.isEmpty()||!allowed||!QFileInfo(path).isFile()||QFileInfo(path).suffix()!=QStringLiteral("desktop")){setStatus(QStringLiteral("Launch blocked: invalid desktop entry path."));return false;}
  QFile file(path);if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}

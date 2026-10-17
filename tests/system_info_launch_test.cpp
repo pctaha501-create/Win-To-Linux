@@ -25,9 +25,9 @@ QString readText(const QString &path){QFile file(path);if(!file.open(QIODevice::
 int main(int argc,char **argv){
  QTemporaryDir temp;if(!temp.isValid()){qCritical()<<"Could not create temporary test directory.";return 1;}
  const QString home=temp.path();const QString dataHome=home+QStringLiteral("/.local/share");
- const QString apps=dataHome+QStringLiteral("/applications");const QString work=home+QStringLiteral("/working-directory");
+ const QString apps=dataHome+QStringLiteral("/applications");const QString flatpakApps=dataHome+QStringLiteral("/flatpak/exports/share/applications");const QString work=home+QStringLiteral("/working-directory");
  const QString bin=home+QStringLiteral("/bin");const QString log=home+QStringLiteral("/launch.log");
- if(!QDir().mkpath(apps)||!QDir().mkpath(work)||!QDir().mkpath(bin)){qCritical()<<"Could not create test directory tree.";return 1;}
+ if(!QDir().mkpath(apps)||!QDir().mkpath(flatpakApps)||!QDir().mkpath(work)||!QDir().mkpath(bin)){qCritical()<<"Could not create test directory tree.";return 1;}
  qputenv("HOME",home.toLocal8Bit());qputenv("XDG_DATA_HOME",dataHome.toLocal8Bit());qputenv("XDG_CONFIG_HOME",(home+QStringLiteral("/.config")).toLocal8Bit());
  const QByteArray oldPath=qgetenv("PATH");qputenv("PATH",QFile::encodeName(bin)+QByteArray(":")+oldPath);qputenv("WTL_LAUNCH_LOG",log.toLocal8Bit());
  QGuiApplication app(argc,argv);QCoreApplication::setApplicationName(QStringLiteral("Win-To-Linux-launch-test"));QCoreApplication::setOrganizationName(QStringLiteral("Win-To-Linux-tests"));
@@ -42,7 +42,16 @@ int main(int argc,char **argv){
  const QString desktop=apps+QStringLiteral("/fixture.desktop");
  const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
  if(!writeFile(desktop,desktopContents)){qCritical()<<"Could not create fixture desktop entry.";return 1;}
+ const QString flatpakDesktop=flatpakApps+QStringLiteral("/flatpak-fixture.desktop");
+ const QByteArray flatpakContents=QStringLiteral("[Desktop Entry]\nName=Flatpak Fixture App\nExec=wtl-launch-fixture --flatpak\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
+ if(!writeFile(flatpakDesktop,flatpakContents)){qCritical()<<"Could not create Flatpak export fixture.";return 1;}
  SystemInfo system;bool ok=true;
+ const QVariantList discoveredApps=system.applications();bool foundFlatpak=false;for(const QVariant &application:discoveredApps)if(application.toMap().value(QStringLiteral("name")).toString()==QStringLiteral("Flatpak Fixture App"))foundFlatpak=true;
+ ok &= expect(foundFlatpak,"discover per-user Flatpak exported desktop applications");
+ ok &= expect(system.launchDesktopFile(flatpakDesktop),"launch an allowed per-user Flatpak exported desktop entry");
+ QElapsedTimer flatpakTimer;flatpakTimer.start();while(!QFileInfo::exists(log)&&flatpakTimer.elapsed()<2500)QThread::msleep(10);
+ ok &= expect(readText(log).contains(QStringLiteral("arg=<--flatpak>")),"launch Flatpak exported entry using safe argument handling");
+ QFile::remove(log);
  QVariantList notificationFixture;
  for(int i=0;i<10;++i)notificationFixture.append(QVariantMap{{QStringLiteral("message"),QStringLiteral("notification-%1").arg(i)},{QStringLiteral("time"),QStringLiteral("12:%1").arg(i,2,10,QLatin1Char('0'))}});
  system.saveRecentNotifications(notificationFixture);
