@@ -25,7 +25,14 @@
 namespace {
 QStringList applicationRoots(){
  const QString dataHome=QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
- return {QDir(dataHome).filePath(QStringLiteral("applications")),QDir(dataHome).filePath(QStringLiteral("flatpak/exports/share/applications")),QStringLiteral("/var/lib/flatpak/exports/share/applications"),QStringLiteral("/var/lib/snapd/desktop/applications"),QStringLiteral("/usr/local/share/applications"),QStringLiteral("/usr/share/applications")};
+ QStringList roots{QDir(dataHome).filePath(QStringLiteral("applications")),QDir(dataHome).filePath(QStringLiteral("flatpak/exports/share/applications"))};
+ QStringList dataDirectories=qEnvironmentVariable("XDG_DATA_DIRS").split(QLatin1Char(':'),Qt::SkipEmptyParts);
+ if(dataDirectories.isEmpty())dataDirectories={QStringLiteral("/usr/local/share"),QStringLiteral("/usr/share")};
+ for(QString directory:dataDirectories){directory=QDir::cleanPath(directory.trimmed());if(directory.isEmpty()||!QDir::isAbsolutePath(directory))continue;roots.append(QDir(directory).filePath(QStringLiteral("applications")));}
+ roots.append(QStringLiteral("/var/lib/flatpak/exports/share/applications"));
+ roots.append(QStringLiteral("/var/lib/snapd/desktop/applications"));
+ roots.removeDuplicates();
+ return roots;
 }
 bool detectQtWaylandPlugin(){
  QStringList roots=QCoreApplication::libraryPaths();roots.append(QLibraryInfo::path(QLibraryInfo::PluginsPath));
