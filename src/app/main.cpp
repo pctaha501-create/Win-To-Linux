@@ -174,6 +174,16 @@ int main(int argc,char**argv){
   processSearchField->setProperty("text",QString());QCoreApplication::processEvents();
   if(processList->property("count").toInt()<=0){qCritical()<<"Clearing Task Manager search did not restore the process list.";return 1;}
   auto processRows=[&]()->QVariantList{const QVariant model=processList->property("model");if(model.canConvert<QVariantList>())return model.toList();return model.value<QJSValue>().toVariant().toList();};
+  const QVariantList unfilteredRows=processRows();
+  if(unfilteredRows.isEmpty()){qCritical()<<"Task Manager returned no process rows after clearing search.";return 1;}
+  const QVariantMap firstProcess=unfilteredRows.first().toMap();
+  const QString firstPid=firstProcess.value(QStringLiteral("pid")).toString();
+  const QString firstPpid=firstProcess.value(QStringLiteral("ppid")).toString();
+  processSearchField->setProperty("text",firstPid);QCoreApplication::processEvents();
+  if(processList->property("count").toInt()<=0){qCritical()<<"Task Manager search did not match a process PID.";return 1;}
+  processSearchField->setProperty("text",firstPpid);QCoreApplication::processEvents();
+  if(processList->property("count").toInt()<=0){qCritical()<<"Task Manager search did not match a process PPID.";return 1;}
+  processSearchField->setProperty("text",QString());QCoreApplication::processEvents();
   auto verifyDescending=[&](int sortIndex,const QString &field)->bool{
    processSortCombo->setProperty("currentIndex",sortIndex);QCoreApplication::processEvents();
    const QVariantList rows=processRows();
