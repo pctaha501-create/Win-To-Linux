@@ -16,7 +16,9 @@ jobs:
           for script in scripts/*.sh tests/*.sh; do sh -n "$script"; done
           sh -n scripts/winux11
           sh -n scripts/verify-vm.sh
-          sh -n scripts/winux11
+          sh -n tests/verify_vm_script_test.sh
+      - name: Test read-only VM verifier in ready and blocked states
+        run: sh tests/verify_vm_script_test.sh
       - name: Test standalone-session preflight and supervisor without DRM access
         run: sh tests/standalone_session_test.sh
       - name: Verify isolated launcher refuses unsafe direct-session start
