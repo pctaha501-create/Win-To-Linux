@@ -5,7 +5,7 @@ A cross-distribution Linux desktop workspace inspired by Windows 11, built with 
 Current milestone: a Qt Quick preview shell running inside the existing Linux desktop. It does not replace the display manager or claim to be a complete compositor/session.
 
 ## Implemented
-- Distribution detection and safe distro-specific package command planning. Application discovery follows XDG_DATA_HOME/XDG_DATA_DIRS and includes per-user/system Flatpak exports plus Snap desktop entries; launch paths are validated against the same discovered trusted roots.
+- Distribution detection and safe distro-specific package command planning for Debian/Ubuntu/Kali, Red Hat/Fedora/Rocky, Arch, openSUSE, and Alpine (`apk` install/remove/update checks). Application discovery follows XDG_DATA_HOME/XDG_DATA_DIRS and includes per-user/system Flatpak exports plus Snap desktop entries; launch paths are validated against the same discovered trusted roots.
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
 - Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
 - Windowed and optional full-screen launch modes (`Winux11` and `Winux11 --fullscreen`).

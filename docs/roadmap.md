@@ -5,7 +5,7 @@
 ## Preview shell structure
 - [x] C++20/CMake/Ninja foundation
 - [x] Distribution and package-manager detection
-- [x] Safe distro-specific package command plans
+- [x] Safe distro-specific package command plans for APT, DNF/YUM, pacman, zypper, and Alpine apk
 - [x] Qt Quick navigation and dashboard
 - [x] Host system details and headless system diagnostics
 - [x] XDG app discovery/search and launch using a tested desktop-entry parser, TryExec/working-directory handling, safe Exec field-code expansion, and canonical-path allowlisting
@@ -47,7 +47,7 @@
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
-- [x] Distro-detector CI matrix across Ubuntu, Kali, Fedora/Rocky, Arch, and openSUSE
+- [x] Distro-detector CI matrix across Ubuntu, Kali, Fedora/Rocky, Arch, openSUSE, and Alpine
 - [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Debian 13, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all seven jobs passed on [verified run 39056466902](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/39056466902)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments

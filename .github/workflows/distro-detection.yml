@@ -23,6 +23,9 @@ jobs:
           - name: Ubuntu
             image: ubuntu:24.04
             install: "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y g++ pkg-config qt6-base-dev"
+          - name: Alpine
+            image: alpine:latest
+            install: "apk add --no-cache g++ pkgconf qt6-qtbase-dev"
           - name: Fedora
             image: fedora:latest
             install: "dnf install -y gcc-c++ pkgconf-pkg-config qt6-qtbase-devel"
