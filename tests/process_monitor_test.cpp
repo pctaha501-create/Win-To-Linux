@@ -1,6 +1,8 @@
 #include "process_monitor.h"
 #include <QCoreApplication>
 #include <QHash>
+#include <QProcess>
+#include <QThread>
 #include <QDebug>
 namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
 int main(int argc,char **argv){
@@ -44,5 +46,16 @@ int main(int argc,char **argv){
  if(!expect(monitor.totalCpuPercent()>=0.0&&monitor.totalCpuPercent()<=100.0,"aggregate CPU remains normalized after refresh"))return 1;
  if(!expect(monitor.memoryPercent()>=0.0&&monitor.memoryPercent()<=100.0,"RAM utilization is normalized"))return 1;
  if(!expect(!monitor.memoryText().isEmpty(),"RAM usage has display text"))return 1;
+ QProcess child;
+ child.start(QStringLiteral("/bin/sleep"),QStringList{QStringLiteral("30")});
+ if(!expect(child.waitForStarted(1500),"start a controlled child process for signal-safety tests"))return 1;
+ const qint64 childPid=child.processId();monitor.refreshProcesses();qint64 childTicks=-1;
+ for(const QVariant &entry:monitor.processes()){const QVariantMap process=entry.toMap();if(process.value(QStringLiteral("pid")).toLongLong()==childPid){childTicks=process.value(QStringLiteral("startTicks")).toLongLong();break;}}
+ if(!expect(childTicks>=0,"discover the child process start-time identity")){child.kill();child.waitForFinished(1000);return 1;}
+ if(!expect(!monitor.terminateProcess(childPid,childTicks+1),"reject stale process identity before sending a signal")){child.kill();child.waitForFinished(1000);return 1;}
+ if(child.state()==QProcess::NotRunning){qCritical()<<"FAIL: stale identity check unexpectedly stopped the child";return 1;}
+ const bool stopped=monitor.terminateProcess(childPid,childTicks);
+ if(stopped){if(!child.waitForFinished(2000)){child.kill();child.waitForFinished(1000);qCritical()<<"FAIL: PID-bound SIGTERM did not stop the child";return 1;}}
+ else {if(child.state()!=QProcess::NotRunning){child.kill();child.waitForFinished(1000);}if(!expect(monitor.status().contains(QStringLiteral("safe"))||monitor.status().contains(QStringLiteral("Safe")),"unsupported pidfd kernels fail closed with a safety explanation"))return 1;}
  qInfo()<<"Process monitor tests passed";return 0;
 }

@@ -9,6 +9,8 @@
 #include <functional>
 #include <algorithm>
 #include <csignal>
+#include <cerrno>
+#include <sys/syscall.h>
 #include <unistd.h>
 
 namespace {
@@ -256,11 +258,29 @@ bool ProcessMonitor::terminateProcess(qint64 pid, qint64 expectedStartTicks) {
   setStatus(QStringLiteral("Permission denied: only your own processes can be stopped here."));
   return false;
  }
- if (::kill(static_cast<pid_t>(pid), SIGTERM) != 0) {
-  setStatus(QStringLiteral("Could not send a stop request. The process may have exited or be protected."));
-  refreshProcesses();
-  return false;
+#if defined(SYS_pidfd_open) && defined(SYS_pidfd_send_signal)
+ // Bind the signal to the process identity, not just its numeric PID. A process
+ // can exit and its PID can be reused between a /proc check and kill(pid, ...).
+ const int processHandle=static_cast<int>(::syscall(SYS_pidfd_open,static_cast<pid_t>(pid),0));
+ if(processHandle<0){
+  setStatus(errno==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
+   QStringLiteral("Safe process handles are unavailable; refusing to risk signaling a reused PID."));
+  refreshProcesses();return false;
  }
+ qint64 boundTicks=0;uid_t boundUid=static_cast<uid_t>(-1);
+ const bool identityMatches=readStartTicks(pid,&boundTicks)&&boundTicks==expectedStartTicks&&readRealUid(pid,&boundUid)&&boundUid==getuid();
+ if(!identityMatches){::close(processHandle);setStatus(QStringLiteral("Process changed or exited; no signal was sent."));refreshProcesses();return false;}
+ const long signalResult=::syscall(SYS_pidfd_send_signal,processHandle,SIGTERM,nullptr,0);
+ const int signalError=errno;::close(processHandle);
+ if(signalResult!=0){
+  setStatus(signalError==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
+   QStringLiteral("Could not send a safe stop request. The process may be protected."));
+  refreshProcesses();return false;
+ }
+#else
+ setStatus(QStringLiteral("This kernel lacks safe PID-bound signaling; refusing to risk stopping a reused PID."));
+ return false;
+#endif
  setStatus(QStringLiteral("Stop request sent to PID %1. The process may need time to exit.").arg(pid));
  refreshProcesses();
  return true;
