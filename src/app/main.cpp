@@ -93,7 +93,9 @@ int main(int argc,char**argv){
    QStringLiteral("taskbarNotificationsButton"),QStringLiteral("taskbarQuickSettingsButton"),QStringLiteral("launchNestedPreviewButton"),
    QStringLiteral("createMcpButton"),QStringLiteral("winePrefixNameField"),
    QStringLiteral("winePrefixSelector"),QStringLiteral("createWinePrefixButton"),
-   QStringLiteral("removeWinePrefixButton"),QStringLiteral("launchWinePrefixFileButton")};
+   QStringLiteral("removeWinePrefixButton"),QStringLiteral("launchWinePrefixFileButton"),
+   QStringLiteral("processSearchField"),QStringLiteral("processSortComboBox"),
+   QStringLiteral("winePrefixOutputTextArea")};
   for(const QString &name:requiredControls){
    if(!root->findChild<QObject *>(name)){qCritical()<<"Required shell/accessibility control was not instantiated:"<<name;return 1;}
   }
