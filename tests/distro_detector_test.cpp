@@ -28,6 +28,14 @@ VERSION_ID="24.04"
     ok &= expect(ubuntu.packageManager == "apt-get", "Ubuntu selects apt-get");
     ok &= expect(!ubuntu.packageManagerAvailable, "do not invent a missing package manager");
 
+    const auto escaped = wtl::DistroDetector::parse(
+        R"(NAME="Example \"OS\""
+ID=example
+VERSION_ID="3.1\\beta"
+)" , noExecutables);
+    ok &= expect(escaped.name == QStringLiteral("Example \"OS\""), "decode escaped quotes in os-release NAME");
+    ok &= expect(escaped.versionId == QStringLiteral("3.1\\beta"), "decode escaped backslashes in os-release VERSION_ID");
+
     const auto kali = wtl::DistroDetector::parse(
         R"(NAME="Kali GNU/Linux"
 ID=kali

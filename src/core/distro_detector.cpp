@@ -6,7 +6,25 @@
 #include <QSet>
 namespace wtl {
 namespace {
-QString unquote(QString v) { v=v.trimmed(); if(v.size()>=2) { QChar a=v.front(), b=v.back(); if((a=='"'&&b=='"')||(a=='\''&&b=='\'')) v=v.mid(1,v.size()-2); } return v; }
+QString unquote(QString value) {
+ value=value.trimmed();
+ if(value.size()<2)return value;
+ const QChar quote=value.front();
+ if((quote!='"'&&quote!='\'')||value.back()!=quote)return value;
+ value=value.mid(1,value.size()-2);
+ if(quote!='"')return value;
+ QString decoded;decoded.reserve(value.size());bool escaped=false;
+ for(const QChar ch:value){
+  if(escaped){
+   if(ch=='\\'||ch=='"'||ch=='$'||ch=='`')decoded+=ch;
+   else{decoded+='\\';decoded+=ch;}
+   escaped=false;
+  }else if(ch=='\\')escaped=true;
+  else decoded+=ch;
+ }
+ if(escaped)decoded+='\\';
+ return decoded;
+}
 QStringList words(const QString &s) { return s.toLower().split(QRegularExpression(QStringLiteral("\\s+")),Qt::SkipEmptyParts); }
 QString findExe(const QString &p,const QStringList &dirs) { for(const auto &d:dirs) { QFileInfo f(d+QLatin1Char('/')+p); if(f.isFile()&&f.isExecutable()) return f.canonicalFilePath().isEmpty()?f.absoluteFilePath():f.canonicalFilePath(); } return {}; }
 }
