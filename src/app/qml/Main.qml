@@ -671,6 +671,7 @@ ApplicationWindow {
          Item { Layout.fillWidth: true }
         }
         Label { text: winePrefixController.status; color: win.muted; wrapMode: Text.WordWrap; Layout.fillWidth: true; Accessible.name: "Wine prefix operation status" }
+        TextArea { objectName: "winePrefixOutputTextArea"; text: winePrefixController.output; readOnly: true; wrapMode: TextEdit.Wrap; color: win.muted; visible: text.length > 0; Layout.fillWidth: true; Layout.preferredHeight: 88; Accessible.name: "Wine prefix initialization output" }
        }
       }
      }

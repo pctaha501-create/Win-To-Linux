@@ -10,6 +10,7 @@ class WinePrefixController final : public QObject {
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
     Q_PROPERTY(bool available READ available CONSTANT)
     Q_PROPERTY(QString status READ status NOTIFY statusChanged)
+    Q_PROPERTY(QString output READ output NOTIFY outputChanged)
     Q_PROPERTY(QString rootDirectory READ rootDirectory CONSTANT)
 
 public:
@@ -23,6 +24,7 @@ public:
     bool busy() const;
     bool available() const;
     QString status() const;
+    QString output() const;
     QString rootDirectory() const;
 
     Q_INVOKABLE bool validPrefixName(const QString &name) const;
@@ -35,6 +37,7 @@ signals:
     void prefixesChanged();
     void busyChanged();
     void statusChanged();
+    void outputChanged();
 
 private:
     QString m_rootDirectory;
@@ -42,12 +45,14 @@ private:
     QString m_wineExecutable;
     QStringList m_prefixes;
     QString m_status;
+    QString m_output;
     QString m_pendingPrefix;
     bool m_busy = false;
     QProcess m_process;
 
     void setStatus(const QString &status);
     void setBusy(bool busy);
+    void appendOutput(const QString &text);
     QString safeExistingRoot() const;
     QString safePrefixPath(const QString &name) const;
     void removeIncompletePrefix(const QString &name);

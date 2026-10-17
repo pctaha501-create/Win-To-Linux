@@ -27,8 +27,13 @@ WinePrefixController::WinePrefixController(const QString &rootDirectory,
         ? QStringLiteral("No isolated Wine prefixes found.")
         : QStringLiteral("Wine and wineboot are both required for isolated prefixes.");
 
+    connect(&m_process, &QProcess::readyReadStandardOutput, this, [this]() {
+        appendOutput(QString::fromLocal8Bit(m_process.readAllStandardOutput()));
+    });
+
     connect(&m_process, &QProcess::finished, this,
             [this](int exitCode, QProcess::ExitStatus exitStatus) {
+        appendOutput(QString::fromLocal8Bit(m_process.readAllStandardOutput()));
         const QString name = m_pendingPrefix;
         m_pendingPrefix.clear();
         setBusy(false);
@@ -68,6 +73,7 @@ bool WinePrefixController::available() const
            !m_wineExecutable.isEmpty() && QFileInfo(m_wineExecutable).isExecutable();
 }
 QString WinePrefixController::status() const { return m_status; }
+QString WinePrefixController::output() const { return m_output; }
 QString WinePrefixController::rootDirectory() const { return m_rootDirectory; }
 
 bool WinePrefixController::validPrefixName(const QString &name) const
@@ -90,6 +96,17 @@ void WinePrefixController::setBusy(bool busy)
         return;
     m_busy = busy;
     emit busyChanged();
+}
+
+void WinePrefixController::appendOutput(const QString &text)
+{
+    if (text.isEmpty())
+        return;
+    m_output += text;
+    constexpr qsizetype maximumOutputCharacters = 16000;
+    if (m_output.size() > maximumOutputCharacters)
+        m_output = m_output.right(maximumOutputCharacters);
+    emit outputChanged();
 }
 
 QString WinePrefixController::safeExistingRoot() const
@@ -175,6 +192,8 @@ bool WinePrefixController::createPrefix(const QString &name)
         return false;
     }
 
+    m_output.clear();
+    emit outputChanged();
     QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
     environment.insert(QStringLiteral("WINEPREFIX"), path);
     m_process.setProcessEnvironment(environment);

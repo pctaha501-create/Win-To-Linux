@@ -44,6 +44,17 @@ int main(int argc, char **argv) {
  const QString expectedInstaller=QFileInfo(installer).canonicalFilePath();
  if(!expect(launchLines.size()==4,"MSI launch passes four distinct values") || !expect(launchLines.value(0)==expectedPrefix,"WINEPREFIX is scoped to the selected managed prefix") || !expect(launchLines.value(1)==QStringLiteral("msiexec"),"MSI is launched through msiexec") || !expect(launchLines.value(2)==QStringLiteral("/i"),"MSI install flag is passed separately") || !expect(launchLines.value(3)==expectedInstaller,"installer path with spaces remains one argument"))return 1;
  qunsetenv("WTL_TEST_WINE_LOG");
+ const QString failingRoot=temporary.filePath(QStringLiteral("failed-prefixes"));
+ const QString failingWineboot=temporary.filePath(QStringLiteral("fake-wineboot-failing"));
+ if(!expect(writeExecutable(failingWineboot,QByteArray("#!/bin/sh\nmkdir -p \"$WINEPREFIX\"\necho 'wineboot fixture failure' >&2\nexit 23\n")),"failing wineboot fixture is executable"))return 1;
+ WinePrefixController failingController(failingRoot,failingWineboot,wine);
+ if(!expect(failingController.createPrefix(QStringLiteral("broken-prefix")),"failing prefix initialization starts"))return 1;
+ if(failingController.busy()){QEventLoop loop;QObject::connect(&failingController,&WinePrefixController::busyChanged,&loop,[&](){if(!failingController.busy())loop.quit();});QTimer::singleShot(5000,&loop,&QEventLoop::quit);loop.exec();}
+ if(!expect(!failingController.busy(),"failing wineboot operation finishes within timeout")||
+    !expect(failingController.output().contains(QStringLiteral("wineboot fixture failure")),"wineboot stderr is captured for troubleshooting")||
+    !expect(failingController.status().contains(QStringLiteral("cleaned up")),"failed prefix status explains cleanup")||
+    !expect(!QFileInfo::exists(QDir(failingRoot).filePath(QStringLiteral("broken-prefix"))),"failed prefix directory is removed"))return 1;
+
  const QString outside=temporary.filePath(QStringLiteral("outside")); if(!expect(QDir().mkpath(outside),"outside fixture created"))return 1;
  QFile registry(QDir(outside).filePath(QStringLiteral("system.reg"))); if(!registry.open(QIODevice::WriteOnly)||registry.write("keep")!=4)return 1; registry.close();
  const QString linkPath=QDir(root).filePath(QStringLiteral("outside-link"));
