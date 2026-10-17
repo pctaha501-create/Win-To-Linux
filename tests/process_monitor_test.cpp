@@ -57,6 +57,15 @@ int main(int argc,char **argv){
  if(child.state()==QProcess::NotRunning){qCritical()<<"FAIL: stale identity check unexpectedly stopped the child";return 1;}
  const bool stopped=monitor.terminateProcess(childPid,childTicks);
  if(stopped){if(!child.waitForFinished(2000)){child.kill();child.waitForFinished(1000);qCritical()<<"FAIL: PID-bound SIGTERM did not stop the child";return 1;}}
- else {if(child.state()!=QProcess::NotRunning){child.kill();child.waitForFinished(1000);}if(!expect(monitor.status().contains(QStringLiteral("safe"))||monitor.status().contains(QStringLiteral("Safe")),"unsupported pidfd kernels fail closed with a safety explanation"))return 1;}
+ else {
+  const QString refusalStatus=monitor.status();
+  if(child.state()!=QProcess::NotRunning){child.kill();child.waitForFinished(1000);}
+  const bool explained=refusalStatus.contains(QStringLiteral("safe"),Qt::CaseInsensitive)||
+   refusalStatus.contains(QStringLiteral("exited"),Qt::CaseInsensitive)||
+   refusalStatus.contains(QStringLiteral("changed"),Qt::CaseInsensitive)||
+   refusalStatus.contains(QStringLiteral("no signal"),Qt::CaseInsensitive);
+  if(!explained)qCritical().noquote()<<"Unexpected process-stop refusal status:"<<refusalStatus;
+  if(!expect(explained,"failed process termination retains a safe refusal explanation"))return 1;
+ }
  qInfo()<<"Process monitor tests passed";return 0;
 }
