@@ -107,6 +107,17 @@ int main(int argc, char **argv) {
                  apkRemove.arguments == QStringList{QStringLiteral("/sbin/apk"), QStringLiteral("del"), QStringLiteral("curl")},
                  "Alpine removes packages through PolicyKit and apk del");
 
+    auto voidLinux = distro(QStringLiteral("xbps-install"), QStringLiteral("/usr/bin/xbps-install"));
+    voidLinux.packageManagerRemovePath = QStringLiteral("/usr/bin/xbps-remove");
+    const auto xbpsUpdates = wtl::PackageCommandPlanner::checkUpdates(voidLinux);
+    ok &= expect(xbpsUpdates.arguments == QStringList{QStringLiteral("-Mun")}, "Void update check uses XBPS dry-run upgrade planning");
+    const auto xbpsInstall = wtl::PackageCommandPlanner::install(voidLinux, QStringLiteral("curl"));
+    ok &= expect(xbpsInstall.arguments == QStringList{QStringLiteral("/usr/bin/xbps-install"), QStringLiteral("-y"), QStringLiteral("curl")}, "Void installs through xbps-install");
+    const auto xbpsRemove = wtl::PackageCommandPlanner::remove(voidLinux, QStringLiteral("curl"));
+    ok &= expect(xbpsRemove.arguments == QStringList{QStringLiteral("/usr/bin/xbps-remove"), QStringLiteral("-y"), QStringLiteral("curl")}, "Void removes through the separately detected xbps-remove executable");
+    voidLinux.packageManagerRemovePath.clear();
+    ok &= expect(!wtl::PackageCommandPlanner::remove(voidLinux, QStringLiteral("curl")).supported, "Void remove refuses to guess a missing xbps-remove path");
+
     if (!ok) return 1;
     qInfo() << "Win-To-Linux package planner safety tests passed";
     return 0;

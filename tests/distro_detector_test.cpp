@@ -131,6 +131,15 @@ VERSION_ID="3.22.0"
     ok &= expect(alpine.packageManager == QStringLiteral("apk"), "Alpine selects apk");
     ok &= expect(!alpine.packageManagerAvailable, "Alpine does not claim apk is installed when PATH has no apk");
 
+    const auto voidLinux = wtl::DistroDetector::parse(
+        R"(NAME="Void Linux"
+ID=void
+VERSION_ID="rolling"
+)", noExecutables);
+    ok &= expect(voidLinux.family == wtl::DistroFamily::Void, "Void Linux is recognized as its own family");
+    ok &= expect(voidLinux.packageManager == QStringLiteral("xbps-install"), "Void Linux selects XBPS");
+    ok &= expect(!voidLinux.packageManagerAvailable, "Void does not claim XBPS is installed when PATH lacks it");
+
     const auto unknown = wtl::DistroDetector::parse(
         R"(NAME="Example OS"
 ID=example-os

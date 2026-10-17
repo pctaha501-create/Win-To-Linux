@@ -5,7 +5,7 @@
 ## Preview shell structure
 - [x] C++20/CMake/Ninja foundation
 - [x] Distribution and package-manager detection
-- [x] Safe distro-specific package command plans for APT, DNF/YUM, pacman, zypper, and Alpine apk
+- [x] Safe distro-specific package command plans for APT, DNF/YUM, pacman, zypper, Alpine apk, and Void XBPS
 - [x] Qt Quick navigation and dashboard
 - [x] Host system details and headless system diagnostics
 - [x] XDG app discovery/search and launch using a tested desktop-entry parser, TryExec/working-directory handling, safe Exec field-code expansion, and canonical-path allowlisting

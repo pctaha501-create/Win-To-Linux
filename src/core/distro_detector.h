@@ -2,14 +2,14 @@
 #include <QString>
 #include <QStringList>
 namespace wtl {
-enum class DistroFamily { Debian, RedHat, Arch, OpenSUSE, Alpine, Generic };
+enum class DistroFamily { Debian, RedHat, Arch, OpenSUSE, Alpine, Void, Generic };
 struct DistroInfo {
  QString id, idLike, name, versionId;
  DistroFamily family = DistroFamily::Generic;
  QString familyName = QStringLiteral("generic");
  QString packageManager;
  bool packageManagerAvailable = false;
- QString packageManagerPath, error;
+ QString packageManagerPath, packageManagerRemovePath, error;
 };
 class DistroDetector final {
 public:

@@ -216,6 +216,10 @@ void SystemInfo::discoverNativeTools(){
  }else if(m_family==QStringLiteral("alpine")){
   candidates.append({QStringLiteral("Alpine Package Manager"),QStringLiteral("apk"),QStringLiteral("Packages")});
   candidates.append({QStringLiteral("OpenRC service manager"),QStringLiteral("rc-service"),QStringLiteral("System")});
+ }else if(m_family==QStringLiteral("void")){
+  candidates.append({QStringLiteral("XBPS package manager"),QStringLiteral("xbps-install"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("XBPS package query"),QStringLiteral("xbps-query"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("runit service manager"),QStringLiteral("sv"),QStringLiteral("System")});
  }
  if(m_id==QStringLiteral("kali")){
   const QList<Candidate> security={
