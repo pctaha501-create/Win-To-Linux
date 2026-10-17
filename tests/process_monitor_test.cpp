@@ -61,16 +61,14 @@ int main(int argc,char **argv){
  if(stopped){if(!child.waitForFinished(2000)){child.kill();child.waitForFinished(1000);qCritical()<<"FAIL: PID-bound SIGTERM did not stop the child";return 1;}}
  else {
   const QString refusalStatus=monitor.status();
-  if(child.state()!=QProcess::NotRunning){child.kill();child.waitForFinished(1000);}
+  QFile procStatus(QStringLiteral("/proc/%1/status").arg(childPid));QString uidLine;
+  if(procStatus.open(QIODevice::ReadOnly|QIODevice::Text)){while(!procStatus.atEnd()){const QByteArray line=procStatus.readLine();if(line.startsWith("Uid:")){uidLine=QString::fromLocal8Bit(line).trimmed();break;}}}
   const bool explained=refusalStatus.contains(QStringLiteral("safe"),Qt::CaseInsensitive)||
    refusalStatus.contains(QStringLiteral("exited"),Qt::CaseInsensitive)||
    refusalStatus.contains(QStringLiteral("changed"),Qt::CaseInsensitive)||
    refusalStatus.contains(QStringLiteral("no signal"),Qt::CaseInsensitive);
-  if(!explained){
-   QFile procStatus(QStringLiteral("/proc/%1/status").arg(childPid));QString uidLine;
-   if(procStatus.open(QIODevice::ReadOnly|QIODevice::Text)){while(!procStatus.atEnd()){const QByteArray line=procStatus.readLine();if(line.startsWith("Uid:")){uidLine=QString::fromLocal8Bit(line).trimmed();break;}}}
-   qCritical().noquote()<<"Unexpected process-stop refusal status:"<<refusalStatus<<"current UID:"<<getuid()<<"child proc status:"<<uidLine;
-  }
+  if(!explained)qCritical().noquote()<<"Unexpected process-stop refusal status:"<<refusalStatus<<"current UID:"<<getuid()<<"child proc status:"<<uidLine;
+  if(child.state()!=QProcess::NotRunning){child.kill();child.waitForFinished(1000);}
   if(!expect(explained,"failed process termination retains a safe refusal explanation"))return 1;
  }
  qInfo()<<"Process monitor tests passed";return 0;
