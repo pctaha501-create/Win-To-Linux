@@ -3,6 +3,8 @@
 #include <QHash>
 #include <QProcess>
 #include <QThread>
+#include <QFile>
+#include <unistd.h>
 #include <QDebug>
 namespace { bool expect(bool ok,const char *message){if(!ok)qCritical().noquote()<<"FAIL:"<<message;return ok;} }
 int main(int argc,char **argv){
@@ -64,7 +66,11 @@ int main(int argc,char **argv){
    refusalStatus.contains(QStringLiteral("exited"),Qt::CaseInsensitive)||
    refusalStatus.contains(QStringLiteral("changed"),Qt::CaseInsensitive)||
    refusalStatus.contains(QStringLiteral("no signal"),Qt::CaseInsensitive);
-  if(!explained)qCritical().noquote()<<"Unexpected process-stop refusal status:"<<refusalStatus;
+  if(!explained){
+   QFile procStatus(QStringLiteral("/proc/%1/status").arg(childPid));QString uidLine;
+   if(procStatus.open(QIODevice::ReadOnly|QIODevice::Text)){while(!procStatus.atEnd()){const QByteArray line=procStatus.readLine();if(line.startsWith("Uid:")){uidLine=QString::fromLocal8Bit(line).trimmed();break;}}}
+   qCritical().noquote()<<"Unexpected process-stop refusal status:"<<refusalStatus<<"current UID:"<<getuid()<<"child proc status:"<<uidLine;
+  }
   if(!expect(explained,"failed process termination retains a safe refusal explanation"))return 1;
  }
  qInfo()<<"Process monitor tests passed";return 0;
