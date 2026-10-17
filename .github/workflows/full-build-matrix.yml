@@ -43,7 +43,7 @@ jobs:
             install: "pacman -Sy --noconfirm --needed base-devel cmake ninja qt6-base qt6-declarative"
           - name: openSUSE Tumbleweed
             image: opensuse/tumbleweed
-            install: "zypper --non-interactive refresh && zypper --non-interactive install gcc-c++ cmake ninja qt6-base-devel qt6-declarative-devel qt6-quickcontrols2-devel"
+            install: "for attempt in 1 2 3; do zypper --non-interactive refresh && break; [ \"$attempt\" -lt 3 ] || exit 1; sleep 5; done && zypper --non-interactive install gcc-c++ cmake ninja qt6-base-devel qt6-declarative-devel qt6-quickcontrols2-devel"
     steps:
       - uses: actions/checkout@v4
       - name: Build and test full application in ${{ matrix.image }}
