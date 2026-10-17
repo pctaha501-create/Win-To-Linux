@@ -254,7 +254,12 @@ bool ProcessMonitor::terminateProcess(qint64 pid, qint64 expectedStartTicks) {
   return false;
  }
  uid_t uid = static_cast<uid_t>(-1);
- if (!readRealUid(pid, &uid) || uid != getuid()) {
+ if (!readRealUid(pid, &uid)) {
+  refreshProcesses();
+  setStatus(QStringLiteral("Could not verify process ownership; it may have exited. No signal was sent."));
+  return false;
+ }
+ if (uid != getuid()) {
   setStatus(QStringLiteral("Permission denied: only your own processes can be stopped here."));
   return false;
  }
