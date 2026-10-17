@@ -19,6 +19,12 @@ runtime_mode=$(stat -c '%a' -- "$runtime_dir" 2>/dev/null || true)
 [ "$runtime_owner" = "$(id -u)" ] || fail "XDG_RUNTIME_DIR is not owned by the current user."
 case "$runtime_mode" in *[!0-7]*|'') fail "could not verify XDG_RUNTIME_DIR permissions." ;; esac
 [ $((0$runtime_mode & 077)) -eq 0 ] || fail "XDG_RUNTIME_DIR is accessible to other users; use a private mode-0700 runtime directory."
+# When logind is available, refuse to start DRM on a session that is not active on its VT.
+# Non-systemd systems (for example Alpine/Void with seatd) continue through the TTY/DRM checks.
+if [ -n "${XDG_SESSION_ID:-}" ] && command -v loginctl >/dev/null 2>&1; then
+    session_active=$(loginctl show-session "$XDG_SESSION_ID" -p Active --value 2>/dev/null || true)
+    [ "$session_active" != no ] || fail "logind reports this virtual-terminal session is not active; switch to the active VT first."
+fi
 weston_bin=$(command -v weston 2>/dev/null || true)
 [ -n "$weston_bin" ] || fail "Weston is not installed; install it using your distribution's package manager."
 app_bin=${WTL_BIN:-}

@@ -11,6 +11,11 @@ cat > "$fakebin/tty" <<'EOF'
 #!/bin/sh
 printf '%s\n' /dev/tty9
 EOF
+cat > "$fakebin/loginctl" <<'EOF'
+#!/bin/sh
+[ "${1:-}" = show-session ] || exit 1
+[ "${WTL_FAKE_SESSION_ACTIVE:-yes}" = yes ] && printf '%s\n' yes || printf '%s\n' no
+EOF
 cat > "$fakebin/weston" <<'EOF'
 #!/bin/sh
 printf '%s\n' "$@" > "$WTL_WESTON_LOG"
@@ -39,7 +44,7 @@ printf 'QT_PLUGIN_PATH=%s\n' "${QT_PLUGIN_PATH:-}" >> "$WTL_APP_LOG"
 printf '%s\n' "$*" >> "$WTL_APP_LOG"
 if [ "${WTL_APP_HANG:-0}" = 1 ]; then exec sleep 30; fi
 EOF
-chmod +x "$fakebin/tty" "$fakebin/weston" "$TMP/fake-app"
+chmod +x "$fakebin/tty" "$fakebin/loginctl" "$fakebin/weston" "$TMP/fake-app"
 : > "$runtime/Xauthority"
 chmod 600 "$runtime/Xauthority"
 export PATH="$fakebin:$PATH" XDG_RUNTIME_DIR="$runtime" WTL_BIN="$TMP/fake-app" WTL_WESTON_LOG="$TMP/weston.log" WTL_WESTON_CONFIG_LOG="$TMP/weston-config.log" WTL_APP_LOG="$TMP/app.log"
@@ -54,7 +59,12 @@ if env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=t
 grep -q 'accessible to other users' "$TMP/unsafe-runtime.log"
 test ! -e "$WTL_WESTON_LOG"
 chmod 700 "$runtime"
-env -u DISPLAY -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
+if env -u DISPLAY -u WAYLAND_DISPLAY WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty XDG_SESSION_ID=wtl-test-session WTL_FAKE_SESSION_ACTIVE=no sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/inactive-seat.log" 2>&1; then
+    echo 'Standalone session accepted an inactive logind session.' >&2; exit 1
+fi
+grep -q 'session is not active' "$TMP/inactive-seat.log"
+test ! -e "$WTL_WESTON_LOG"
+env -u DISPLAY -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_ENABLE_DRM_SESSION=1 XDG_SESSION_TYPE=tty XDG_SESSION_ID=wtl-test-session WTL_FAKE_SESSION_ACTIVE=yes sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/standalone.log" 2>&1
 grep -q '^--backend=drm$' "$WTL_WESTON_LOG"
 grep -q '^--tty=9$' "$WTL_WESTON_LOG"
 grep -q '^--xwayland$' "$WTL_WESTON_LOG"
@@ -70,7 +80,7 @@ grep -q '^QT_PLUGIN_PATH=$' "$WTL_APP_LOG"
 grep -q '^--maximized$' "$WTL_APP_LOG"
 # A compositor crash after socket creation must terminate the supervised shell and return promptly.
 rm -f "$WTL_WESTON_LOG" "$WTL_WESTON_CONFIG_LOG" "$WTL_APP_LOG"
-if timeout 8 env -u DISPLAY -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_ENABLE_DRM_SESSION=1 WTL_WESTON_CRASH_AFTER_SOCKET=1 WTL_APP_HANG=1 XDG_SESSION_TYPE=tty sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/compositor-crash.log" 2>&1; then
+if timeout 8 env -u DISPLAY -u WAYLAND_DISPLAY QT_QPA_PLATFORM=xcb QT_QPA_PLATFORM_PLUGIN_PATH=/host/qt/plugins QT_PLUGIN_PATH=/host/qt WTL_ENABLE_DRM_SESSION=1 WTL_WESTON_CRASH_AFTER_SOCKET=1 WTL_APP_HANG=1 XDG_SESSION_TYPE=tty XDG_SESSION_ID=wtl-test-session WTL_FAKE_SESSION_ACTIVE=yes sh "$ROOT/scripts/start-standalone-session.sh" >"$TMP/compositor-crash.log" 2>&1; then
     echo 'Standalone session did not report a compositor crash.' >&2
     exit 1
 else
@@ -82,4 +92,4 @@ if find "$runtime" -maxdepth 1 -name 'win-to-linux-session-*' -print | grep -q .
     echo 'Standalone session left a private session artifact after compositor failure.' >&2
     exit 1
 fi
-printf '%s\n' 'Standalone-session preflight, launch, and compositor-crash supervision tests passed.'
+printf '%s\n' 'Standalone-session preflight, active-seat check, launch, and compositor-crash supervision tests passed.'
