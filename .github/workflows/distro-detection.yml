@@ -38,7 +38,7 @@ jobs:
             install: "pacman -Sy --noconfirm gcc pkgconf qt6-base"
           - name: openSUSE
             image: opensuse/tumbleweed
-            install: "zypper --non-interactive refresh && zypper --non-interactive install gcc-c++ pkgconf-pkg-config qt6-base-devel"
+            install: "for attempt in 1 2 3; do zypper --non-interactive refresh && zypper --non-interactive install --no-recommends --allow-downgrade --force-resolution gcc-c++ pkgconf-pkg-config qt6-base-devel && break; [ $attempt -lt 3 ] || exit 1; sleep 5; done"
     steps:
       - uses: actions/checkout@v4
       - name: Compile and run distro regression tests inside ${{matrix.image}}
