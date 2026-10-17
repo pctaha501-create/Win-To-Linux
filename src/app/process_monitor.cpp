@@ -249,8 +249,8 @@ bool ProcessMonitor::terminateProcess(qint64 pid, qint64 expectedStartTicks) {
  }
  qint64 actualTicks = 0;
  if (!readStartTicks(pid, &actualTicks) || actualTicks != expectedStartTicks) {
-  setStatus(QStringLiteral("Process changed or exited; refresh the list and try again."));
   refreshProcesses();
+  setStatus(QStringLiteral("Process changed or exited; refresh the list and try again."));
   return false;
  }
  uid_t uid = static_cast<uid_t>(-1);
@@ -263,19 +263,19 @@ bool ProcessMonitor::terminateProcess(qint64 pid, qint64 expectedStartTicks) {
  // can exit and its PID can be reused between a /proc check and kill(pid, ...).
  const int processHandle=static_cast<int>(::syscall(SYS_pidfd_open,static_cast<pid_t>(pid),0));
  if(processHandle<0){
-  setStatus(errno==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
-   QStringLiteral("Safe process handles are unavailable; refusing to risk signaling a reused PID."));
-  refreshProcesses();return false;
+  const QString message=errno==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
+   QStringLiteral("Safe process handles are unavailable; refusing to risk signaling a reused PID.");
+  refreshProcesses();setStatus(message);return false;
  }
  qint64 boundTicks=0;uid_t boundUid=static_cast<uid_t>(-1);
  const bool identityMatches=readStartTicks(pid,&boundTicks)&&boundTicks==expectedStartTicks&&readRealUid(pid,&boundUid)&&boundUid==getuid();
- if(!identityMatches){::close(processHandle);setStatus(QStringLiteral("Process changed or exited; no signal was sent."));refreshProcesses();return false;}
+ if(!identityMatches){::close(processHandle);refreshProcesses();setStatus(QStringLiteral("Process changed or exited; no signal was sent."));return false;}
  const long signalResult=::syscall(SYS_pidfd_send_signal,processHandle,SIGTERM,nullptr,0);
  const int signalError=errno;::close(processHandle);
  if(signalResult!=0){
-  setStatus(signalError==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
-   QStringLiteral("Could not send a safe stop request. The process may be protected."));
-  refreshProcesses();return false;
+  const QString message=signalError==ESRCH?QStringLiteral("Process already exited; refresh the list and try again."):
+   QStringLiteral("Could not send a safe stop request. The process may be protected.");
+  refreshProcesses();setStatus(message);return false;
  }
 #else
  setStatus(QStringLiteral("This kernel lacks safe PID-bound signaling; refusing to risk stopping a reused PID."));
