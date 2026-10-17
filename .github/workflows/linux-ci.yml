@@ -94,6 +94,7 @@ jobs:
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -x "$RUNNER_TEMP/wtl-install/bin/Winux11"
+          test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-verify-vm"
           "$RUNNER_TEMP/wtl-install/bin/Winux11" --version | grep -q '^Win-To-Linux 0.2.0$'
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
@@ -104,6 +105,7 @@ jobs:
         run: |
           PREFIX="$RUNNER_TEMP/wtl-install" sh scripts/uninstall-user.sh
           test ! -e "$RUNNER_TEMP/wtl-install/bin/Winux11"
+          test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-verify-vm"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"

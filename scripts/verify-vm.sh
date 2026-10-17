@@ -2,8 +2,11 @@
 # Read-only VM acceptance diagnostics. Does not install packages or alter the display manager.
 set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 if [ -n "${WTL_BIN:-}" ]; then
     BIN=$WTL_BIN
+elif [ -x "$SCRIPT_DIR/Winux11" ]; then
+    BIN="$SCRIPT_DIR/Winux11"
 elif command -v Winux11 >/dev/null 2>&1; then
     BIN=$(command -v Winux11)
 elif command -v win-to-linux >/dev/null 2>&1; then

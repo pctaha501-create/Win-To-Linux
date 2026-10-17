@@ -57,7 +57,7 @@ The launcher checks the current user's runtime directory and active Wayland sock
 
 ## Read-only VM diagnostics
 
-Run `sh scripts/verify-vm.sh` to collect the executable version, host/session information, a support report, and nested-preview readiness. It does not install packages, start a compositor, or change the login manager. A blocked preview is reported as a blocker, not as a successful desktop launch.
+Run `sh scripts/verify-vm.sh` from the repository or `win-to-linux-verify-vm` after installation to collect the executable version, host/session information, a support report, and nested-preview readiness. It does not install packages, start a compositor, or change the login manager. A blocked preview is reported as a blocker, not as a successful desktop launch.
 
 ## Uninstall
     sh scripts/uninstall-user.sh
