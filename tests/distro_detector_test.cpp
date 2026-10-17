@@ -113,6 +113,16 @@ ID_LIKE=arch
     ok &= expect(endeavouros.family == wtl::DistroFamily::Arch, "EndeavourOS follows the Arch family");
     ok &= expect(endeavouros.packageManager == "pacman", "EndeavourOS selects pacman");
 
+    const auto alpine = wtl::DistroDetector::parse(
+        R"(NAME="Alpine Linux"
+ID=alpine
+VERSION_ID="3.22.0"
+)" , noExecutables);
+    ok &= expect(alpine.family == wtl::DistroFamily::Alpine, "Alpine Linux is recognized as its own family");
+    ok &= expect(alpine.familyName == QStringLiteral("alpine"), "Alpine family label is stable");
+    ok &= expect(alpine.packageManager == QStringLiteral("apk"), "Alpine selects apk");
+    ok &= expect(!alpine.packageManagerAvailable, "Alpine does not claim apk is installed when PATH has no apk");
+
     const auto unknown = wtl::DistroDetector::parse(
         R"(NAME="Example OS"
 ID=example-os

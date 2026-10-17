@@ -18,6 +18,7 @@ CommandPlan PackageCommandPlanner::checkUpdates(const DistroInfo &d) {
  if (n == "dnf" || n == "yum") return make(d.packageManagerPath, {"check-update"}, 60000);
  if (n == "pacman") return make(d.packageManagerPath, {"-Qu"});
  if (n == "zypper") return make(d.packageManagerPath, {"--non-interactive", "list-updates"}, 60000);
+ if (n == "apk") return make(d.packageManagerPath, {"version", "-l", "<"}, 60000);
  return noSupport();
 }
 CommandPlan PackageCommandPlanner::install(const DistroInfo &d, const QString &package) {
@@ -27,6 +28,7 @@ CommandPlan PackageCommandPlanner::install(const DistroInfo &d, const QString &p
  if (n == "apt-get" || n == "apt" || n == "dnf" || n == "yum") return make("pkexec", {d.packageManagerPath, "install", "-y", package}, 120000);
  if (n == "pacman") return make("pkexec", {d.packageManagerPath, "-S", "--noconfirm", package}, 120000);
  if (n == "zypper") return make("pkexec", {d.packageManagerPath, "--non-interactive", "install", package}, 120000);
+ if (n == "apk") return make("pkexec", {d.packageManagerPath, "add", package}, 120000);
  return noSupport();
 }
 CommandPlan PackageCommandPlanner::remove(const DistroInfo &d, const QString &package) {
@@ -36,6 +38,7 @@ CommandPlan PackageCommandPlanner::remove(const DistroInfo &d, const QString &pa
  if (n == "apt-get" || n == "apt" || n == "dnf" || n == "yum") return make("pkexec", {d.packageManagerPath, "remove", "-y", package}, 120000);
  if (n == "pacman") return make("pkexec", {d.packageManagerPath, "-R", "--noconfirm", package}, 120000);
  if (n == "zypper") return make("pkexec", {d.packageManagerPath, "--non-interactive", "remove", package}, 120000);
+ if (n == "apk") return make("pkexec", {d.packageManagerPath, "del", package}, 120000);
  return noSupport();
 }
 }

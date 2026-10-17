@@ -212,6 +212,9 @@ void SystemInfo::discoverNativeTools(){
   candidates.append({QStringLiteral("Zypper"),QStringLiteral("zypper"),QStringLiteral("Packages")});
   candidates.append({QStringLiteral("RPM"),QStringLiteral("rpm"),QStringLiteral("Packages")});
   candidates.append({QStringLiteral("FirewallD"),QStringLiteral("firewall-cmd"),QStringLiteral("Security")});
+ }else if(m_family==QStringLiteral("alpine")){
+  candidates.append({QStringLiteral("Alpine Package Manager"),QStringLiteral("apk"),QStringLiteral("Packages")});
+  candidates.append({QStringLiteral("OpenRC service manager"),QStringLiteral("rc-service"),QStringLiteral("System")});
  }
  if(m_id==QStringLiteral("kali")){
   const QList<Candidate> security={

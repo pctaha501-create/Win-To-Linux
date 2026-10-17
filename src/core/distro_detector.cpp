@@ -10,7 +10,7 @@ QString unquote(QString v) { v=v.trimmed(); if(v.size()>=2) { QChar a=v.front(),
 QStringList words(const QString &s) { return s.toLower().split(QRegularExpression(QStringLiteral("\\s+")),Qt::SkipEmptyParts); }
 QString findExe(const QString &p,const QStringList &dirs) { for(const auto &d:dirs) { QFileInfo f(d+QLatin1Char('/')+p); if(f.isFile()&&f.isExecutable()) return f.canonicalFilePath().isEmpty()?f.absoluteFilePath():f.canonicalFilePath(); } return {}; }
 }
-QString DistroDetector::familyName(DistroFamily f) { switch(f) { case DistroFamily::Debian:return "debian"; case DistroFamily::RedHat:return "redhat"; case DistroFamily::Arch:return "arch"; case DistroFamily::OpenSUSE:return "opensuse"; case DistroFamily::Generic:return "generic"; } return "generic"; }
+QString DistroDetector::familyName(DistroFamily f) { switch(f) { case DistroFamily::Debian:return "debian"; case DistroFamily::RedHat:return "redhat"; case DistroFamily::Arch:return "arch"; case DistroFamily::OpenSUSE:return "opensuse"; case DistroFamily::Alpine:return "alpine"; case DistroFamily::Generic:return "generic"; } return "generic"; }
 DistroInfo DistroDetector::detect(const QString &path,const QStringList &paths) { QFile f(path); if(!f.open(QIODevice::ReadOnly|QIODevice::Text)) { DistroInfo d; d.error=QStringLiteral("Cannot read distribution metadata: %1").arg(path); return d; } return parse(f.readAll(),paths); }
 DistroInfo DistroDetector::parse(const QByteArray &data,const QStringList &requestedPaths) {
  QSet<QString> seen; QString id,idLike,name,version; static const QRegularExpression re(QStringLiteral("^([A-Z][A-Z0-9_]*)=(.*)$"));
@@ -20,8 +20,9 @@ DistroInfo DistroDetector::parse(const QByteArray &data,const QStringList &reque
  else if(s.contains("fedora")||s.contains("rhel")||s.contains("redhat")||s.contains("centos")||s.contains("rocky")||s.contains("almalinux")) family=DistroFamily::RedHat;
  else if(s.contains("arch")||s.contains("manjaro")||s.contains("endeavouros")) family=DistroFamily::Arch;
  else if(s.contains("opensuse")||s.contains("opensuse-leap")||s.contains("opensuse-tumbleweed")||s.contains("suse")) family=DistroFamily::OpenSUSE;
+ else if(s.contains("alpine")) family=DistroFamily::Alpine;
  DistroInfo d; d.id=id; d.idLike=idLike; d.name=name; d.versionId=version; d.family=family; d.familyName=familyName(family);
- switch(family) { case DistroFamily::Debian:d.packageManager="apt-get";break; case DistroFamily::RedHat:d.packageManager="dnf";break; case DistroFamily::Arch:d.packageManager="pacman";break; case DistroFamily::OpenSUSE:d.packageManager="zypper";break; case DistroFamily::Generic:break; }
+ switch(family) { case DistroFamily::Debian:d.packageManager="apt-get";break; case DistroFamily::RedHat:d.packageManager="dnf";break; case DistroFamily::Arch:d.packageManager="pacman";break; case DistroFamily::OpenSUSE:d.packageManager="zypper";break; case DistroFamily::Alpine:d.packageManager="apk";break; case DistroFamily::Generic:break; }
  QStringList paths=requestedPaths; if(paths.isEmpty()) paths=QProcessEnvironment::systemEnvironment().value("PATH").split(':',Qt::SkipEmptyParts);
  if(!d.packageManager.isEmpty()) { QString p=findExe(d.packageManager,paths); if(p.isEmpty()&&family==DistroFamily::Debian) { p=findExe("apt",paths); if(!p.isEmpty()) d.packageManager="apt"; } if(p.isEmpty()&&family==DistroFamily::RedHat) { p=findExe("yum",paths); if(!p.isEmpty()) d.packageManager="yum"; } d.packageManagerPath=p; d.packageManagerAvailable=!p.isEmpty(); }
  return d;

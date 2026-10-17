@@ -2,7 +2,7 @@
 #include <QString>
 #include <QStringList>
 namespace wtl {
-enum class DistroFamily { Debian, RedHat, Arch, OpenSUSE, Generic };
+enum class DistroFamily { Debian, RedHat, Arch, OpenSUSE, Alpine, Generic };
 struct DistroInfo {
  QString id, idLike, name, versionId;
  DistroFamily family = DistroFamily::Generic;

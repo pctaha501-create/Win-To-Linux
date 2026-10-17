@@ -92,6 +92,21 @@ int main(int argc, char **argv) {
     ok &= expect(aptUpdates.arguments == QStringList{QStringLiteral("list"), QStringLiteral("--upgradable")},
                  "apt update check only lists upgradable packages");
 
+    const auto alpine = distro(QStringLiteral("apk"), QStringLiteral("/sbin/apk"));
+    const auto apkUpdates = wtl::PackageCommandPlanner::checkUpdates(alpine);
+    ok &= expect(apkUpdates.supported && apkUpdates.program == QStringLiteral("/sbin/apk"),
+                 "Alpine update check uses the detected apk executable");
+    ok &= expect(apkUpdates.arguments == QStringList{QStringLiteral("version"), QStringLiteral("-l"), QStringLiteral("<")},
+                 "Alpine update check lists locally known outdated packages without installing anything");
+    const auto apkInstall = wtl::PackageCommandPlanner::install(alpine, QStringLiteral("curl"));
+    ok &= expect(apkInstall.program == QStringLiteral("pkexec") &&
+                 apkInstall.arguments == QStringList{QStringLiteral("/sbin/apk"), QStringLiteral("add"), QStringLiteral("curl")},
+                 "Alpine installs packages through PolicyKit and apk add");
+    const auto apkRemove = wtl::PackageCommandPlanner::remove(alpine, QStringLiteral("curl"));
+    ok &= expect(apkRemove.program == QStringLiteral("pkexec") &&
+                 apkRemove.arguments == QStringList{QStringLiteral("/sbin/apk"), QStringLiteral("del"), QStringLiteral("curl")},
+                 "Alpine removes packages through PolicyKit and apk del");
+
     if (!ok) return 1;
     qInfo() << "Win-To-Linux package planner safety tests passed";
     return 0;
