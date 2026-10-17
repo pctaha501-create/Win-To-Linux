@@ -48,11 +48,24 @@ int main(int argc,char **argv){
  const QString customDesktop=customApps+QStringLiteral("/custom-fixture.desktop");
  const QByteArray customContents=QStringLiteral("[Desktop Entry]\nName=Custom XDG Fixture App\nExec=wtl-launch-fixture --custom-xdg\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
  if(!writeFile(customDesktop,customContents)){qCritical()<<"Could not create custom XDG application fixture.";return 1;}
+ const QString hiddenUserDesktop=apps+QStringLiteral("/masked-system-app.desktop");
+ const QString hiddenSystemDesktop=customApps+QStringLiteral("/masked-system-app.desktop");
+ if(!writeFile(hiddenUserDesktop,QByteArray("[Desktop Entry]\nName=Hidden User Override\nHidden=true\nExec=wtl-launch-fixture\n"))||
+    !writeFile(hiddenSystemDesktop,QByteArray("[Desktop Entry]\nName=Visible System Fallback\nExec=wtl-launch-fixture\n"))){qCritical()<<"Could not create Hidden override fixtures.";return 1;}
+ const QString visibleUserDesktop=apps+QStringLiteral("/visible-override.desktop");
+ const QString visibleSystemDesktop=customApps+QStringLiteral("/visible-override.desktop");
+ if(!writeFile(visibleUserDesktop,QByteArray("[Desktop Entry]\nName=User Override Wins\nExec=wtl-launch-fixture --user-override\n"))||
+    !writeFile(visibleSystemDesktop,QByteArray("[Desktop Entry]\nName=System Duplicate Loses\nExec=wtl-launch-fixture --system-duplicate\n"))){qCritical()<<"Could not create duplicate desktop-entry fixtures.";return 1;}
  SystemInfo system;bool ok=true;
  const QVariantList discoveredApps=system.applications();bool foundFlatpak=false;for(const QVariant &application:discoveredApps)if(application.toMap().value(QStringLiteral("name")).toString()==QStringLiteral("Flatpak Fixture App"))foundFlatpak=true;
  ok &= expect(foundFlatpak,"discover per-user Flatpak exported desktop applications");
  bool foundCustomXdg=false;for(const QVariant &application:discoveredApps)if(application.toMap().value(QStringLiteral("name")).toString()==QStringLiteral("Custom XDG Fixture App"))foundCustomXdg=true;
  ok &= expect(foundCustomXdg,"discover applications from custom XDG_DATA_DIRS locations");
+ bool hiddenFallbackFound=false,userOverrideFound=false,systemDuplicateFound=false;
+ for(const QVariant &application:discoveredApps){const QString name=application.toMap().value(QStringLiteral("name")).toString();if(name==QStringLiteral("Visible System Fallback"))hiddenFallbackFound=true;if(name==QStringLiteral("User Override Wins"))userOverrideFound=true;if(name==QStringLiteral("System Duplicate Loses"))systemDuplicateFound=true;}
+ ok &= expect(!hiddenFallbackFound,"a higher-priority Hidden=true desktop entry masks the system fallback");
+ ok &= expect(userOverrideFound,"a visible per-user desktop entry overrides a same-ID system entry");
+ ok &= expect(!systemDuplicateFound,"duplicate lower-priority desktop entries are not shown twice");
  ok &= expect(system.launchDesktopFile(customDesktop),"launch a desktop entry from a configured XDG_DATA_DIRS root");
  QElapsedTimer customTimer;customTimer.start();while(!QFileInfo::exists(log)&&customTimer.elapsed()<2500)QThread::msleep(10);
  ok &= expect(readText(log).contains(QStringLiteral("arg=<--custom-xdg>")),"pass custom XDG application arguments safely");

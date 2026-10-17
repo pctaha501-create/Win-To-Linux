@@ -241,12 +241,16 @@ void SystemInfo::discoverNativeTools(){
 }
 void SystemInfo::refreshApplications(){
  const QStringList roots=applicationRoots();
- QSet<QString> seen;QVariantList list;
+ QSet<QString> seenDesktopIds;QVariantList list;
  for(const QString &root:roots){
   QDir dir(root);
   for(const QFileInfo &fi:dir.entryInfoList({QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDir::Name)){
+   const QString desktopId=fi.fileName();
+   if(seenDesktopIds.contains(desktopId))continue;
+   // XDG application roots are ordered by priority. Even a Hidden=true entry
+   // in a higher-priority root must mask the same desktop ID in lower roots.
+   seenDesktopIds.insert(desktopId);
    QString path=fi.canonicalFilePath();if(path.isEmpty())path=fi.absoluteFilePath();
-   if(seen.contains(path))continue;seen.insert(path);
    QFile file(fi.absoluteFilePath());if(!file.open(QIODevice::ReadOnly|QIODevice::Text))continue;
    const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
    if(entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
