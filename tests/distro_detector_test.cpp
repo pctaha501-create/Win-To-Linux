@@ -140,6 +140,36 @@ VERSION_ID="rolling"
     ok &= expect(voidLinux.packageManager == QStringLiteral("xbps-install"), "Void Linux selects XBPS");
     ok &= expect(!voidLinux.packageManagerAvailable, "Void does not claim XBPS is installed when PATH lacks it");
 
+    const auto orderedLike = wtl::DistroDetector::parse(
+        R"(NAME="Derivative with ordered compatibility"
+ID=example-os
+ID_LIKE="rhel debian"
+VERSION_ID="1"
+)", noExecutables);
+    ok &= expect(orderedLike.family == wtl::DistroFamily::RedHat,
+                 "ID_LIKE chooses the first recognized compatibility family in declared order");
+    ok &= expect(orderedLike.packageManager == QStringLiteral("dnf"),
+                 "ordered ID_LIKE also selects the corresponding native package manager");
+
+    const auto concreteIdWins = wtl::DistroDetector::parse(
+        R"(NAME="Concrete Arch derivative"
+ID=manjaro
+ID_LIKE="debian rhel"
+)", noExecutables);
+    ok &= expect(concreteIdWins.family == wtl::DistroFamily::Arch,
+                 "concrete distribution ID takes precedence over conflicting compatibility hints");
+
+    const auto oracleLinux = wtl::DistroDetector::parse(
+        R"(NAME="Oracle Linux"
+ID=ol
+ID_LIKE="fedora"
+VERSION_ID="9"
+)", noExecutables);
+    ok &= expect(oracleLinux.family == wtl::DistroFamily::RedHat,
+                 "Oracle Linux ID is recognized as Red Hat compatible");
+    ok &= expect(oracleLinux.packageManager == QStringLiteral("dnf"),
+                 "Oracle Linux selects the native DNF-family package manager");
+
     const auto unknown = wtl::DistroDetector::parse(
         R"(NAME="Example OS"
 ID=example-os
