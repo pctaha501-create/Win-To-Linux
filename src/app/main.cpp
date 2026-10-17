@@ -17,6 +17,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QFile>
+#include <QJSValue>
 #include <cstring>
 namespace {
 bool hasArgument(int argc,char **argv,const char *wanted){for(int i=1;i<argc;++i)if(std::strcmp(argv[i],wanted)==0)return true;return false;}
@@ -172,7 +173,16 @@ int main(int argc,char**argv){
   if(processList->property("count").toInt()!=0){qCritical()<<"Task Manager search did not filter unmatched process names/PIDs.";return 1;}
   processSearchField->setProperty("text",QString());QCoreApplication::processEvents();
   if(processList->property("count").toInt()<=0){qCritical()<<"Clearing Task Manager search did not restore the process list.";return 1;}
-  for(int sortIndex:{1,2,0}){processSortCombo->setProperty("currentIndex",sortIndex);QCoreApplication::processEvents();if(processSortCombo->property("currentIndex").toInt()!=sortIndex){qCritical()<<"Task Manager sort selection did not update:"<<sortIndex;return 1;}}
+  auto processRows=[&]()->QVariantList{const QVariant model=processList->property("model");if(model.canConvert<QVariantList>())return model.toList();return model.value<QJSValue>().toVariant().toList();};
+  auto verifyDescending=[&](int sortIndex,const QString &field)->bool{
+   processSortCombo->setProperty("currentIndex",sortIndex);QCoreApplication::processEvents();
+   const QVariantList rows=processRows();
+   if(rows.isEmpty()){qCritical()<<"Task Manager sorted model is empty for sort index:"<<sortIndex;return false;}
+   for(qsizetype i=1;i<rows.size();++i){const double previous=rows.at(i-1).toMap().value(field).toDouble();const double current=rows.at(i).toMap().value(field).toDouble();if(previous<current){qCritical()<<"Task Manager sort order is incorrect:"<<field<<"at row"<<i;return false;}}
+   return true;
+  };
+  if(!verifyDescending(1,QStringLiteral("cpuPercent"))||!verifyDescending(2,QStringLiteral("memoryKiB"))){qCritical()<<"Task Manager CPU/RAM sorting failed.";return 1;}
+  processSortCombo->setProperty("currentIndex",0);QCoreApplication::processEvents();
   if(!sendShortcut(Qt::Key_Tab,Qt::ControlModifier|Qt::AltModifier)||!popupVisible(QStringLiteral("workspaceSwitcher"))||!closePopup(QStringLiteral("workspaceSwitcher"))){qCritical()<<"Ctrl+Alt+Tab workspace switcher shortcut failed.";return 1;}
   const QStringList pageUrls{QStringLiteral("qrc:/qml/FileManagerPage.qml"),QStringLiteral("qrc:/qml/PackageManagerPage.qml")};
   for(const QString &url:pageUrls){
