@@ -170,6 +170,27 @@ VERSION_ID="42"
         }
     }
 
+    if (temp.isValid()) {
+        bool binariesCreated = true;
+        for (const QString &name : {QStringLiteral("xbps-install"), QStringLiteral("xbps-remove")}) {
+            QFile executable(temp.filePath(name));
+            if (!executable.open(QIODevice::WriteOnly | QIODevice::Truncate)) { binariesCreated = false; break; }
+            executable.write("#!/bin/sh\nexit 0\n"); executable.close();
+            if (!executable.setPermissions(QFileDevice::ReadOwner | QFileDevice::WriteOwner | QFileDevice::ExeOwner)) { binariesCreated = false; break; }
+        }
+        ok &= expect(binariesCreated, "create isolated fake XBPS install and remove executables");
+        if (binariesCreated) {
+            const auto detectedVoid = wtl::DistroDetector::parse(
+                R"(NAME="Void Linux"
+ID=void
+VERSION_ID="rolling"
+)", QStringList{temp.path()});
+            ok &= expect(detectedVoid.packageManagerAvailable, "Void manager availability follows xbps-install discovery");
+            ok &= expect(detectedVoid.packageManagerPath == temp.filePath("xbps-install"), "Void install path is resolved exactly");
+            ok &= expect(detectedVoid.packageManagerRemovePath == temp.filePath("xbps-remove"), "Void remove path is resolved independently");
+        }
+    }
+
     if (!ok) return 1;
     qInfo().noquote() << "Win-To-Linux distro detector tests passed";
     return 0;
