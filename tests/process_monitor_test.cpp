@@ -53,6 +53,7 @@ int main(int argc,char **argv){
  for(const QVariant &entry:monitor.processes()){const QVariantMap process=entry.toMap();if(process.value(QStringLiteral("pid")).toLongLong()==childPid){childTicks=process.value(QStringLiteral("startTicks")).toLongLong();break;}}
  if(!expect(childTicks>=0,"discover the child process start-time identity")){child.kill();child.waitForFinished(1000);return 1;}
  if(!expect(!monitor.terminateProcess(childPid,childTicks+1),"reject stale process identity before sending a signal")){child.kill();child.waitForFinished(1000);return 1;}
+ if(!expect(monitor.status().contains(QStringLiteral("Process changed or exited")),"retain the stale-process explanation after refreshing the process list")){child.kill();child.waitForFinished(1000);return 1;}
  if(child.state()==QProcess::NotRunning){qCritical()<<"FAIL: stale identity check unexpectedly stopped the child";return 1;}
  const bool stopped=monitor.terminateProcess(childPid,childTicks);
  if(stopped){if(!child.waitForFinished(2000)){child.kill();child.waitForFinished(1000);qCritical()<<"FAIL: PID-bound SIGTERM did not stop the child";return 1;}}
