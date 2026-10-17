@@ -55,6 +55,10 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-wayland, qt6-decl
 
 The launcher checks the current user's runtime directory and active Wayland socket. It deliberately refuses to run from a TTY or start a compositor on a physical display. When Weston is available the launcher uses its Wayland backend, a unique per-user socket, software rendering, and no user compositor config; otherwise it falls back to Cage. This is a nested preview only, not yet a standalone login session.
 
+## Read-only VM diagnostics
+
+Run `sh scripts/verify-vm.sh` to collect the executable version, host/session information, a support report, and nested-preview readiness. It does not install packages, start a compositor, or change the login manager. A blocked preview is reported as a blocker, not as a successful desktop launch.
+
 ## Uninstall
     sh scripts/uninstall-user.sh
 

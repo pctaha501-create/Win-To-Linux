@@ -43,6 +43,7 @@
 - [x] CI build, all unit tests, QML smoke test, install/uninstall staging, and headless diagnostics pass on verified commit `5037582a72e99beab9d56372eb14cfbf1f5640c6`
 - [x] Regression tests verify recent notifications persist across SystemInfo instances, are capped at eight, and diagnostic reports include runtime/compositor readiness and copy to clipboard
 - [x] Application discovery and launch cover per-user Flatpak exports and custom XDG_DATA_DIRS roots; system Flatpak and Snap desktop-entry roots are included in the shared launch allowlist
+- [x] Read-only VM diagnostics script collects version, session details, support report, and preview blockers without modifying the host desktop
 - [ ] Interactive VM check for keyboard/focus/accessibility and responsive layout
 
 ## Next milestone
