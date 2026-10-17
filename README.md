@@ -32,7 +32,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 
 ## Command-line diagnostics
 
-- `win-to-linux --version` prints the build version without opening the graphical shell.
+- `Winux11 --help` lists all supported CLI flags without opening the graphical shell; `Winux11 --version` prints the build version.
 - `win-to-linux --system` and `win-to-linux --session-check` print host/session information.
 - `win-to-linux --diagnostic-report` prints a support report; `--preview-check` and `--standalone-check` perform read-only readiness checks and return exit code 2 when blocked.
 

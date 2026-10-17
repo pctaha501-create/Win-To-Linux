@@ -42,6 +42,10 @@ jobs:
         run: |
           ./build/src/app/win-to-linux --version >"$RUNNER_TEMP/version.txt" 2>&1
           grep -q '^Win-To-Linux 0.2.0$' "$RUNNER_TEMP/version.txt"
+          ./build/src/app/win-to-linux --help >"$RUNNER_TEMP/help.txt" 2>&1
+          grep -q "Usage: Winux11 \[OPTION\]" "$RUNNER_TEMP/help.txt"
+          grep -q -- "--diagnostic-report" "$RUNNER_TEMP/help.txt"
+          grep -q -- "--fullscreen" "$RUNNER_TEMP/help.txt"
       - name: Verify Qt Wayland plugin is detected by diagnostics
         run: |
           QT_QPA_PLATFORM=offscreen ./build/src/app/win-to-linux --diagnostic-report >"$RUNNER_TEMP/system-diagnostics.txt" 2>&1

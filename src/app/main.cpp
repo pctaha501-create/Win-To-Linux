@@ -42,8 +42,23 @@ void printSystemInfo(const SystemInfo &system){
 }
 }
 int main(int argc,char**argv){
- if(hasArgument(argc,argv,"--version")||hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")||hasArgument(argc,argv,"--standalone-check")){
+ if(hasArgument(argc,argv,"--help")||hasArgument(argc,argv,"-h")||hasArgument(argc,argv,"--version")||hasArgument(argc,argv,"--system")||hasArgument(argc,argv,"--session-check")||hasArgument(argc,argv,"--diagnostic-report")||hasArgument(argc,argv,"--preview-check")||hasArgument(argc,argv,"--standalone-check")){
   QCoreApplication app(argc,argv);configureApplication();
+  if(hasArgument(argc,argv,"--help")||hasArgument(argc,argv,"-h")){
+   qInfo().noquote()<<"Win-To-Linux "<<QCoreApplication::applicationVersion();
+   qInfo().noquote()<<"Usage: Winux11 [OPTION]";
+   qInfo().noquote()<<"  --help, -h             Show this help without opening the GUI";
+   qInfo().noquote()<<"  --version              Print version";
+   qInfo().noquote()<<"  --system               Print detected distribution and host details";
+   qInfo().noquote()<<"  --session-check        Print session and runtime diagnostics";
+   qInfo().noquote()<<"  --diagnostic-report    Print a copyable support report";
+   qInfo().noquote()<<"  --preview-check        Check nested-preview readiness (exit 2 when blocked)";
+   qInfo().noquote()<<"  --standalone-check     Check experimental standalone-session readiness (exit 2 when blocked)";
+   qInfo().noquote()<<"  --fullscreen           Open the shell fullscreen";
+   qInfo().noquote()<<"  --maximized            Open the shell maximized";
+   qInfo().noquote()<<"With no GUI option, launch the shell inside the current desktop session.";
+   return 0;
+  }
   if(hasArgument(argc,argv,"--version")){qInfo().noquote()<<QCoreApplication::applicationName()<<QCoreApplication::applicationVersion();return 0;}
   SystemInfo system;
   if(hasArgument(argc,argv,"--diagnostic-report"))qInfo().noquote()<<system.diagnosticReport();

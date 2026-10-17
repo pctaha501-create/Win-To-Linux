@@ -12,12 +12,12 @@ sh scripts/build.sh
 
 ## Install for the current user
 
-Run `sh scripts/install-user.sh` without `sudo`. The script builds/tests, installs to `~/.local`, and installs a user service at `~/.config/systemd/user/Win-To-Linux.service` (or `$XDG_CONFIG_HOME/systemd/user` if configured).
+Run `sh scripts/install-user.sh` without `sudo`. The script builds/tests, installs to `~/.local`, and installs a user service at `~/.config/systemd/user/Win-To-Linux.service` (or `$XDG_CONFIG_HOME/systemd/user` if configured). The direct shell command is `~/.local/bin/Winux11`; use `~/.local/bin/Winux11 --help` for CLI options.
 
 Before starting the nested preview, run the read-only readiness check:
 
 ```sh
-~/.local/bin/win-to-linux --preview-check
+~/.local/bin/Winux11 --preview-check
 ```
 
 It lists every missing prerequisite without starting a compositor. Exit code `0` means the nested preview prerequisites are present; exit code `2` means it is not safe/ready to launch. It never installs packages or changes the login manager.
