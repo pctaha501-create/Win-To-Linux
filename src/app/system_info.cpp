@@ -5,6 +5,7 @@
 #include <QByteArray>
 #include <QCoreApplication>
 #include <QDir>
+#include <QDirIterator>
 #include <QCoreApplication>
 #include <QLibraryInfo>
 #include <QGuiApplication>
@@ -243,9 +244,15 @@ void SystemInfo::refreshApplications(){
  const QStringList roots=applicationRoots();
  QSet<QString> seenDesktopIds;QVariantList list;
  for(const QString &root:roots){
-  QDir dir(root);
-  for(const QFileInfo &fi:dir.entryInfoList({QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDir::Name)){
-   const QString desktopId=fi.fileName();
+  QDirIterator iterator(root,QStringList{QStringLiteral("*.desktop")},QDir::Files|QDir::Readable,QDirIterator::Subdirectories);
+  QFileInfoList desktopFiles;
+  while(iterator.hasNext())desktopFiles.append(QFileInfo(iterator.next()));
+  std::sort(desktopFiles.begin(),desktopFiles.end(),[&root](const QFileInfo &a,const QFileInfo &b){
+   const QDir base(root);
+   return base.relativeFilePath(a.absoluteFilePath()).toCaseFolded()<base.relativeFilePath(b.absoluteFilePath()).toCaseFolded();
+  });
+  for(const QFileInfo &fi:desktopFiles){
+   QString desktopId=QDir(root).relativeFilePath(fi.absoluteFilePath());desktopId.replace(QLatin1Char('/'),QLatin1Char('-'));
    if(seenDesktopIds.contains(desktopId))continue;
    // XDG application roots are ordered by priority. Even a Hidden=true entry
    // in a higher-priority root must mask the same desktop ID in lower roots.
