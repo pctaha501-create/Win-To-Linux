@@ -28,7 +28,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - A dedicated desktop-entry launch integration test exercises real `QProcess` launching against a fake executable and verifies that shell metacharacters are passed literally.
 - Per-user install/uninstall scripts, desktop launcher, C++ unit tests, headless QML smoke test, install-staging checks, and GitHub Actions CI.
 - CI launches the actual Qt shell in a disposable nested Weston Wayland session (software rendering) and uses a bounded gdb-backed startup smoke to detect crashes; taskbar icon controls include accessible names, and the headless functional test checks taskbar actions plus common keyboard shortcuts.
-- Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all six jobs passed on [the latest verified six-distro run](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38890368511).
+- Full-app build/test matrix for Ubuntu 24.04, Kali Rolling, Debian 13, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed (`.github/workflows/full-build-matrix.yml`); all seven jobs passed on [verified run 39056466902](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/39056466902).
 
 ## Command-line diagnostics
 

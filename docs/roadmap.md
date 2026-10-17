@@ -47,7 +47,7 @@
 
 ## Next milestone
 - [x] Distro-detector CI matrix across Ubuntu, Kali, Fedora/Rocky, Arch, and openSUSE
-- [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all six jobs passed on [verified run 38892768912](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/38892768912)
+- [x] Full application build/test matrix across Ubuntu 24.04, Kali Rolling, Debian 13, Fedora, Rocky Linux 10, Arch Linux, and openSUSE Tumbleweed; all seven jobs passed on [verified run 39056466902](https://github.com/pctaha501-create/Win-To-Linux/actions/runs/39056466902)
 - [x] Guarded nested Wayland preview launcher with runtime ownership/socket checks (preview only; not a standalone session)
 - [x] Read-only standalone readiness diagnostics in CLI and Settings; safely refuses non-interactive/headless environments
 - [x] Experimental TTY-to-DRM Weston session launcher with strict opt-in, host-display refusal, private XWayland environment bridge, bounded socket wait, child-only cleanup, and a watchdog that terminates the shell if the owned compositor exits (fake-backend CI only; not yet VM-certified)
