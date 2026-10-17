@@ -95,7 +95,7 @@ jobs:
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -x "$RUNNER_TEMP/wtl-install/bin/Winux11"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-verify-vm"
-          "$RUNNER_TEMP/wtl-install/bin/Winux11" --version | grep -q '^Win-To-Linux 0.2.0$'
+          "$RUNNER_TEMP/wtl-install/bin/Winux11" --version 2>&1 | grep -q '^Win-To-Linux 0.2.0$'
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
           test -x "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
