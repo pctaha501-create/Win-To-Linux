@@ -25,6 +25,7 @@ jobs:
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      max-parallel: 3
       matrix:
         include:
           - name: Ubuntu 24.04
