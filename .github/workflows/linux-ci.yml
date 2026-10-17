@@ -14,6 +14,7 @@ jobs:
       - name: Validate shell scripts
         run: |
           for script in scripts/*.sh tests/*.sh; do sh -n "$script"; done
+          sh -n scripts/winux11
       - name: Test standalone-session preflight and supervisor without DRM access
         run: sh tests/standalone_session_test.sh
       - name: Verify isolated launcher refuses unsafe direct-session start

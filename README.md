@@ -8,7 +8,7 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 - Distribution detection and safe distro-specific package command planning. Application discovery follows XDG_DATA_HOME/XDG_DATA_DIRS and includes per-user/system Flatpak exports plus Snap desktop entries; launch paths are validated against the same discovered trusted roots.
 - Qt Quick Overview, Applications, Linux System, Package Manager, Settings, Processes, Windows Apps, and Files pages.
 - Session diagnostics: session type, desktop environment, Wayland/X11 display variables, XDG runtime directory ownership/permissions, and known compositor executables on PATH.
-- Windowed and optional full-screen launch modes (win-to-linux and win-to-linux --fullscreen).
+- Windowed and optional full-screen launch modes (`Winux11` and `Winux11 --fullscreen`).
 - Experimental nested Wayland preview launcher (`sh scripts/start-isolated-preview.sh`) that requires an existing user-owned Wayland socket and refuses to change the display manager or start on a physical display.
 - File and directory browsing with create-folder, rename, delete, copy, and move actions. Recursive directory deletion requires explicit confirmation; copy/move reject existing destinations and symbolic links, and source operations are restricted to direct children of the current directory.
 - File opening is delegated to the host desktop. Copy/move supports regular files and directory trees; cross-filesystem moves use copy-then-remove with rollback, while recursive copy refuses symbolic links and special files.
@@ -33,8 +33,8 @@ Current milestone: a Qt Quick preview shell running inside the existing Linux de
 ## Command-line diagnostics
 
 - `Winux11 --help` lists all supported CLI flags without opening the graphical shell; `Winux11 --version` prints the build version.
-- `win-to-linux --system` and `win-to-linux --session-check` print host/session information.
-- `win-to-linux --diagnostic-report` prints a support report; `--preview-check` and `--standalone-check` perform read-only readiness checks and return exit code 2 when blocked.
+- `Winux11 --system` and `Winux11 --session-check` print host/session information.
+- `Winux11 --diagnostic-report` prints a support report; `--preview-check` and `--standalone-check` perform read-only readiness checks and return exit code 2 when blocked.
 
 ## Build and test on Ubuntu 24.04
 Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-wayland, qt6-declarative-dev, qt6-declarative-dev-tools, qml6-module-qtqml, qml6-module-qtqml-models, qml6-module-qtqml-workerscript, qml6-module-qtquick, qml6-module-qtquick-controls, qml6-module-qtquick-templates, qml6-module-qtquick-layouts, qml6-module-qtquick-window, and qml6-module-qtquick-dialogs. Then run: sh scripts/build.sh
