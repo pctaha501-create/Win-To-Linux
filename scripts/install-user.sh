@@ -19,5 +19,7 @@ if command -v systemctl >/dev/null 2>&1 && [ -n "${XDG_RUNTIME_DIR:-}" ]; then
 fi
 printf '\nInstalled Win-To-Linux for user %s in %s.\n' "$(id -un)" "$PREFIX"
 printf 'In an existing Wayland desktop, run:\n  systemctl --user daemon-reload\n  systemctl --user start Win-To-Linux.service\n'
+printf 'Launch the shell directly with: %s/bin/Winux11\n' "$PREFIX"
+printf 'Show diagnostics with: %s/bin/Winux11 --diagnostic-report\n' "$PREFIX"
 printf 'Restart later with: systemctl --user restart Win-To-Linux.service\n'
 printf 'This is a nested preview; it does not replace your desktop or display manager.\n'

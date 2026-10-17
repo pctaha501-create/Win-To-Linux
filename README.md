@@ -41,8 +41,9 @@ Install build-essential, cmake, ninja-build, qt6-base-dev, qt6-wayland, qt6-decl
 
 ## Install for the current user
     sh scripts/install-user.sh
-    ~/.local/bin/win-to-linux
-    ~/.local/bin/win-to-linux --fullscreen
+    ~/.local/bin/Winux11
+    ~/.local/bin/Winux11 --fullscreen
+    ~/.local/bin/Winux11 --diagnostic-report
     ~/.local/bin/win-to-linux-isolated-preview
 
 ### Optional isolated preview
