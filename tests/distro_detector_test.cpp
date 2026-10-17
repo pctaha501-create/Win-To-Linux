@@ -181,6 +181,26 @@ ID=example-os
     QTemporaryDir temp;
     ok &= expect(temp.isValid(), "create isolated temporary directory");
     if (temp.isValid()) {
+        const QString osReleasePath = temp.filePath(QStringLiteral("os-release"));
+        QFile osRelease(osReleasePath);
+        if (osRelease.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            osRelease.write("NAME=\"Debian GNU/Linux\"\nID=debian\nVERSION_ID=\"13\"\n");
+            osRelease.close();
+            const auto fromFile = wtl::DistroDetector::detect(osReleasePath, noExecutables);
+            ok &= expect(fromFile.error.isEmpty(), "readable os-release metadata has no error");
+            ok &= expect(fromFile.id == QStringLiteral("debian") && fromFile.versionId == QStringLiteral("13"),
+                         "detect reads concrete distribution metadata from the supplied file");
+            ok &= expect(fromFile.family == wtl::DistroFamily::Debian,
+                         "file-based detection uses the same family mapping as parsing");
+        } else {
+            ok &= expect(false, "create temporary os-release fixture");
+        }
+        const auto missingMetadata = wtl::DistroDetector::detect(temp.filePath(QStringLiteral("missing-os-release")), noExecutables);
+        ok &= expect(!missingMetadata.error.isEmpty(), "missing os-release metadata returns an actionable error");
+        ok &= expect(missingMetadata.family == wtl::DistroFamily::Generic,
+                     "missing metadata fails closed instead of guessing a distro family");
+    }
+    if (temp.isValid()) {
         const QString fakeDnf = temp.filePath("dnf");
         QFile executable(fakeDnf);
         if (executable.open(QIODevice::WriteOnly)) {
