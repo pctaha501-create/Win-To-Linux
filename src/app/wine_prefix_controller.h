@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QProcess>
+#include <QTimer>
 #include <QStringList>
 
 class WinePrefixController final : public QObject {
@@ -18,7 +19,8 @@ public:
     WinePrefixController(const QString &rootDirectory,
                          const QString &winebootExecutable,
                          const QString &wineExecutable,
-                         QObject *parent = nullptr);
+                         QObject *parent = nullptr,
+                         int operationTimeoutMs = 120000);
 
     QStringList prefixes() const;
     bool busy() const;
@@ -49,6 +51,9 @@ private:
     QString m_pendingPrefix;
     bool m_busy = false;
     QProcess m_process;
+    QTimer m_operationTimer;
+    int m_operationTimeoutMs = 120000;
+    bool m_timedOut = false;
 
     void setStatus(const QString &status);
     void setBusy(bool busy);

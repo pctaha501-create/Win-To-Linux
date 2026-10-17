@@ -55,6 +55,17 @@ int main(int argc, char **argv) {
     !expect(failingController.status().contains(QStringLiteral("cleaned up")),"failed prefix status explains cleanup")||
     !expect(!QFileInfo::exists(QDir(failingRoot).filePath(QStringLiteral("broken-prefix"))),"failed prefix directory is removed"))return 1;
 
+ const QString timeoutRoot=temporary.filePath(QStringLiteral("timeout-prefixes"));
+ const QString hangingWineboot=temporary.filePath(QStringLiteral("fake-wineboot-hanging"));
+ if(!expect(writeExecutable(hangingWineboot,QByteArray("#!/bin/sh\nmkdir -p \"$WINEPREFIX\" || exit 31\ntrap '' TERM\nwhile :; do sleep 1; done\n")),"hanging wineboot fixture is executable"))return 1;
+ WinePrefixController timeoutController(timeoutRoot,hangingWineboot,wine,nullptr,150);
+ if(!expect(timeoutController.createPrefix(QStringLiteral("stuck-prefix")),"hanging prefix initialization starts"))return 1;
+ QElapsedTimer timeoutTimer;timeoutTimer.start();
+ while(timeoutController.busy()&&timeoutTimer.elapsed()<3000){QCoreApplication::processEvents();QThread::msleep(10);}
+ if(!expect(!timeoutController.busy(),"stuck wineboot is terminated after the configured timeout")||
+    !expect(timeoutController.status().contains(QStringLiteral("timed out")),"timeout reports a useful status")||
+    !expect(!QFileInfo::exists(QDir(timeoutRoot).filePath(QStringLiteral("stuck-prefix"))),"timed-out incomplete prefix is cleaned up"))return 1;
+
  const QString outside=temporary.filePath(QStringLiteral("outside")); if(!expect(QDir().mkpath(outside),"outside fixture created"))return 1;
  QFile registry(QDir(outside).filePath(QStringLiteral("system.reg"))); if(!registry.open(QIODevice::WriteOnly)||registry.write("keep")!=4)return 1; registry.close();
  const QString linkPath=QDir(root).filePath(QStringLiteral("outside-link"));

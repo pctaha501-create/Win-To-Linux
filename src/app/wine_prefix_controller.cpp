@@ -17,15 +17,27 @@ WinePrefixController::WinePrefixController(QObject *parent)
 WinePrefixController::WinePrefixController(const QString &rootDirectory,
                                            const QString &winebootExecutable,
                                            const QString &wineExecutable,
-                                           QObject *parent)
+                                           QObject *parent,
+                                           int operationTimeoutMs)
     : QObject(parent),
       m_rootDirectory(QDir(rootDirectory).absolutePath()),
       m_winebootExecutable(winebootExecutable),
-      m_wineExecutable(wineExecutable)
+      m_wineExecutable(wineExecutable),
+      m_operationTimeoutMs(qMax(1, operationTimeoutMs))
 {
     m_status = available()
         ? QStringLiteral("No isolated Wine prefixes found.")
         : QStringLiteral("Wine and wineboot are both required for isolated prefixes.");
+
+    m_operationTimer.setSingleShot(true);
+    m_operationTimer.setInterval(m_operationTimeoutMs);
+    connect(&m_operationTimer, &QTimer::timeout, this, [this]() {
+        if (!m_busy || m_process.state() == QProcess::NotRunning)
+            return;
+        m_timedOut = true;
+        setStatus(QStringLiteral("Wine prefix initialization timed out; stopping wineboot and cleaning the incomplete prefix…"));
+        m_process.kill();
+    });
 
     connect(&m_process, &QProcess::readyReadStandardOutput, this, [this]() {
         appendOutput(QString::fromLocal8Bit(m_process.readAllStandardOutput()));
@@ -36,7 +48,16 @@ WinePrefixController::WinePrefixController(const QString &rootDirectory,
         appendOutput(QString::fromLocal8Bit(m_process.readAllStandardOutput()));
         const QString name = m_pendingPrefix;
         m_pendingPrefix.clear();
+        m_operationTimer.stop();
+        const bool timedOut = m_timedOut;
+        m_timedOut = false;
         setBusy(false);
+        if (timedOut) {
+            removeIncompletePrefix(name);
+            refresh();
+            setStatus(QStringLiteral("Wine prefix initialization timed out. The incomplete prefix was cleaned up; check Wine and filesystem health before retrying."));
+            return;
+        }
         const QString path = safePrefixPath(name);
         const QFileInfo registry(QDir(path).filePath(QStringLiteral("system.reg")));
         if (exitStatus == QProcess::NormalExit && exitCode == 0 &&
@@ -56,6 +77,8 @@ WinePrefixController::WinePrefixController(const QString &rootDirectory,
             return;
         const QString name = m_pendingPrefix;
         m_pendingPrefix.clear();
+        m_operationTimer.stop();
+        m_timedOut = false;
         setBusy(false);
         removeIncompletePrefix(name);
         refresh();
@@ -202,8 +225,10 @@ bool WinePrefixController::createPrefix(const QString &name)
     m_process.setArguments({QStringLiteral("-u")});
     m_process.setProcessChannelMode(QProcess::MergedChannels);
     m_pendingPrefix = name;
+    m_timedOut = false;
     setBusy(true);
     setStatus(QStringLiteral("Creating isolated Wine prefix '%1'…").arg(name));
+    m_operationTimer.start();
     m_process.start();
     return true;
 }
