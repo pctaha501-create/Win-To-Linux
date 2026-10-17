@@ -80,6 +80,10 @@ int main(int argc,char **argv){
  QElapsedTimer flatpakTimer;flatpakTimer.start();while(!QFileInfo::exists(log)&&flatpakTimer.elapsed()<2500)QThread::msleep(10);
  ok &= expect(readText(log).contains(QStringLiteral("arg=<--flatpak>")),"launch Flatpak exported entry using safe argument handling");
  QFile::remove(log);
+ ok &= expect(system.launchDesktopFile(nestedDesktop),"launch a desktop entry from a nested XDG applications subdirectory");
+ QElapsedTimer nestedTimer;nestedTimer.start();while(!QFileInfo::exists(log)&&nestedTimer.elapsed()<2500)QThread::msleep(10);
+ ok &= expect(readText(log).contains(QStringLiteral("arg=<--nested-xdg>")),"nested desktop launch passes its arguments safely");
+ QFile::remove(log);
  QVariantList notificationFixture;
  for(int i=0;i<10;++i)notificationFixture.append(QVariantMap{{QStringLiteral("message"),QStringLiteral("notification-%1").arg(i)},{QStringLiteral("time"),QStringLiteral("12:%1").arg(i,2,10,QLatin1Char('0'))}});
  system.saveRecentNotifications(notificationFixture);
