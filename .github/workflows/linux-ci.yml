@@ -97,6 +97,9 @@ jobs:
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test -x "$RUNNER_TEMP/wtl-install/bin/Winux11"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-verify-vm"
+          "$RUNNER_TEMP/wtl-install/bin/win-to-linux-verify-vm" >"$RUNNER_TEMP/installed-vm-verifier.txt" 2>&1
+          grep -q 'Win-To-Linux VM diagnostics (read-only)' "$RUNNER_TEMP/installed-vm-verifier.txt"
+          grep -q 'RESULT: Preview is blocked' "$RUNNER_TEMP/installed-vm-verifier.txt"
           "$RUNNER_TEMP/wtl-install/bin/Winux11" --version 2>&1 | grep -q '^Win-To-Linux 0.2.0$'
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
