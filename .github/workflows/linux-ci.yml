@@ -86,14 +86,17 @@ jobs:
         run: |
           cmake --install build --prefix "$RUNNER_TEMP/wtl-install"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
+          test -x "$RUNNER_TEMP/wtl-install/bin/Winux11"
+          "$RUNNER_TEMP/wtl-install/bin/Winux11" --version | grep -q '^Win-To-Linux 0.2.0$'
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test -x "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"
           test -x "$RUNNER_TEMP/wtl-install/bin/capture-xwayland-env.sh"
           test -f "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
-          grep -q '^Exec=win-to-linux$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
+          grep -q '^Exec=Winux11$' "$RUNNER_TEMP/wtl-install/share/applications/win-to-linux.desktop"
       - name: Verify uninstall staging
         run: |
           PREFIX="$RUNNER_TEMP/wtl-install" sh scripts/uninstall-user.sh
+          test ! -e "$RUNNER_TEMP/wtl-install/bin/Winux11"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-isolated-preview"
           test ! -e "$RUNNER_TEMP/wtl-install/bin/win-to-linux-standalone-session"

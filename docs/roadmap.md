@@ -27,6 +27,7 @@
 - [x] Wine/Bottles detection, confirmation-gated default-prefix launch, and isolated Wine-prefix management (asynchronous initialization, validated names/paths, per-launch `WINEPREFIX`, and confirmation-gated removal)
 - [x] Asynchronous package operations with confirmation, timeout, cancellation, output and exit status; preflight reports missing `pkexec`/PolicyKit before starting
 - [x] Per-user install/uninstall scripts and desktop entry
+- [x] Installable `Winux11` command delegates to the same tested binary; desktop launcher and staged install/uninstall CI verify the alias
 - [x] Unit tests for distro/package planning, file listing/navigation, safe file operations and copy/move, process metadata, and package-name validation
 - [x] Desktop-entry launch integration test uses an isolated HOME and fake executable to verify TryExec, working directory, Exec field-code arguments, literal shell metacharacters, and refusal of missing executables/out-of-root entries
 - [x] Start/search Terminal action launches the first installed terminal emulator found on PATH through `QProcess::startDetached` (no shell parsing); fake-executable integration test covers successful launch and the actionable missing-terminal path
