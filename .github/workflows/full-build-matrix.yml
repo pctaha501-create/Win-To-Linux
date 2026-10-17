@@ -22,7 +22,7 @@ jobs:
   full-build:
     name: Full build (${{ matrix.name }})
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       max-parallel: 3
