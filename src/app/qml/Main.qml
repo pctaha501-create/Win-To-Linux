@@ -188,7 +188,7 @@ ApplicationWindow {
       background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
       contentItem: RowLayout {
        spacing: 10
-       Image { source: modelData.iconData; width: 32; height: 32; fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
+       Image { source: systemInfo.desktopIconData(modelData.desktopFile); width: 32; height: 32; fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
        ColumnLayout {
         spacing: 1
         Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true }
@@ -484,7 +484,7 @@ ApplicationWindow {
          background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
          contentItem: ColumnLayout {
           spacing: 2
-          Image { Layout.alignment: Qt.AlignHCenter; width: 34; height: 34; source: modelData.iconData; fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
+          Image { Layout.alignment: Qt.AlignHCenter; width: 34; height: 34; source: systemInfo.desktopIconData(modelData.desktopFile); fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
           Label { text: modelData.name; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; Layout.fillWidth: true }
          }
          onClicked: win.launchDesktopEntry(modelData.desktopFile)
@@ -503,7 +503,7 @@ ApplicationWindow {
       model: systemInfo.applications.filter(function(a){return a.name.toLowerCase().indexOf(win.search.toLowerCase())>=0||a.comment.toLowerCase().indexOf(win.search.toLowerCase())>=0})
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 56; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
-        Image { width: 36; height: 36; source: modelData.iconData; fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
+        Image { width: 36; height: 36; source: systemInfo.desktopIconData(modelData.desktopFile); fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
         ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true } }
         Button { text: "Open"; onClicked: win.launchDesktopEntry(modelData.desktopFile) }
        }

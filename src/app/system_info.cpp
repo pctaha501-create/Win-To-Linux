@@ -307,7 +307,7 @@ void SystemInfo::refreshApplications(){
    QFile file(fi.absoluteFilePath());if(!file.open(QIODevice::ReadOnly|QIODevice::Text))continue;
    const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
    if(entry.type!=QStringLiteral("Application")||entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
-   list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()},{QStringLiteral("iconData"),desktopIconData(fi.absoluteFilePath())}});
+   list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()}});
   }
  }
  std::sort(list.begin(),list.end(),[](const QVariant &a,const QVariant &b){
