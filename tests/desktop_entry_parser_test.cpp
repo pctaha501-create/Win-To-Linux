@@ -22,6 +22,13 @@ int main(int argc,char **argv){
  ok &= expect(DesktopEntryParser::splitExec(QStringLiteral("demo --name=%c --desktop=%k %% %i %f"),&program,&args,&error,QStringLiteral("Demo App"),QStringLiteral("demo-icon"),QStringLiteral("/tmp/demo.desktop")),"expand supported desktop-entry field codes");
  ok &= expect(args==QStringList{QStringLiteral("--name=Demo App"),QStringLiteral("--desktop=/tmp/demo.desktop"),QStringLiteral("%"),QStringLiteral("--icon"),QStringLiteral("demo-icon")},"expand name, desktop file, percent and icon fields safely");
  ok &= expect(!DesktopEntryParser::splitExec(QStringLiteral("demo %Z"),&program,&args,&error),"reject unknown desktop-entry field code");
+ const auto localized=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nType=Application\nName=Default name\nName[en]=English name\nName[en_US]=American English name\nComment=Default comment\nComment[en]=English comment\n"),QStringLiteral("en_US"));
+ ok &= expect(localized.name==QStringLiteral("American English name"),"prefer exact locale-specific application name");
+ ok &= expect(localized.comment==QStringLiteral("English comment"),"fall back from exact locale to language for localized comment");
+ const auto languageFallback=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Default name\nName[en]=English name\n"),QStringLiteral("en_GB"));
+ ok &= expect(languageFallback.name==QStringLiteral("English name"),"fall back to language-specific application name");
+ const auto defaultLocale=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Default name\nName[fr]=Nom français\n"),QStringLiteral("de_DE"));
+ ok &= expect(defaultLocale.name==QStringLiteral("Default name"),"fall back to default name when locale is unavailable");
  const auto missingTryExec=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Missing\nExec=/usr/bin/demo\nTryExec=/missing/wtl-nonexistent-app\n"));
  ok &= expect(missingTryExec.tryExec==QStringLiteral("/missing/wtl-nonexistent-app"),"preserve missing TryExec for launch-time validation");
  const auto hidden=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Hidden\nExec=/usr/bin/demo\nHidden=true\nNoDisplay=true\n"));

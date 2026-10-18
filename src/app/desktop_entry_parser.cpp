@@ -1,9 +1,15 @@
 #include "desktop_entry_parser.h"
 #include <QProcess>
+#include <QLocale>
+#include <QMap>
 #include <algorithm>
 
-DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
+DesktopEntryInfo DesktopEntryParser::parse(const QString &contents, const QString &requestedLocale) {
  DesktopEntryInfo result;
+ QMap<QString,QString> localizedNames,localizedComments;
+ QString baseName,baseComment;
+ const QString localeName=requestedLocale.isEmpty()?QLocale::system().name():requestedLocale;
+ const QString language=localeName.section(QLatin1Char('_'),0,0).section(QLatin1Char('@'),0,0);
  bool inDesktopEntry=false;
  for(const QString &rawLine:contents.split(QLatin1Char('\n'))){
   const QString line=rawLine.trimmed();
@@ -18,8 +24,10 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
   const QString key=line.left(separator);
   const QString value=line.mid(separator+1);
   if(key==QStringLiteral("Type"))result.type=value.trimmed();
-  else if(key==QStringLiteral("Name"))result.name=value;
-  else if(key==QStringLiteral("Comment"))result.comment=value;
+  else if(key==QStringLiteral("Name"))baseName=value;
+  else if(key.startsWith(QStringLiteral("Name["))&&key.endsWith(QLatin1Char(']')))localizedNames.insert(key.mid(5,key.size()-6),value);
+  else if(key==QStringLiteral("Comment"))baseComment=value;
+  else if(key.startsWith(QStringLiteral("Comment["))&&key.endsWith(QLatin1Char(']')))localizedComments.insert(key.mid(8,key.size()-9),value);
   else if(key==QStringLiteral("Exec"))result.exec=value.trimmed();
   else if(key==QStringLiteral("TryExec"))result.tryExec=value.trimmed();
   else if(key==QStringLiteral("Path"))result.workingDirectory=value.trimmed();
@@ -28,6 +36,8 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
   else if(key==QStringLiteral("NoDisplay"))result.noDisplay=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
   else if(key==QStringLiteral("Terminal"))result.terminal=(value.compare(QStringLiteral("true"),Qt::CaseInsensitive)==0);
  }
+ result.name=localizedNames.value(localeName,localizedNames.value(language,baseName));
+ result.comment=localizedComments.value(localeName,localizedComments.value(language,baseComment));
  return result;
 }
 

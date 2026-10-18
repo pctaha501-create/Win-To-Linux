@@ -17,7 +17,7 @@ struct DesktopEntryInfo {
 
 class DesktopEntryParser final {
 public:
- static DesktopEntryInfo parse(const QString &contents);
+ static DesktopEntryInfo parse(const QString &contents, const QString &localeName = {});
  static bool splitExec(const QString &exec, QString *program, QStringList *arguments, QString *error=nullptr,
                        const QString &applicationName={}, const QString &iconName={}, const QString &desktopFile={});
 };
