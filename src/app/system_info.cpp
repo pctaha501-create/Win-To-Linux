@@ -3,6 +3,11 @@
 #include "desktop_entry_parser.h"
 #include "session_backend.h"
 #include <QByteArray>
+#include <QBuffer>
+#include <QColor>
+#include <QIcon>
+#include <QImage>
+#include <QPainter>
 #include <QCoreApplication>
 #include <QDir>
 #include <QDirIterator>
@@ -244,6 +249,43 @@ void SystemInfo::discoverNativeTools(){
   m_nativeTools.append(QVariantMap{{QStringLiteral("name"),candidate.name},{QStringLiteral("command"),candidate.command},{QStringLiteral("category"),candidate.category},{QStringLiteral("path"),path}});
  }
 }
+QString SystemInfo::desktopIconData(const QString &desktopFile) const {
+ QFile file(desktopFile);
+ DesktopEntryInfo entry;
+ if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+  entry = DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
+ QIcon icon;
+ if (!entry.icon.isEmpty()) {
+  const QFileInfo iconInfo(entry.icon);
+  if (iconInfo.isAbsolute() && iconInfo.isFile()) icon = QIcon(entry.icon);
+  else icon = QIcon::fromTheme(entry.icon);
+ }
+ if (icon.isNull()) icon = QIcon::fromTheme(QStringLiteral("application-x-executable"));
+ QImage image(48, 48, QImage::Format_ARGB32_Premultiplied);
+ image.fill(Qt::transparent);
+ QPainter painter(&image);
+ painter.setRenderHint(QPainter::Antialiasing, true);
+ if (!icon.isNull()) {
+  const QPixmap pixmap = icon.pixmap(QSize(48, 48));
+  painter.drawPixmap(QRect(0, 0, 48, 48), pixmap);
+ } else {
+  const uint hash = qHash(entry.name.isEmpty() ? desktopFile : entry.name);
+  const QColor tile = QColor::fromHsv(static_cast<int>(hash % 360U), 155, 205);
+  painter.setPen(Qt::NoPen);
+  painter.setBrush(tile);
+  painter.drawRoundedRect(QRectF(1, 1, 46, 46), 11, 11);
+  painter.setPen(Qt::white);
+  QFont font = painter.font(); font.setBold(true); font.setPixelSize(25); painter.setFont(font);
+  painter.drawText(QRect(0, 0, 48, 48), Qt::AlignCenter,
+                   entry.name.isEmpty() ? QStringLiteral("?") : entry.name.left(1).toUpper());
+ }
+ painter.end();
+ QByteArray png;
+ QBuffer buffer(&png);
+ if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG")) return {};
+ return QStringLiteral("data:image/png;base64,") + QString::fromLatin1(png.toBase64());
+}
+
 void SystemInfo::refreshApplications(){
  const QStringList roots=applicationRoots();
  QSet<QString> seenDesktopIds;QVariantList list;
@@ -265,7 +307,7 @@ void SystemInfo::refreshApplications(){
    QFile file(fi.absoluteFilePath());if(!file.open(QIODevice::ReadOnly|QIODevice::Text))continue;
    const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
    if(entry.type!=QStringLiteral("Application")||entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
-   list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()}});
+   list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()},{QStringLiteral("iconData"),desktopIconData(fi.absoluteFilePath())}});
   }
  }
  std::sort(list.begin(),list.end(),[](const QVariant &a,const QVariant &b){
