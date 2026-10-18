@@ -6,7 +6,8 @@ int main(int argc,char **argv){
  QCoreApplication app(argc,argv);
  bool ok=true;
  const auto entry=DesktopEntryParser::parse(QStringLiteral(
-  "# ignored comment\n[Desktop Entry]\nName=Demo App\nComment=A test app\nIcon=demo-icon\nExec=/usr/bin/demo --title \"Hello World\" %U\nTryExec=/usr/bin/demo\nPath=/tmp\nTerminal=false\nHidden=false\nNoDisplay=false\n[Desktop Action NewWindow]\nName=Ignored Action\nExec=ignored-command\n"));
+  "# ignored comment\n[Desktop Entry]\nType=Application\nName=Demo App\nComment=A test app\nIcon=demo-icon\nExec=/usr/bin/demo --title \"Hello World\" %U\nTryExec=/usr/bin/demo\nPath=/tmp\nTerminal=false\nHidden=false\nNoDisplay=false\n[Desktop Action NewWindow]\nName=Ignored Action\nExec=ignored-command\n"));
+ ok &= expect(entry.type==QStringLiteral("Application"),"parse application type");
  ok &= expect(entry.name==QStringLiteral("Demo App"),"parse desktop entry name");
  ok &= expect(entry.comment==QStringLiteral("A test app"),"parse desktop entry comment");
  ok &= expect(entry.exec.contains(QStringLiteral("/usr/bin/demo")),"parse desktop entry Exec");
@@ -25,6 +26,8 @@ int main(int argc,char **argv){
  ok &= expect(missingTryExec.tryExec==QStringLiteral("/missing/wtl-nonexistent-app"),"preserve missing TryExec for launch-time validation");
  const auto hidden=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nName=Hidden\nExec=/usr/bin/demo\nHidden=true\nNoDisplay=true\n"));
  ok &= expect(hidden.hidden&&hidden.noDisplay,"parse hidden and NoDisplay flags");
+ const auto linkEntry=DesktopEntryParser::parse(QStringLiteral("[Desktop Entry]\nType=Link\nName=Web link\nURL=https://example.invalid\n"));
+ ok &= expect(linkEntry.type==QStringLiteral("Link")&&linkEntry.exec.isEmpty(),"recognize non-application desktop entry types without inventing a command");
  const auto actionOnly=DesktopEntryParser::parse(QStringLiteral("[Desktop Action Test]\nName=Not an app\nExec=ignored\n"));
  ok &= expect(actionOnly.name.isEmpty()&&actionOnly.exec.isEmpty(),"ignore desktop action groups");
  ok &= expect(!DesktopEntryParser::splitExec(QString(),&program,&args,&error),"reject empty Exec");

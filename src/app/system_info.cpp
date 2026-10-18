@@ -264,7 +264,7 @@ void SystemInfo::refreshApplications(){
    QString path=fi.canonicalFilePath();if(path.isEmpty())path=fi.absoluteFilePath();
    QFile file(fi.absoluteFilePath());if(!file.open(QIODevice::ReadOnly|QIODevice::Text))continue;
    const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
-   if(entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
+   if(entry.type!=QStringLiteral("Application")||entry.hidden||entry.noDisplay||entry.name.isEmpty()||entry.exec.isEmpty())continue;
    list.append(QVariantMap{{QStringLiteral("name"),entry.name},{QStringLiteral("comment"),entry.comment},{QStringLiteral("desktopFile"),fi.absoluteFilePath()}});
   }
  }
@@ -281,7 +281,7 @@ bool SystemInfo::launchDesktopFile(const QString &desktopFile){
  if(path.isEmpty()||!allowed||!QFileInfo(path).isFile()||QFileInfo(path).suffix()!=QStringLiteral("desktop")){setStatus(QStringLiteral("Launch blocked: invalid desktop entry path."));return false;}
  QFile file(path);if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){setStatus(QStringLiteral("Could not read desktop entry."));return false;}
  const DesktopEntryInfo entry=DesktopEntryParser::parse(QString::fromUtf8(file.readAll()));
- if(entry.hidden||entry.noDisplay||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry hidden, terminal-based, or has no launch command."));return false;}
+ if(entry.type!=QStringLiteral("Application")||entry.hidden||entry.noDisplay||entry.terminal||entry.exec.isEmpty()){setStatus(QStringLiteral("Entry is not a launchable Application, is hidden/terminal-based, or has no launch command."));return false;}
  if(!entry.tryExec.isEmpty()){
   QString tryExecutable=entry.tryExec;
   const QString resolvedTry=QFileInfo(tryExecutable).isAbsolute()?(QFileInfo(tryExecutable).isExecutable()?tryExecutable:QString()):QStandardPaths::findExecutable(tryExecutable);

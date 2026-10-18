@@ -40,25 +40,25 @@ int main(int argc,char **argv){
  const QString fakeTerminal=bin+QStringLiteral("/x-terminal-emulator");
  if(!writeFile(fakeTerminal,fakeScript,QFile::ReadOwner|QFile::WriteOwner|QFile::ExeOwner)){qCritical()<<"Could not create fake terminal emulator.";return 1;}
  const QString desktop=apps+QStringLiteral("/fixture.desktop");
- const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
+ const QByteArray desktopContents=QStringLiteral("[Desktop Entry]\nType=Application\nName=Fixture App\nIcon=fixture-icon\nExec=wtl-launch-fixture --name=%c --desktop=%k %i --literal=$HOME;touch %% %f\nTryExec=wtl-launch-fixture\nPath=%1\nTerminal=false\nHidden=false\nNoDisplay=false\n").arg(work).toUtf8();
  if(!writeFile(desktop,desktopContents)){qCritical()<<"Could not create fixture desktop entry.";return 1;}
  const QString flatpakDesktop=flatpakApps+QStringLiteral("/flatpak-fixture.desktop");
- const QByteArray flatpakContents=QStringLiteral("[Desktop Entry]\nName=Flatpak Fixture App\nExec=wtl-launch-fixture --flatpak\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
+ const QByteArray flatpakContents=QStringLiteral("[Desktop Entry]\nType=Application\nName=Flatpak Fixture App\nExec=wtl-launch-fixture --flatpak\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
  if(!writeFile(flatpakDesktop,flatpakContents)){qCritical()<<"Could not create Flatpak export fixture.";return 1;}
  const QString customDesktop=customApps+QStringLiteral("/custom-fixture.desktop");
- const QByteArray customContents=QStringLiteral("[Desktop Entry]\nName=Custom XDG Fixture App\nExec=wtl-launch-fixture --custom-xdg\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
+ const QByteArray customContents=QStringLiteral("[Desktop Entry]\nType=Application\nName=Custom XDG Fixture App\nExec=wtl-launch-fixture --custom-xdg\nTryExec=wtl-launch-fixture\nTerminal=false\nHidden=false\nNoDisplay=false\n").toUtf8();
  if(!writeFile(customDesktop,customContents)){qCritical()<<"Could not create custom XDG application fixture.";return 1;}
  const QString nestedDirectory=customApps+QStringLiteral("/utilities");
  if(!QDir().mkpath(nestedDirectory)){qCritical()<<"Could not create nested XDG application directory.";return 1;}
  const QString nestedDesktop=nestedDirectory+QStringLiteral("/nested-fixture.desktop");
- if(!writeFile(nestedDesktop,QByteArray("[Desktop Entry]\nName=Nested XDG Fixture App\nExec=wtl-launch-fixture --nested-xdg\nTryExec=wtl-launch-fixture\n"))){qCritical()<<"Could not create nested XDG application fixture.";return 1;}
+ if(!writeFile(nestedDesktop,QByteArray("[Desktop Entry]\nType=Application\nName=Nested XDG Fixture App\nExec=wtl-launch-fixture --nested-xdg\nTryExec=wtl-launch-fixture\n"))){qCritical()<<"Could not create nested XDG application fixture.";return 1;}
  const QString hiddenUserDesktop=apps+QStringLiteral("/masked-system-app.desktop");
  const QString hiddenSystemDesktop=customApps+QStringLiteral("/masked-system-app.desktop");
  if(!writeFile(hiddenUserDesktop,QByteArray("[Desktop Entry]\nName=Hidden User Override\nHidden=true\nExec=wtl-launch-fixture\n"))||
-    !writeFile(hiddenSystemDesktop,QByteArray("[Desktop Entry]\nName=Visible System Fallback\nExec=wtl-launch-fixture\n"))){qCritical()<<"Could not create Hidden override fixtures.";return 1;}
+    !writeFile(hiddenSystemDesktop,QByteArray("[Desktop Entry]\nType=Application\nName=Visible System Fallback\nExec=wtl-launch-fixture\n"))){qCritical()<<"Could not create Hidden override fixtures.";return 1;}
  const QString visibleUserDesktop=apps+QStringLiteral("/visible-override.desktop");
  const QString visibleSystemDesktop=customApps+QStringLiteral("/visible-override.desktop");
- if(!writeFile(visibleUserDesktop,QByteArray("[Desktop Entry]\nName=User Override Wins\nExec=wtl-launch-fixture --user-override\n"))||
+ if(!writeFile(visibleUserDesktop,QByteArray("[Desktop Entry]\nType=Application\nName=User Override Wins\nExec=wtl-launch-fixture --user-override\n"))||
     !writeFile(visibleSystemDesktop,QByteArray("[Desktop Entry]\nName=System Duplicate Loses\nExec=wtl-launch-fixture --system-duplicate\n"))){qCritical()<<"Could not create duplicate desktop-entry fixtures.";return 1;}
  SystemInfo system;bool ok=true;
  const QVariantList discoveredApps=system.applications();bool foundFlatpak=false;for(const QVariant &application:discoveredApps)if(application.toMap().value(QStringLiteral("name")).toString()==QStringLiteral("Flatpak Fixture App"))foundFlatpak=true;
@@ -72,6 +72,12 @@ int main(int argc,char **argv){
  ok &= expect(!hiddenFallbackFound,"a higher-priority Hidden=true desktop entry masks the system fallback");
  ok &= expect(userOverrideFound,"a visible per-user desktop entry overrides a same-ID system entry");
  ok &= expect(!systemDuplicateFound,"duplicate lower-priority desktop entries are not shown twice");
+ const QString linkDesktop=apps+QStringLiteral("/not-an-app.desktop");
+ if(!writeFile(linkDesktop,QByteArray("[Desktop Entry]\nType=Link\nName=Not an app\nURL=https://example.invalid\nExec=wtl-launch-fixture --should-not-run\n"))){qCritical()<<"Could not create non-application desktop entry fixture.";return 1;}
+ system.refreshApplications();
+ bool linkWasListed=false;for(const QVariant &entry:system.applications())if(entry.toMap().value(QStringLiteral("desktopFile")).toString()==linkDesktop)linkWasListed=true;
+ ok &= expect(!linkWasListed,"do not list Link entries as launchable applications");
+ ok &= expect(!system.launchDesktopFile(linkDesktop),"refuse to launch a non-Application desktop entry");
  ok &= expect(system.launchDesktopFile(customDesktop),"launch a desktop entry from a configured XDG_DATA_DIRS root");
  QElapsedTimer customTimer;customTimer.start();while(!QFileInfo::exists(log)&&customTimer.elapsed()<2500)QThread::msleep(10);
  ok &= expect(readText(log).contains(QStringLiteral("arg=<--custom-xdg>")),"pass custom XDG application arguments safely");
@@ -112,7 +118,7 @@ int main(int argc,char **argv){
  ok &= expect(!system.launchDesktopFile(outside),"reject a desktop entry outside allowed XDG application roots");
  ok &= expect(system.status().contains(QStringLiteral("Launch blocked")),"report blocked outside desktop-entry path");
  const QString missing=apps+QStringLiteral("/missing.desktop");
- const QByteArray missingContents=QStringLiteral("[Desktop Entry]\nName=Missing TryExec\nExec=wtl-launch-fixture\nTryExec=wtl-no-such-executable-for-test\nPath=%1\n").arg(work).toUtf8();
+ const QByteArray missingContents=QStringLiteral("[Desktop Entry]\nType=Application\nName=Missing TryExec\nExec=wtl-launch-fixture\nTryExec=wtl-no-such-executable-for-test\nPath=%1\n").arg(work).toUtf8();
  ok &= expect(writeFile(missing,missingContents),"create missing-TryExec fixture");
  ok &= expect(!system.launchDesktopFile(missing),"reject a desktop entry with unavailable TryExec");
  ok &= expect(system.status().contains(QStringLiteral("TryExec")),"report missing TryExec reason");

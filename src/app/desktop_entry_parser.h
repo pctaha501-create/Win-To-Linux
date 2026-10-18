@@ -4,6 +4,7 @@
 
 struct DesktopEntryInfo {
  QString name;
+ QString type;
  QString comment;
  QString exec;
  QString tryExec;

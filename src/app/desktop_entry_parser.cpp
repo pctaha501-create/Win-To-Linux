@@ -17,7 +17,8 @@ DesktopEntryInfo DesktopEntryParser::parse(const QString &contents) {
   if(separator<=0)continue;
   const QString key=line.left(separator);
   const QString value=line.mid(separator+1);
-  if(key==QStringLiteral("Name"))result.name=value;
+  if(key==QStringLiteral("Type"))result.type=value.trimmed();
+  else if(key==QStringLiteral("Name"))result.name=value;
   else if(key==QStringLiteral("Comment"))result.comment=value;
   else if(key==QStringLiteral("Exec"))result.exec=value.trimmed();
   else if(key==QStringLiteral("TryExec"))result.tryExec=value.trimmed();
