@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
  const QString timeoutRoot=temporary.filePath(QStringLiteral("timeout-prefixes"));
  const QString hangingWineboot=temporary.filePath(QStringLiteral("fake-wineboot-hanging"));
- if(!expect(writeExecutable(hangingWineboot,QByteArray("#!/bin/sh\nmkdir -p \"$WINEPREFIX\" || exit 31\ntrap '' TERM\nwhile :; do sleep 1; done\n")),"hanging wineboot fixture is executable"))return 1;
+ if(!expect(writeExecutable(hangingWineboot,QByteArray("#!/bin/sh\nmkdir -p \"$WINEPREFIX\" || exit 31\nexec sleep 30\n")),"hanging wineboot fixture is executable"))return 1;
  WinePrefixController timeoutController(timeoutRoot,hangingWineboot,wine,nullptr,150);
  if(!expect(timeoutController.createPrefix(QStringLiteral("stuck-prefix")),"hanging prefix initialization starts"))return 1;
  QElapsedTimer timeoutTimer;timeoutTimer.start();
