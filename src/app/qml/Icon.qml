@@ -12,7 +12,7 @@ Item {
             var c=getContext("2d"); c.clearRect(0,0,width,height); c.save(); c.scale(width/24,height/24)
             c.strokeStyle=root.color; c.fillStyle=root.color; c.lineWidth=1.8; c.lineCap="round"; c.lineJoin="round"
             function line(p){c.beginPath();c.moveTo(p[0],p[1]);for(var i=2;i<p.length;i+=2)c.lineTo(p[i],p[i+1]);c.stroke()}
-            function rect(x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r);c.stroke()}
+            function rect(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();c.stroke()}
             if(root.name==="folder"||root.name==="folder-new"){
                 c.beginPath();c.moveTo(2.5,7);c.lineTo(9,7);c.lineTo(11,9);c.lineTo(21,9);c.quadraticCurveTo(22,9,21.7,10.5);c.lineTo(20.5,18);c.quadraticCurveTo(20.3,19,19,19);c.lineTo(4,19);c.quadraticCurveTo(2.5,19,2.7,17.5);c.closePath();c.stroke();
                 if(root.name==="folder-new"){line([12,11.5,12,16.5]);line([9.5,14,14.5,14])}
