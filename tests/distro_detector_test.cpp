@@ -146,10 +146,10 @@ ID=ubuntu
 ID=rocky
 VERSION_ID="1"
 )", noExecutables);
-    ok &= expect(duplicateAssignments.id == QStringLiteral("rocky"),
-                 "later duplicate os-release assignments take precedence");
-    ok &= expect(duplicateAssignments.family == wtl::DistroFamily::RedHat,
-                 "family mapping follows the effective last ID assignment");
+    ok &= expect(duplicateAssignments.id == QStringLiteral("ubuntu"),
+                 "first duplicate os-release assignment is kept as the defensive parsing policy");
+    ok &= expect(duplicateAssignments.family == wtl::DistroFamily::Debian,
+                 "family mapping follows the first duplicate ID assignment");
 
     const auto orderedLike = wtl::DistroDetector::parse(
         R"(NAME="Derivative with ordered compatibility"

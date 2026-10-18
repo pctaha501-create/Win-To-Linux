@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
+#include <QSet>
 namespace wtl {
 namespace {
 QString unquote(QString value) {
@@ -39,8 +40,8 @@ QString findExe(const QString &p,const QStringList &dirs) { for(const auto &d:di
 QString DistroDetector::familyName(DistroFamily f) { switch(f) { case DistroFamily::Debian:return "debian"; case DistroFamily::RedHat:return "redhat"; case DistroFamily::Arch:return "arch"; case DistroFamily::OpenSUSE:return "opensuse"; case DistroFamily::Alpine:return "alpine"; case DistroFamily::Void:return "void"; case DistroFamily::Generic:return "generic"; } return "generic"; }
 DistroInfo DistroDetector::detect(const QString &path,const QStringList &paths) { QFile f(path); if(!f.open(QIODevice::ReadOnly|QIODevice::Text)) { DistroInfo d; d.error=QStringLiteral("Cannot read distribution metadata: %1").arg(path); return d; } return parse(f.readAll(),paths); }
 DistroInfo DistroDetector::parse(const QByteArray &data,const QStringList &requestedPaths) {
- QString id,idLike,name,version; static const QRegularExpression re(QStringLiteral("^([A-Z][A-Z0-9_]*)=(.*)$"));
- for(QString line:QString::fromUtf8(data).split('\n')) { line=line.trimmed(); if(line.isEmpty()||line.startsWith('#')) continue; auto m=re.match(line); if(!m.hasMatch()) continue; QString k=m.captured(1); QString v=unquote(m.captured(2)); if(k=="ID") id=v.toLower(); else if(k=="ID_LIKE") idLike=v.toLower(); else if(k=="NAME") name=v; else if(k=="VERSION_ID") version=v; }
+ QSet<QString> seen; QString id,idLike,name,version; static const QRegularExpression re(QStringLiteral("^([A-Z][A-Z0-9_]*)=(.*)$"));
+ for(QString line:QString::fromUtf8(data).split('\n')) { line=line.trimmed(); if(line.isEmpty()||line.startsWith('#')) continue; auto m=re.match(line); if(!m.hasMatch()) continue; QString k=m.captured(1); if(seen.contains(k)) continue; seen.insert(k); QString v=unquote(m.captured(2)); if(k=="ID") id=v.toLower(); else if(k=="ID_LIKE") idLike=v.toLower(); else if(k=="NAME") name=v; else if(k=="VERSION_ID") version=v; }
  // ID is the concrete distribution and always takes precedence. If it is
  // unknown, os-release specifies ID_LIKE as an ordered compatibility list:
  // the first recognized token is the closest family, so do not flatten it
