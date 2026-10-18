@@ -140,6 +140,17 @@ VERSION_ID="rolling"
     ok &= expect(voidLinux.packageManager == QStringLiteral("xbps-install"), "Void Linux selects XBPS");
     ok &= expect(!voidLinux.packageManagerAvailable, "Void does not claim XBPS is installed when PATH lacks it");
 
+    const auto duplicateAssignments = wtl::DistroDetector::parse(
+        R"(NAME="First name"
+ID=ubuntu
+ID=rocky
+VERSION_ID="1"
+)", noExecutables);
+    ok &= expect(duplicateAssignments.id == QStringLiteral("rocky"),
+                 "later duplicate os-release assignments take precedence");
+    ok &= expect(duplicateAssignments.family == wtl::DistroFamily::RedHat,
+                 "family mapping follows the effective last ID assignment");
+
     const auto orderedLike = wtl::DistroDetector::parse(
         R"(NAME="Derivative with ordered compatibility"
 ID=example-os
