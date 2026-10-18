@@ -8,8 +8,8 @@ StartLimitBurst=3
 
 [Service]
 Type=simple
-Environment=WTL_BIN=%h/.local/bin/win-to-linux
-ExecStart=%h/.local/bin/win-to-linux-isolated-preview
+Environment="WTL_BIN=%h/.local/bin/win-to-linux"
+ExecStart="%h/.local/bin/win-to-linux-isolated-preview"
 Restart=on-failure
 RestartSec=5
 TimeoutStopSec=5

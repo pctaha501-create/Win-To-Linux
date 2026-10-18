@@ -13,7 +13,7 @@ echo "Building and testing Win-To-Linux before installation."
 sh "$ROOT/scripts/build.sh"
 cmake --install "$BUILD_DIR" --prefix "$PREFIX"
 mkdir -p "$UNIT_DIR"
-install -m 0644 "$UNIT_SOURCE" "$UNIT_DIR/Win-To-Linux.service"
+sh "$ROOT/scripts/render-user-service.sh" "$UNIT_SOURCE" "$UNIT_DIR/Win-To-Linux.service" "$PREFIX"
 if command -v systemctl >/dev/null 2>&1 && [ -n "${XDG_RUNTIME_DIR:-}" ]; then
     systemctl --user daemon-reload || echo "Warning: user systemd is unavailable; run systemctl --user daemon-reload after login." >&2
 fi
