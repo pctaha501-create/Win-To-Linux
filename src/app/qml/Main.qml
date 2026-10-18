@@ -32,8 +32,8 @@ ApplicationWindow {
  readonly property color panel: light ? "#ffffff" : "#191f29"
  readonly property color borderColor: light ? "#dce2eb" : "#2b3340"
  header: Rectangle {
-  visible: win.page !== 0
-  height: visible ? 62 : 0; color: win.panel; border.color: win.borderColor
+  visible: false
+  height: 0; color: win.panel; border.color: win.borderColor
   RowLayout { anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
    Rectangle { width: 34; height: 34; radius: 9; color: "#5b8cff"; Text { anchors.centerIn: parent; text: "W"; color: "white"; font.bold: true; font.pixelSize: 20 } }
    ColumnLayout { spacing: 0; Label { text: "Win-To-Linux"; color: win.fg; font.bold: true; font.pixelSize: 17 } Label { text: "Linux desktop workspace"; color: win.muted; font.pixelSize: 11 } }
@@ -736,13 +736,17 @@ ApplicationWindow {
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
-     Button { objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: ""; icon.width: 21; icon.height: 21; icon.source: ""; contentItem: Icon { name: "bell"; size: 20; color: win.light ? "#334155" : "#dbeafe" }; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
+     Button {
+      objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: ""; implicitWidth: 40; implicitHeight: 40; padding: 0
+      contentItem: Icon { name: "bell"; size: 20; color: win.light ? "#334155" : "#dbeafe" }
+      ToolTip.visible: hovered; ToolTip.text: "Notifications"
+      background: Rectangle { radius: 11; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent" }
+      onClicked: notificationCenter.open()
+     }
      Button { objectName: "taskbarQuickSettingsButton"; Accessible.name: "Clock and quick settings"; text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
-   Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:win.page===3?packageOperations.status:win.page===7?fileManager.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
-   }
+    Item { Layout.fillWidth: true; height: 0; visible: false }
   }
  }
 }
