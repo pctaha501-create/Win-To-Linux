@@ -48,7 +48,7 @@ Item {
     border.color: root.borderColor
     RowLayout {
      anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 10
-     Text { text: modelData.isDir ? "📁" : "📄"; color: root.fg; font.pixelSize: 17 }
+     Icon { name: modelData.isDir ? "folder" : "file"; size: 23; color: modelData.isDir ? (root.lightAppearance ? "#2563eb" : "#93c5fd") : root.muted }
      Label { text: modelData.name; color: root.fg; elide: Text.ElideMiddle; Layout.fillWidth: true }
      Label { text: modelData.modified; color: root.muted; font.pixelSize: 10; width: 140 }
      Label { text: modelData.sizeText; color: root.muted; font.pixelSize: 10; width: 90; horizontalAlignment: Text.AlignRight }

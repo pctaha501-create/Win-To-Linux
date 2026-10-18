@@ -691,19 +691,22 @@ ApplicationWindow {
      RowLayout {
       spacing: 5
       Button {
-       objectName: "taskbarStartButton"; Accessible.name: "Start menu"; text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarStartButton"; Accessible.name: "Start menu"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "start"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Start"
        background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
        onClicked: startMenu.open()
       }
       Button {
-       objectName: "taskbarSearchButton"; Accessible.name: "Search applications"; text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSearchButton"; Accessible.name: "Search applications"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "search"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Search apps"
        background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
        onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) }
       }
       Button {
-       objectName: "taskbarLinuxButton"; Accessible.name: "Linux system"; text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarLinuxButton"; Accessible.name: "Linux system"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "system"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Linux"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -712,7 +715,8 @@ ApplicationWindow {
        onClicked: win.page=2
       }
       Button {
-       objectName: "taskbarPackagesButton"; Accessible.name: "Package manager"; text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarPackagesButton"; Accessible.name: "Package manager"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "package"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Packages"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -721,7 +725,8 @@ ApplicationWindow {
        onClicked: win.page=3
       }
       Button {
-       objectName: "taskbarFilesButton"; Accessible.name: "File Explorer"; text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarFilesButton"; Accessible.name: "File Explorer"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "folder"; size: 22; color: win.light ? "#2563eb" : "#93c5fd" }
        ToolTip.visible: hovered; ToolTip.text: "File Explorer"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -730,7 +735,8 @@ ApplicationWindow {
        onClicked: win.page=7
       }
       Button {
-       objectName: "taskbarSettingsButton"; Accessible.name: "Settings"; text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSettingsButton"; Accessible.name: "Settings"; text: ""; implicitWidth: 38; implicitHeight: 36; padding: 0
+        contentItem: Icon { name: "settings"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Settings"
        background: Rectangle {
         radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
@@ -741,7 +747,7 @@ ApplicationWindow {
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
-     Button { objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: "🔔"; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
+     Button { objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: ""; icon.width: 21; icon.height: 21; icon.source: ""; contentItem: Icon { name: "bell"; size: 20; color: win.light ? "#334155" : "#dbeafe" }; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
      Button { objectName: "taskbarQuickSettingsButton"; Accessible.name: "Clock and quick settings"; text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
