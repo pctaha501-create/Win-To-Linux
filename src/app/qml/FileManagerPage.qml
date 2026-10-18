@@ -221,8 +221,12 @@ Item {
                         }
                         HoverHandler { id: rowHover }
                         TapHandler {
+                            id: entryTap
                             acceptedButtons: Qt.LeftButton
-                            onTapped: function(eventPoint, button) { root.choose(modelData); if (tapCount === 2) root.controller.openEntry(modelData.path) }
+                            onTapped: function(eventPoint, button) {
+                                root.choose(modelData)
+                                if (entryTap.tapCount === 2) root.controller.openEntry(modelData.path)
+                            }
                         }
                         TapHandler {
                             acceptedButtons: Qt.RightButton
