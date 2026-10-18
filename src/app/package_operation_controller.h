@@ -11,6 +11,7 @@ class PackageOperationController final : public QObject {
  Q_PROPERTY(QString output READ output NOTIFY outputChanged)
 public:
  explicit PackageOperationController(QObject *parent=nullptr);
+ PackageOperationController(const wtl::DistroInfo &distro,QObject *parent=nullptr);
  bool running() const;
  QString status() const;
  QString output() const;

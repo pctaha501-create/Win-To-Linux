@@ -4,7 +4,10 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
-PackageOperationController::PackageOperationController(QObject *parent):QObject(parent),m_distro(wtl::DistroDetector::detect()){
+PackageOperationController::PackageOperationController(QObject *parent)
+ :PackageOperationController(wtl::DistroDetector::detect(),parent){}
+PackageOperationController::PackageOperationController(const wtl::DistroInfo &distro,QObject *parent)
+ :QObject(parent),m_distro(distro){
  m_timeout.setSingleShot(true);m_killTimer.setSingleShot(true);
  connect(&m_timeout,&QTimer::timeout,this,[this](){if(!m_running)return;m_timedOut=true;setStatus(QStringLiteral("Operation timed out; asking the package manager to stop."));m_process.terminate();m_killTimer.start(1500);});
  connect(&m_killTimer,&QTimer::timeout,this,[this](){if(m_running&&m_process.state()!=QProcess::NotRunning)m_process.kill();});
