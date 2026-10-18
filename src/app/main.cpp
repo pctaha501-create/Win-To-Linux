@@ -241,6 +241,10 @@ int main(int argc,char**argv){
  }else if(hasArgument(argc,argv,"--maximized")){
   if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showMaximized();
   else qWarning()<<"Could not maximize the shell window.";
+ }else if(!hasArgument(argc,argv,"--smoke-test") && !hasArgument(argc,argv,"--startup-smoke-test")){
+  // Normal launches are desktop-shell launches, not a dashboard window. F11 toggles back to windowed mode.
+  if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showFullScreen();
+  else qWarning()<<"Could not enter the default desktop fullscreen mode.";
  }
  if(hasArgument(argc,argv,"--startup-smoke-test"))QTimer::singleShot(3000,&app,&QCoreApplication::quit);
  return app.exec();

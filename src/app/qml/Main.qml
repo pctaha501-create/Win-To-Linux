@@ -32,8 +32,8 @@ ApplicationWindow {
  readonly property color panel: light ? "#ffffff" : "#191f29"
  readonly property color borderColor: light ? "#dce2eb" : "#2b3340"
  header: Rectangle {
-  visible: win.page !== 0
-  height: visible ? 62 : 0; color: win.panel; border.color: win.borderColor
+  visible: false
+  height: 0; color: win.panel; border.color: win.borderColor
   RowLayout { anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 20
    Rectangle { width: 34; height: 34; radius: 9; color: "#5b8cff"; Text { anchors.centerIn: parent; text: "W"; color: "white"; font.bold: true; font.pixelSize: 20 } }
    ColumnLayout { spacing: 0; Label { text: "Win-To-Linux"; color: win.fg; font.bold: true; font.pixelSize: 17 } Label { text: "Linux desktop workspace"; color: win.muted; font.pixelSize: 11 } }
@@ -89,6 +89,8 @@ ApplicationWindow {
   x: Math.max(8, win.width-width-12)
   y: Math.max(8, win.height-height-82)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+   enter: Transition { NumberAnimation { properties: "opacity,scale"; from: 0.94; to: 1.0; duration: 150; easing.type: Easing.OutCubic } }
+   exit: Transition { NumberAnimation { properties: "opacity,scale"; from: 1.0; to: 0.97; duration: 100; easing.type: Easing.InCubic } }
   background: Rectangle { radius: 16; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: ColumnLayout {
    anchors.fill: parent; anchors.margins: 18; spacing: 12
@@ -126,6 +128,8 @@ ApplicationWindow {
   x: Math.max(8, (win.width-width)/2)
   y: Math.max(8, win.height-height-55)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+   enter: Transition { NumberAnimation { properties: "opacity,scale"; from: 0.94; to: 1.0; duration: 150; easing.type: Easing.OutCubic } }
+   exit: Transition { NumberAnimation { properties: "opacity,scale"; from: 1.0; to: 0.97; duration: 100; easing.type: Easing.InCubic } }
   background: Rectangle { radius: 18; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: Flickable {
    id: startMenuScroll; objectName: "startMenuScroll"; anchors.fill: parent; clip: true
@@ -184,7 +188,7 @@ ApplicationWindow {
       background: Rectangle { radius: 7; color: parent.hovered ? (win.light ? "#e7ebf4" : "#343945") : "transparent" }
       contentItem: RowLayout {
        spacing: 10
-       Rectangle { width: 30; height: 30; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true } }
+       Image { source: systemInfo.desktopIconData(modelData.desktopFile); width: 32; height: 32; fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
        ColumnLayout {
         spacing: 1
         Label { text: modelData.name; color: win.fg; font.pixelSize: 12; elide: Text.ElideRight; Layout.fillWidth: true }
@@ -387,6 +391,8 @@ ApplicationWindow {
   x: Math.max(8, win.width - width - 12)
   y: Math.max(8, win.height - height - 82)
   closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+   enter: Transition { NumberAnimation { properties: "opacity,scale"; from: 0.94; to: 1.0; duration: 150; easing.type: Easing.OutCubic } }
+   exit: Transition { NumberAnimation { properties: "opacity,scale"; from: 1.0; to: 0.97; duration: 100; easing.type: Easing.InCubic } }
   background: Rectangle { radius: 16; color: win.light ? "#f7f8fc" : "#20232b"; border.color: win.borderColor }
   contentItem: ColumnLayout {
    anchors.fill: parent; anchors.margins: 16; spacing: 10
@@ -426,24 +432,7 @@ ApplicationWindow {
  }
  RowLayout {
   anchors.fill: parent; spacing: 0
-  Rectangle {
-   Layout.preferredWidth: 205; Layout.fillHeight: true; color: win.panel; border.color: win.borderColor
-   ColumnLayout { anchors.fill: parent; anchors.margins: 12; spacing: 6
-    Label { text: "SECTIONS"; color: win.muted; font.pixelSize: 10; leftPadding: 10; bottomPadding: 8 }
-    Repeater { model: ["Overview","Applications","Linux System","Package Manager","Settings","Processes","Windows Apps","Files","AI Screen Share"]
-     delegate: Button {
-      required property int index; required property string modelData
-      objectName: "sectionNavigationButton_" + index
-      Layout.fillWidth: true; implicitHeight: 43; flat: true
-      background: Rectangle { radius: 8; color: win.page===index ? (win.light?"#dbe6ff":"#2b3e60") : (parent.hovered?(win.light?"#e8edf5":"#252d39"):"transparent") }
-      contentItem: Text { text: modelData; color: win.fg; font.pixelSize: 13; verticalAlignment: Text.AlignVCenter; leftPadding: 10 }
-      onClicked: { win.page=index; if(index===1)systemInfo.refreshApplications(); if(index===5)processMonitor.refreshProcesses() }
-     }
-    }
-    Item { Layout.fillHeight: true }
-    Label { text: "Preview · 0.2.0"; color: win.muted; font.pixelSize: 10; leftPadding: 10 }
-   }
-  }
+  Item { Layout.preferredWidth: 0; Layout.fillHeight: true; visible: false }
   ColumnLayout {
    Layout.fillWidth: true; Layout.fillHeight: true; Layout.margins: win.page === 0 ? 0 : 24; spacing: win.page === 0 ? 0 : 15
    RowLayout {
@@ -495,7 +484,7 @@ ApplicationWindow {
          background: Rectangle { radius: 7; color: parent.hovered ? "#334b78" : "transparent"; border.color: parent.hovered ? "#91baff" : "transparent" }
          contentItem: ColumnLayout {
           spacing: 2
-          Rectangle { Layout.alignment: Qt.AlignHCenter; width: 27; height: 27; radius: 7; color: "#3978d4"; Label { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true; font.pixelSize: 15 } }
+          Image { Layout.alignment: Qt.AlignHCenter; width: 34; height: 34; source: systemInfo.desktopIconData(modelData.desktopFile); fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
           Label { text: modelData.name; color: "white"; font.pixelSize: 9; horizontalAlignment: Text.AlignHCenter; wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight; Layout.fillWidth: true }
          }
          onClicked: win.launchDesktopEntry(modelData.desktopFile)
@@ -514,7 +503,7 @@ ApplicationWindow {
       model: systemInfo.applications.filter(function(a){return a.name.toLowerCase().indexOf(win.search.toLowerCase())>=0||a.comment.toLowerCase().indexOf(win.search.toLowerCase())>=0})
       delegate: Rectangle { required property var modelData; width: ListView.view.width; height: 56; radius: 8; color: win.panel; border.color: win.borderColor
        RowLayout { anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 10; spacing: 10
-        Rectangle { width: 32; height: 32; radius: 8; color: "#5b8cff"; Text { anchors.centerIn: parent; text: modelData.name.charAt(0).toUpperCase(); color: "white"; font.bold: true } }
+        Image { width: 36; height: 36; source: systemInfo.desktopIconData(modelData.desktopFile); fillMode: Image.PreserveAspectFit; smooth: true; cache: true }
         ColumnLayout { Layout.fillWidth: true; spacing: 1; Label { text: modelData.name; color: win.fg; elide: Text.ElideRight; Layout.fillWidth: true } Label { text: modelData.comment; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.fillWidth: true } }
         Button { text: "Open"; onClicked: win.launchDesktopEntry(modelData.desktopFile) }
        }
@@ -685,55 +674,61 @@ ApplicationWindow {
     }
    }
    Rectangle {
-    Layout.fillWidth: true; Layout.preferredHeight: 42; radius: 10; color: win.panel; border.color: win.borderColor
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 0
+    Layout.fillWidth: true; Layout.leftMargin: 180; Layout.rightMargin: 180; Layout.bottomMargin: 8; Layout.preferredHeight: 56; radius: 16; color: win.light ? "#e6f8faff" : "#d9222731"; border.color: win.light ? "#aaffffff" : "#55ffffff"
+    RowLayout { anchors.fill: parent; anchors.leftMargin: 8; anchors.rightMargin: 8; spacing: 0
      Item { Layout.fillWidth: true }
      RowLayout {
       spacing: 5
       Button {
-       objectName: "taskbarStartButton"; Accessible.name: "Start menu"; text: "⊞"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarStartButton"; Accessible.name: "Start menu"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "start"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Start"
-       background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
+       background: Rectangle { radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent" }
        onClicked: startMenu.open()
       }
       Button {
-       objectName: "taskbarSearchButton"; Accessible.name: "Search applications"; text: "⌕"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSearchButton"; Accessible.name: "Search applications"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "search"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Search apps"
-       background: Rectangle { radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent" }
+       background: Rectangle { radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent" }
        onClicked: { systemInfo.refreshApplications(); startMenu.open(); Qt.callLater(function(){ startSearchField.forceActiveFocus() }) }
       }
       Button {
-       objectName: "taskbarLinuxButton"; Accessible.name: "Linux system"; text: "▦"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarLinuxButton"; Accessible.name: "Linux system"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "system"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Linux"
        background: Rectangle {
-        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent"
         Rectangle { visible: win.page === 2; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
        }
        onClicked: win.page=2
       }
       Button {
-       objectName: "taskbarPackagesButton"; Accessible.name: "Package manager"; text: "▤"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarPackagesButton"; Accessible.name: "Package manager"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "package"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Packages"
        background: Rectangle {
-        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent"
         Rectangle { visible: win.page === 3; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
        }
        onClicked: win.page=3
       }
       Button {
-       objectName: "taskbarFilesButton"; Accessible.name: "File Explorer"; text: "📁"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarFilesButton"; Accessible.name: "File Explorer"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "folder"; size: 22; color: win.light ? "#2563eb" : "#93c5fd" }
        ToolTip.visible: hovered; ToolTip.text: "File Explorer"
        background: Rectangle {
-        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent"
         Rectangle { visible: win.page === 7; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
        }
        onClicked: win.page=7
       }
       Button {
-       objectName: "taskbarSettingsButton"; Accessible.name: "Settings"; text: "⚙"; implicitWidth: 38; implicitHeight: 36; padding: 0
+       objectName: "taskbarSettingsButton"; Accessible.name: "Settings"; text: ""; implicitWidth: 44; implicitHeight: 44; padding: 0
+        contentItem: Icon { name: "settings"; size: 21; color: win.light ? "#334155" : "#dbeafe" }
        ToolTip.visible: hovered; ToolTip.text: "Settings"
        background: Rectangle {
-        radius: 8; color: parent.hovered ? (win.light ? "#e5ebf6" : "#303847") : "transparent"
+        radius: 12; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent"
         Rectangle { visible: win.page === 4; width: 12; height: 3; radius: 2; color: "#72a7ff"; anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom }
        }
        onClicked: win.page=4
@@ -741,13 +736,17 @@ ApplicationWindow {
      }
      Item { Layout.fillWidth: true }
      Label { text: systemInfo.desktopEnvironment+" · "+systemInfo.sessionType; color: win.muted; font.pixelSize: 10; elide: Text.ElideRight; Layout.maximumWidth: 135 }
-     Button { objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: "🔔"; ToolTip.visible: hovered; ToolTip.text: "Notifications"; onClicked: notificationCenter.open() }
+     Button {
+      objectName: "taskbarNotificationsButton"; Accessible.name: "Notifications"; text: ""; implicitWidth: 40; implicitHeight: 40; padding: 0
+      contentItem: Icon { name: "bell"; size: 20; color: win.light ? "#334155" : "#dbeafe" }
+      ToolTip.visible: hovered; ToolTip.text: "Notifications"
+      background: Rectangle { radius: 11; color: parent.hovered ? (win.light ? "#d9e7f7" : "#424957") : "transparent" }
+      onClicked: notificationCenter.open()
+     }
      Button { objectName: "taskbarQuickSettingsButton"; Accessible.name: "Clock and quick settings"; text: win.clockText; ToolTip.visible: hovered; ToolTip.text: "Clock and quick settings"; onClicked: quickSettings.open() }
     }
    }
-   Rectangle { Layout.fillWidth: true; Layout.preferredHeight: 28; radius: 7; color: win.panel
-    RowLayout { anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; Label { text: win.page===5?processMonitor.status:win.page===3?packageOperations.status:win.page===7?fileManager.status:systemInfo.status; color: win.muted; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } Label { text: systemInfo.hostName; color: win.muted; font.pixelSize: 10 } }
-   }
+    Item { Layout.fillWidth: true; height: 0; visible: false }
   }
  }
 }
