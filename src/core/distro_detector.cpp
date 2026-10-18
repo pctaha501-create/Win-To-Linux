@@ -3,6 +3,7 @@
 #include <QFileInfo>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
+#include <QSet>
 namespace wtl {
 namespace {
 QString unquote(QString value) {
