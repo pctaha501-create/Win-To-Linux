@@ -12,6 +12,8 @@
 #include <QDebug>
 #include <QWindow>
 #include <QTimer>
+#include <QElapsedTimer>
+#include <QThread>
 #include <QKeyEvent>
 #include <QTemporaryDir>
 #include <QDir>
@@ -111,10 +113,22 @@ int main(int argc,char**argv){
    QObject *popup=root->findChild<QObject *>(popupName);
    return popup&&popup->property("visible").toBool();
   };
+  auto waitForPopupHidden=[&](const QString &popupName)->bool{
+   QObject *popup=root->findChild<QObject *>(popupName);if(!popup)return false;
+   QElapsedTimer elapsed;elapsed.start();
+   while(popup->property("visible").toBool()&&elapsed.elapsed()<500){
+    QCoreApplication::processEvents(QEventLoop::AllEvents,10);QThread::msleep(5);
+   }
+   return !popup->property("visible").toBool();
+  };
   auto closePopup=[&](const QString &popupName)->bool{
    QObject *popup=root->findChild<QObject *>(popupName);
    if(!popup||!QMetaObject::invokeMethod(popup,"close",Qt::DirectConnection))return false;
-   QCoreApplication::processEvents();return true;
+   QElapsedTimer elapsed;elapsed.start();
+   while(popup->property("visible").toBool()&&elapsed.elapsed()<500){
+    QCoreApplication::processEvents(QEventLoop::AllEvents,10);QThread::msleep(5);
+   }
+   return !popup->property("visible").toBool();
   };
   auto popupFitsWindow=[&](const QString &popupName)->bool{
    QObject *popup=root->findChild<QObject *>(popupName);if(!popup)return false;
@@ -133,12 +147,12 @@ int main(int argc,char**argv){
   if(startSearchField->property("text").toString()!=QStringLiteral("settings")){qCritical()<<"Start search field did not follow the shared search state.";return 1;}
   QObject *settingsSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_4"));
   if(!settingsSearchResult||!settingsSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show the Settings section shortcut.";return 1;}
-  if(!clickButton(QStringLiteral("startSearchSection_4"))||root->property("page").toInt()!=4||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting Settings from Start search failed.";return 1;}
+  if(!clickButton(QStringLiteral("startSearchSection_4"))||root->property("page").toInt()!=4||!waitForPopupHidden(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting Settings from Start search failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for AI Screen Share search test.";return 1;}
   root->setProperty("startSearch",QStringLiteral("mcp"));QCoreApplication::processEvents();
   QObject *screenShareSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_8"));
   if(!screenShareSearchResult||!screenShareSearchResult->property("visible").toBool()){qCritical()<<"Start search did not show AI Screen Share for MCP query.";return 1;}
-  if(!clickButton(QStringLiteral("startSearchSection_8"))||root->property("page").toInt()!=8||popupVisible(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting AI Screen Share from Start search failed.";return 1;}
+  if(!clickButton(QStringLiteral("startSearchSection_8"))||root->property("page").toInt()!=8||!waitForPopupHidden(QStringLiteral("startMenuPopup"))){qCritical()<<"Selecting AI Screen Share from Start search failed.";return 1;}
   if(!clickButton(QStringLiteral("taskbarStartButton"))){qCritical()<<"Could not reopen Start for terminal search test.";return 1;}
   root->setProperty("startSearch",QStringLiteral("terminal"));QCoreApplication::processEvents();
   QObject *terminalSearchResult=root->findChild<QObject *>(QStringLiteral("startSearchSection_-1"));
@@ -241,6 +255,10 @@ int main(int argc,char**argv){
  }else if(hasArgument(argc,argv,"--maximized")){
   if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showMaximized();
   else qWarning()<<"Could not maximize the shell window.";
+ }else if(!hasArgument(argc,argv,"--smoke-test") && !hasArgument(argc,argv,"--startup-smoke-test")){
+  // Normal launches are desktop-shell launches, not a dashboard window. F11 toggles back to windowed mode.
+  if(auto *window=qobject_cast<QWindow *>(engine.rootObjects().constFirst()))window->showFullScreen();
+  else qWarning()<<"Could not enter the default desktop fullscreen mode.";
  }
  if(hasArgument(argc,argv,"--startup-smoke-test"))QTimer::singleShot(3000,&app,&QCoreApplication::quit);
  return app.exec();

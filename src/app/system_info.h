@@ -47,6 +47,7 @@ public:
  Q_INVOKABLE QVariantList recentNotifications() const;
  Q_INVOKABLE void saveRecentNotifications(const QVariantList &notifications);
  Q_INVOKABLE void refreshApplications();
+ Q_INVOKABLE QString desktopIconData(const QString &desktopFile) const;
  Q_INVOKABLE bool launchDesktopFile(const QString &path);
  Q_INVOKABLE bool launchWindowsFile(const QString &path);
  Q_INVOKABLE bool launchTerminal();

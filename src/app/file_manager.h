@@ -17,6 +17,7 @@ public:
  bool canGoUp() const;
  Q_INVOKABLE bool navigate(const QString &path);
  Q_INVOKABLE bool goHome();
+ Q_INVOKABLE QVariantList quickAccessLocations() const;
  Q_INVOKABLE bool goUp();
  Q_INVOKABLE void refresh();
  Q_INVOKABLE bool openEntry(const QString &path);
