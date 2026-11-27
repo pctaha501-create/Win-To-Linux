@@ -4,6 +4,8 @@
 #include <QFileInfo>
 #include <QFile>
 #include <QUrl>
+#include <QStandardPaths>
+#include <QSet>
 
 namespace {
 bool copyDirectoryTree(const QString &sourcePath,const QString &destinationPath){
@@ -29,6 +31,34 @@ bool validDestinationDirectory(const QString &path,QString *canonical){
  if(canonical)*canonical=resolved;
  return true;
 }
+QString iconNameForEntry(const QFileInfo &info){
+ if(info.isDir())return QStringLiteral("folder");
+ const QString ext=info.suffix().toLower();
+ if(QSet<QString>{"png","jpg","jpeg","gif","webp","bmp","svg","tif","tiff","heic","avif"}.contains(ext))return QStringLiteral("image");
+ if(QSet<QString>{"mp4","mkv","mov","avi","webm","m4v","mpeg","mpg"}.contains(ext))return QStringLiteral("video");
+ if(QSet<QString>{"mp3","wav","flac","ogg","m4a","aac","opus","wma"}.contains(ext))return QStringLiteral("audio");
+ if(QSet<QString>{"zip","7z","rar","tar","gz","bz2","xz","zst","deb","rpm","iso"}.contains(ext))return QStringLiteral("archive");
+ if(ext==QStringLiteral("pdf"))return QStringLiteral("pdf");
+ if(QSet<QString>{"cpp","c","h","hpp","py","js","ts","tsx","jsx","qml","go","rs","java","kt","sh","bash","html","css","json","xml","yaml","yml","toml","sql"}.contains(ext))return QStringLiteral("code");
+ if(QSet<QString>{"doc","docx","odt","rtf","xls","xlsx","ods","ppt","pptx","odp"}.contains(ext))return QStringLiteral("document");
+ if(QSet<QString>{"txt","md","log","csv","ini","conf"}.contains(ext))return QStringLiteral("text");
+ if(QSet<QString>{"exe","msi","appimage","desktop","bin"}.contains(ext))return QStringLiteral("app");
+ return QStringLiteral("file");
+}
+QString typeLabelForEntry(const QFileInfo &info){
+ const QString icon=iconNameForEntry(info);
+ if(icon==QStringLiteral("folder"))return QStringLiteral("File folder");
+ if(icon==QStringLiteral("image"))return QStringLiteral("Image file");
+ if(icon==QStringLiteral("video"))return QStringLiteral("Video file");
+ if(icon==QStringLiteral("audio"))return QStringLiteral("Audio file");
+ if(icon==QStringLiteral("archive"))return QStringLiteral("Compressed file");
+ if(icon==QStringLiteral("pdf"))return QStringLiteral("PDF document");
+ if(icon==QStringLiteral("code"))return QStringLiteral("Code file");
+ if(icon==QStringLiteral("document"))return QStringLiteral("Document");
+ if(icon==QStringLiteral("text"))return QStringLiteral("Text document");
+ if(icon==QStringLiteral("app"))return QStringLiteral("Application");
+ return info.suffix().isEmpty()?QStringLiteral("File"):info.suffix().toUpper()+QStringLiteral(" file");
+}
 }
 
 FileManager::FileManager(QObject *parent):QObject(parent){
@@ -38,6 +68,28 @@ QString FileManager::currentPath()const{return m_currentPath;}
 QVariantList FileManager::entries()const{return m_entries;}
 QString FileManager::status()const{return m_status;}
 bool FileManager::canGoUp()const{return QDir(m_currentPath).absolutePath()!=QDir::rootPath();}
+QVariantList FileManager::quickAccessLocations()const{
+ QVariantList locations;QSet<QString> seen;
+ auto add=[&](const QString &label,const QString &icon,const QString &path){
+  if(path.isEmpty())return;
+  QFileInfo info(path);if(!info.exists()||!info.isDir()||!info.isReadable())return;
+  QString canonical=info.canonicalFilePath();if(canonical.isEmpty())canonical=info.absoluteFilePath();
+  if(seen.contains(canonical))return;seen.insert(canonical);
+  locations.append(QVariantMap{{QStringLiteral("label"),label},{QStringLiteral("icon"),icon},{QStringLiteral("path"),canonical}});
+ };
+ add(QStringLiteral("Home"),QStringLiteral("home"),QDir::homePath());
+ const QList<QPair<QString,QPair<QString,QStandardPaths::StandardLocation>>> standardFolders{
+  {QStringLiteral("Desktop"),{QStringLiteral("desktop"),QStandardPaths::DesktopLocation}},
+  {QStringLiteral("Documents"),{QStringLiteral("documents"),QStandardPaths::DocumentsLocation}},
+  {QStringLiteral("Downloads"),{QStringLiteral("downloads"),QStandardPaths::DownloadLocation}},
+  {QStringLiteral("Pictures"),{QStringLiteral("pictures"),QStandardPaths::PicturesLocation}},
+  {QStringLiteral("Music"),{QStringLiteral("music"),QStandardPaths::MusicLocation}},
+  {QStringLiteral("Videos"),{QStringLiteral("videos"),QStandardPaths::MoviesLocation}}
+ };
+ for(const auto &folder:standardFolders)add(folder.first,folder.second.first,QStandardPaths::writableLocation(folder.second.second));
+ add(QStringLiteral("File system"),QStringLiteral("drive"),QDir::rootPath());
+ return locations;
+}
 void FileManager::setStatus(const QString&s){if(m_status==s)return;m_status=s;emit statusChanged();}
 bool FileManager::goHome(){return navigate(QDir::homePath());}
 bool FileManager::navigate(const QString&path){
@@ -57,7 +109,7 @@ void FileManager::refresh(){
   QString path=info.absoluteFilePath();QString size;
   if(info.isDir())size=QStringLiteral("Folder");
   else{const qint64 bytes=info.size();if(bytes<1024)size=QStringLiteral("%1 B").arg(bytes);else if(bytes<1024*1024)size=QStringLiteral("%1 KiB").arg(bytes/1024.0,0,'f',1);else size=QStringLiteral("%1 MiB").arg(bytes/(1024.0*1024.0),0,'f',1);}
-  next.append(QVariantMap{{QStringLiteral("name"),info.fileName()},{QStringLiteral("path"),path},{QStringLiteral("isDir"),info.isDir()},{QStringLiteral("sizeText"),size},{QStringLiteral("modified"),info.lastModified().toString(QStringLiteral("yyyy-MM-dd HH:mm"))},{QStringLiteral("readable"),info.isReadable()}});
+  next.append(QVariantMap{{QStringLiteral("name"),info.fileName()},{QStringLiteral("path"),path},{QStringLiteral("isDir"),info.isDir()},{QStringLiteral("iconName"),iconNameForEntry(info)},{QStringLiteral("typeLabel"),typeLabelForEntry(info)},{QStringLiteral("sizeText"),size},{QStringLiteral("modified"),info.lastModified().toString(QStringLiteral("yyyy-MM-dd HH:mm"))},{QStringLiteral("readable"),info.isReadable()}});
  }
  m_entries=next;emit entriesChanged();setStatus(QStringLiteral("%1 entries in %2").arg(m_entries.size()).arg(m_currentPath));
 }

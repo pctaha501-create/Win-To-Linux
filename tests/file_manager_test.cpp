@@ -20,13 +20,16 @@ int main(int argc,char **argv){
  if(!expect(manager.navigate(temporary.path()),"navigate to readable directory"))return 1;
  if(!expect(manager.goHome(),"navigate to user home directory"))return 1;
  if(!expect(manager.currentPath()==QFileInfo(QDir::homePath()).canonicalFilePath(),"home path is canonical"))return 1;
+ bool quickHome=false,quickRoot=false;
+ for(const QVariant &entry:manager.quickAccessLocations()){const QVariantMap item=entry.toMap();const QString path=item.value(QStringLiteral("path")).toString();if(item.value(QStringLiteral("label")).toString()==QStringLiteral("Home"))quickHome=path==QFileInfo(QDir::homePath()).canonicalFilePath();if(item.value(QStringLiteral("label")).toString()==QStringLiteral("File system"))quickRoot=path==QFileInfo(QDir::rootPath()).canonicalFilePath();if(!expect(QFileInfo(path).isDir(),"quick access entries point to existing directories"))return 1;}
+ if(!expect(quickHome&&quickRoot,"quick access includes Home and File system"))return 1;
  if(!expect(manager.navigate(temporary.path()),"return to test fixture directory"))return 1;
  if(!expect(manager.entries().size()==2,"list folder and file"))return 1;
  bool foundFolder=false,foundFile=false;
  for(const QVariant &entry:manager.entries()){
   const QVariantMap item=entry.toMap();
   if(item.value(QStringLiteral("name")).toString()==QStringLiteral("Folder"))foundFolder=item.value(QStringLiteral("isDir")).toBool();
-  if(item.value(QStringLiteral("name")).toString()==QStringLiteral("sample.txt"))foundFile=!item.value(QStringLiteral("isDir")).toBool()&&item.value(QStringLiteral("sizeText")).toString()==QStringLiteral("5 B");
+  if(item.value(QStringLiteral("name")).toString()==QStringLiteral("sample.txt"))foundFile=!item.value(QStringLiteral("isDir")).toBool()&&item.value(QStringLiteral("sizeText")).toString()==QStringLiteral("5 B")&&item.value(QStringLiteral("iconName")).toString()==QStringLiteral("text")&&item.value(QStringLiteral("typeLabel")).toString()==QStringLiteral("Text document");
  }
  if(!expect(foundFolder,"folder metadata")||!expect(foundFile,"file metadata"))return 1;
 

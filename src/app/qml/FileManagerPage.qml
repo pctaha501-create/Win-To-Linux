@@ -30,6 +30,18 @@ Item {
     function filtered(entry) {
         return searchText.trim().length === 0 || entry.name.toLowerCase().indexOf(searchText.trim().toLowerCase()) >= 0
     }
+    function entryIconColor(iconName) {
+        if (iconName === "folder") return lightAppearance ? "#2475d7" : "#82baff"
+        if (iconName === "image") return lightAppearance ? "#23865d" : "#76d5a6"
+        if (iconName === "video") return lightAppearance ? "#7453c6" : "#b6a0ff"
+        if (iconName === "audio") return lightAppearance ? "#b66a18" : "#ffbd72"
+        if (iconName === "archive") return lightAppearance ? "#9b7418" : "#e8c66e"
+        if (iconName === "pdf") return lightAppearance ? "#c43d3d" : "#ff8585"
+        if (iconName === "code") return lightAppearance ? "#1768a8" : "#7cc8ff"
+        if (iconName === "document") return lightAppearance ? "#2876b9" : "#86bfff"
+        if (iconName === "app") return lightAppearance ? "#16847d" : "#6dd7ca"
+        return muted
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -149,15 +161,22 @@ Item {
                 ColumnLayout {
                     anchors.fill: parent; anchors.margins: 10; spacing: 5
                     Label { text: "Quick access"; color: root.muted; font.pixelSize: 11; font.bold: true; leftPadding: 9; bottomPadding: 6 }
-                    Button {
-                        objectName: "fileManagerNavHome"; Layout.fillWidth: true; text: "Home"; icon.name: "home"; flat: true
-                        onClicked: root.controller.goHome()
-                        background: Rectangle { radius: 6; color: parent.hovered ? root.surface : "transparent" }
-                    }
-                    Button {
-                        objectName: "fileManagerNavFilesystem"; Layout.fillWidth: true; text: "File system"; icon.name: "drive"; flat: true
-                        onClicked: root.controller.navigate("/")
-                        background: Rectangle { radius: 6; color: parent.hovered ? root.surface : "transparent" }
+                    Repeater {
+                        model: root.controller.quickAccessLocations()
+                        delegate: Button {
+                            required property var modelData
+                            Layout.fillWidth: true; implicitHeight: 36; flat: true
+                            background: Rectangle {
+                                radius: 6
+                                color: parent.hovered ? root.surface : (root.controller.currentPath === modelData.path ? (root.lightAppearance ? "#e4efff" : "#2b394d") : "transparent")
+                            }
+                            contentItem: RowLayout {
+                                spacing: 10
+                                Icon { name: modelData.icon; size: 18; color: root.accent }
+                                Label { text: modelData.label; color: root.fg; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
+                            }
+                            onClicked: root.controller.navigate(modelData.path)
+                        }
                     }
                     Rectangle { Layout.fillWidth: true; Layout.topMargin: 7; Layout.bottomMargin: 7; height: 1; color: root.line }
                     Label { text: "Current location"; color: root.muted; font.pixelSize: 11; font.bold: true; leftPadding: 9 }
@@ -207,16 +226,16 @@ Item {
                         RowLayout {
                             anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 12; spacing: 10
                             visible: !root.iconView
-                            Icon { name: modelData.isDir ? "folder" : "file"; size: 23; color: modelData.isDir ? (root.lightAppearance ? "#2475d7" : "#82baff") : root.muted }
+                            Icon { name: modelData.iconName; size: 23; color: root.entryIconColor(modelData.iconName) }
                             Label { text: modelData.name; color: root.fg; elide: Text.ElideMiddle; Layout.fillWidth: true }
                             Label { text: modelData.modified; color: root.muted; font.pixelSize: 11; width: 150; elide: Text.ElideRight }
-                            Label { text: modelData.isDir ? "File folder" : (modelData.name.lastIndexOf(".") > 0 ? modelData.name.substring(modelData.name.lastIndexOf(".")+1).toUpperCase() + " file" : "File"); color: root.muted; font.pixelSize: 11; width: 100; elide: Text.ElideRight }
+                            Label { text: modelData.typeLabel; color: root.muted; font.pixelSize: 11; width: 100; elide: Text.ElideRight }
                             Label { text: modelData.isDir ? "—" : modelData.sizeText; color: root.muted; font.pixelSize: 11; width: 82; horizontalAlignment: Text.AlignRight }
                         }
                         ColumnLayout {
                             anchors.fill: parent; anchors.margins: 10; spacing: 6
                             visible: root.iconView
-                            Icon { Layout.alignment: Qt.AlignHCenter; name: modelData.isDir ? "folder" : "file"; size: 34; color: modelData.isDir ? (root.lightAppearance ? "#2475d7" : "#82baff") : root.muted }
+                            Icon { Layout.alignment: Qt.AlignHCenter; name: modelData.iconName; size: 34; color: root.entryIconColor(modelData.iconName) }
                             Label { Layout.fillWidth: true; text: modelData.name; color: root.fg; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle; maximumLineCount: 2; wrapMode: Text.Wrap; font.pixelSize: 11 }
                         }
                         HoverHandler { id: rowHover }
