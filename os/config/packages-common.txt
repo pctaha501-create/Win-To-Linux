@@ -1,0 +1,24 @@
+# Runtime package seed for the independent Win-To-Linux root filesystem.
+systemd
+udev
+dbus
+bash
+coreutils
+util-linux
+sudo
+ca-certificates
+curl
+wget
+network-manager
+iproute2
+iputils-ping
+openssh-client
+openssh-server
+pipewire
+wireplumber
+mesa-utils
+mesa-vulkan-drivers
+libgl1
+libegl1
+fontconfig
+fonts-dejavu-core

@@ -1,0 +1,31 @@
+name: OS build foundation
+on:
+  push:
+    branches: [main, 'distro/**']
+    paths:
+      - 'os/**'
+      - '.github/workflows/os-build-foundation.yml'
+  pull_request:
+    paths:
+      - 'os/**'
+      - '.github/workflows/os-build-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate-and-inventory:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate OS manifests and scripts
+        run: ./os/scripts/validate-config.sh
+      - name: Test DEB metadata inspection
+        run: ./os/scripts/test-package-tools.sh
+      - name: Capture build-host inventory
+        run: ./os/scripts/inventory-host.sh "$RUNNER_TEMP/wtl-host-inventory"
+      - name: Upload inventory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wtl-build-host-inventory
+          path: ${{ runner.temp }}/wtl-host-inventory/
+          retention-days: 7

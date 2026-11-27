@@ -8,3 +8,7 @@ CMakeUserPresets.json
 .idea/
 .vscode/
 .DS_Store
+
+# Independent OS build outputs and host-specific inventories
+/out/
+os/manifests/host-*/
