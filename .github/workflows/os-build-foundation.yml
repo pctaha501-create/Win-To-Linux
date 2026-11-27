@@ -2,13 +2,9 @@ name: OS build foundation
 on:
   push:
     branches: [main, 'distro/**']
-    paths:
-      - 'os/**'
-      - '.github/workflows/os-build-foundation.yml'
+    paths: ['os/**', '.github/workflows/os-build-foundation.yml']
   pull_request:
-    paths:
-      - 'os/**'
-      - '.github/workflows/os-build-foundation.yml'
+    paths: ['os/**', '.github/workflows/os-build-foundation.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,9 +19,43 @@ jobs:
         run: ./os/scripts/test-package-tools.sh
       - name: Capture build-host inventory
         run: ./os/scripts/inventory-host.sh "$RUNNER_TEMP/wtl-host-inventory"
-      - name: Upload inventory artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: wtl-build-host-inventory
           path: ${{ runner.temp }}/wtl-host-inventory/
           retention-days: 7
+  build-rootfs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install isolated rootfs build tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mmdebstrap ca-certificates
+      - name: Build standalone Noble root filesystem
+        env:
+          WTL_SUITE: noble
+          WTL_ARCH: amd64
+          WTL_MIRROR: http://archive.ubuntu.com/ubuntu
+        run: sudo --preserve-env=WTL_SUITE,WTL_ARCH,WTL_MIRROR ./os/scripts/build-rootfs.sh
+      - name: Verify root filesystem without booting host services
+        run: |
+          test -x out/rootfs/bin/bash
+          test -x out/rootfs/usr/bin/apt-get
+          test -x out/rootfs/usr/bin/dpkg-query
+          test -x out/rootfs/usr/lib/systemd/systemd
+          test -s out/rootfs/var/lib/win-to-linux-package-manifest.tsv
+          test -s out/rootfs/var/lib/win-to-linux-build.json
+          grep -q '^ID=win-to-linux$' out/rootfs/etc/os-release
+          test -d out/rootfs/dev && test -d out/rootfs/proc && test -d out/rootfs/sys && test -d out/rootfs/run
+          dpkg-query --admindir=out/rootfs/var/lib/dpkg -W systemd apt dpkg
+      - name: Package rootfs artifact
+        run: tar --numeric-owner --xattrs -C out -I 'gzip -1' -cf out/win-to-linux-rootfs-noble-amd64.tar.gz rootfs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: win-to-linux-rootfs-noble-amd64
+          path: out/win-to-linux-rootfs-noble-amd64.tar.gz
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

@@ -1,7 +1,9 @@
-# Runtime package seed for the independent Win-To-Linux root filesystem.
+# Runtime seed for standalone Win-To-Linux Noble root.
 systemd
+systemd-sysv
 udev
 dbus
+dbus-user-session
 bash
 coreutils
 util-linux
@@ -12,8 +14,12 @@ wget
 network-manager
 iproute2
 iputils-ping
+netbase
 openssh-client
 openssh-server
+procps
+kmod
+e2fsprogs
 pipewire
 wireplumber
 mesa-utils
@@ -22,3 +28,7 @@ libgl1
 libegl1
 fontconfig
 fonts-dejavu-core
+locales
+tzdata
+less
+vim-tiny
